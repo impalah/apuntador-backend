@@ -1,0 +1,189 @@
+name: Inspect, Build and Release
+
+on:
+  # push:
+  #   branches:
+  #     - main
+
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Manual launch"
+
+jobs:
+  inspect_build_release:
+    runs-on: ubuntu-latest
+    environment:
+      name: pro
+      url: https://github.com
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry==1.7.1
+
+      - name: Install project dependencies
+        run: |
+          poetry --version
+          poetry env use python3.12
+          poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
+          source $(poetry env info --path)/bin/activate
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run tests
+        run: |
+          poetry run pytest ./tests
+
+      - name: Update project version
+        run: |
+          poetry version patch
+
+      - name: Commit and push version update
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add pyproject.toml
+          git commit -m "Update project version" || echo "No changes to commit"
+          git push origin HEAD
+
+      - name: Read version and set ImageTag
+        id: version
+        run: |
+          VERSION=$(poetry version | cut -d ' ' -f 2)
+          echo "IMAGE_TAG=${VERSION}" >> $GITHUB_ENV
+          echo "IMAGE_LAMBDA_TAG=${VERSION}-lambda" >> $GITHUB_ENV
+          echo "IMAGE_BUILD_TAG=${VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Build documentation
+        run: |
+          poetry run sphinx-build docs_source docs
+
+      - name: Commit and push documentation
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add docs/*
+          git commit -m "Update documentation" || echo "No changes to commit"
+          git push origin HEAD
+
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+  
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry: ${{ vars.AWS_ECR_REGISTRY }}
+          region: ${{ vars.AWS_REGION }}
+  
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
+  
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Dockerfile
+          sbom: true
+          push: true
+          provenance: mode=max
+          platforms: linux/amd64
+          tags: |
+            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_BUILD_TAG }}
+            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:latest          
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_BUILD_TAG }}
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:latest
+  
+      # Lambda manifest requires no provenance
+      - name: Build and push lambda image
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Dockerfile.lambda
+          push: true
+          provenance: false
+          platforms: linux/amd64
+          tags: |
+            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_LAMBDA_TAG }}
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_LAMBDA_TAG }}
+
+      - name: Set IMAGE output
+        env:
+          REPOSITORY: ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_BUILD_TAG: ${{ env.IMAGE_BUILD_TAG }}
+        id: set_output
+        run: |
+          IMAGE="${REPOSITORY}:${IMAGE_TAG}"
+          echo "${IMAGE_TAG}" > ${{ github.workspace }}/image_tag.txt
+          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+  
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     IMAGE_TAG: ${{ env.IMAGE_TAG }}
+      #     IMAGE_BUILD_TAG: ${{ env.IMAGE_BUILD_TAG }}
+      #   with:
+      #     tag_name: ${{ env.IMAGE_TAG }}
+      #     release_name: ${{ env.IMAGE_TAG }}
+      #     draft: false
+      #     prerelease: false
+  
+      # - name: Upload Release Asset
+      #   id: upload_release
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ${{ github.workspace }}/image_tag.txt
+      #     asset_name: image_tag.txt
+      #     asset_content_type: text/plain
+    
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: image_tag.txt
+          path: ${{ github.workspace }}/image_tag.txt
+          if-no-files-found: error
+  
+    outputs:
+      image: ${{ steps.set_output.outputs.image }}
+  
+  
