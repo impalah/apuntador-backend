@@ -26,12 +26,6 @@ app.add_middleware(
     infrastructure_factory=infrastructure_factory,
 )
 
-# Configure docs endpoints based on settings
-if not settings.enable_docs:
-    app.docs_url = None
-    app.redoc_url = None
-    app.openapi_url = None
-
 
 @app.get("/")
 async def root() -> dict[str, str]:
