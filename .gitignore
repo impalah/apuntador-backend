@@ -51,6 +51,20 @@ ca_keys/
 *.key
 *.crt
 
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
 # Testing
 .pytest_cache/
 .coverage
