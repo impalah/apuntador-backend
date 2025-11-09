@@ -9,7 +9,7 @@ This guide explains how to modify the Apuntador client to use the centralized OA
 │   Client    │
 │  Apuntador  │
 └──────┬──────┘
-       │ 1. POST /api/oauth/authorize/googledrive
+       │ 1. POST /oauth/authorize/googledrive
        │    { code_verifier: "..." }
        ▼
 ┌─────────────┐
@@ -26,7 +26,7 @@ This guide explains how to modify the Apuntador client to use the centralized OA
 ┌─────────────┐
 │   Google    │  4. User authorizes
 └──────┬──────┘
-       │ 5. Redirect to backend/api/oauth/callback/googledrive?code=...
+       │ 5. Redirect to backend/oauth/callback/googledrive?code=...
        ▼
 ┌─────────────┐
 │   Backend   │  6. Redirect to apuntador://oauth-callback?code=...&state=...
@@ -34,7 +34,7 @@ This guide explains how to modify the Apuntador client to use the centralized OA
        │
        ▼
 ┌─────────────┐
-│   Client    │  7. POST /api/oauth/token/googledrive
+│   Client    │  7. POST /oauth/token/googledrive
 │             │     { code: "...", code_verifier: "...", state: "..." }
 └──────┬──────┘
        │
@@ -82,7 +82,7 @@ export class BackendOAuthService {
    * Starts OAuth flow through the backend
    */
   async authorize(provider: 'googledrive' | 'dropbox', codeVerifier: string): Promise<string> {
-    const response = await axios.post(`${BACKEND_URL}/api/oauth/authorize/${provider}`, {
+    const response = await axios.post(`${BACKEND_URL}/oauth/authorize/${provider}`, {
       code_verifier: codeVerifier,
     })
 
@@ -116,7 +116,7 @@ export class BackendOAuthService {
       throw new Error('Code verifier not found')
     }
 
-    const response = await axios.post(`${BACKEND_URL}/api/oauth/token/${provider}`, {
+    const response = await axios.post(`${BACKEND_URL}/oauth/token/${provider}`, {
       code,
       code_verifier: codeVerifier,
       state,
@@ -136,7 +136,7 @@ export class BackendOAuthService {
     provider: 'googledrive' | 'dropbox',
     refreshToken: string,
   ): Promise<BackendOAuthTokens> {
-    const response = await axios.post(`${BACKEND_URL}/api/oauth/refresh/${provider}`, {
+    const response = await axios.post(`${BACKEND_URL}/oauth/refresh/${provider}`, {
       refresh_token: refreshToken,
     })
 
@@ -147,7 +147,7 @@ export class BackendOAuthService {
    * Revokes token
    */
   async revokeToken(provider: 'googledrive' | 'dropbox', token: string): Promise<void> {
-    await axios.post(`${BACKEND_URL}/api/oauth/revoke/${provider}`, {
+    await axios.post(`${BACKEND_URL}/oauth/revoke/${provider}`, {
       token,
     })
   }

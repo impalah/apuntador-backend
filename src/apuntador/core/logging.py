@@ -54,7 +54,7 @@ def configure_logger() -> None:
         level=settings.log_level.upper(),
         format=settings.log_format,
         filter=add_trace_id,
-        colorize=True,
+        colorize=False,
         serialize=False,
         backtrace=True,
         diagnose=True,

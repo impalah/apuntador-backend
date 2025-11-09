@@ -41,46 +41,78 @@ apuntador-backend/
 │   └── apuntador/
 │       ├── __init__.py           # Package initialization with version
 │       ├── main.py               # FastAPI app entry point
+│       ├── application.py        # FastAPI app factory
+│       ├── lambda_main.py        # AWS Lambda handler (Mangum)
 │       ├── config.py             # Pydantic Settings configuration
-│       ├── models.py             # Request/response Pydantic models
+│       ├── openapi.py            # OpenAPI/Swagger documentation
 │       ├── core/
 │       │   └── logging.py        # Loguru configuration
 │       ├── middleware/
 │       │   ├── __init__.py       # TraceIDMiddleware for request tracking
-│       │   └── mtls_validation.py  # mTLS certificate validation (NEW)
-│       ├── routers/
-│       │   ├── __init__.py       # Router registration
-│       │   ├── health.py         # Health check endpoint
-│       │   ├── oauth.py          # OAuth 2.0 endpoints (authorize, callback, token, refresh, revoke)
-│       │   └── device_enrollment.py  # Device enrollment for mTLS (NEW)
+│       │   └── mtls_validation.py  # mTLS certificate validation
+│       ├── api/
+│       │   └── v1/
+│       │       ├── __init__.py   # API route prefixes (no /api prefix)
+│       │       ├── oauth/        # OAuth 2.0 endpoints
+│       │       │   ├── api.py    # authorize, callback, token, refresh, revoke
+│       │       │   └── services.py  # OAuth service factory
+│       │       └── device/       # Device enrollment & mTLS
+│       │           ├── api.py    # enroll, renew, revoke, status, CA cert
+│       │           └── attestation/  # Device attestation
+│       │               ├── api.py    # android, ios, desktop attestation
+│       │               └── services.py  # Attestation implementations
+│       ├── models/
+│       │   ├── __init__.py
+│       │   ├── oauth.py          # OAuth request/response models
+│       │   ├── device.py         # Device enrollment models
+│       │   └── errors.py         # RFC 7807 Problem Details
 │       ├── services/
-│       │   ├── oauth_base.py     # Abstract base class for OAuth services
-│       │   ├── googledrive.py    # Google Drive OAuth implementation
-│       │   ├── dropbox.py        # Dropbox OAuth implementation
-│       │   ├── certificate_authority.py  # CA signing logic (NEW)
-│       │   └── device_attestation.py     # SafetyNet/DeviceCheck (NEW)
-│       ├── infrastructure/       # NEW: Abstraction layer for cloud services
-│       │   ├── repositories/     # Abstract interfaces
+│       │   ├── oauth/
+│       │   │   ├── oauth_base.py      # Abstract OAuth service
+│       │   │   ├── googledrive.py     # Google Drive OAuth
+│       │   │   └── dropbox.py         # Dropbox OAuth
+│       │   ├── certificate/
+│       │   │   ├── certificate_authority.py  # CA signing
+│       │   │   ├── certificate_manager.py    # Certificate lifecycle
+│       │   │   └── certificate_storage.py    # DynamoDB interface
+│       │   └── device_attestation/
+│       │       ├── android_safetynet.py      # Android attestation
+│       │       └── ios_devicecheck.py        # iOS attestation
+│       ├── infrastructure/       # Repository pattern for cloud abstraction
+│       │   ├── repositories/
 │       │   │   ├── certificate_repository.py
 │       │   │   ├── secrets_repository.py
 │       │   │   └── storage_repository.py
 │       │   ├── implementations/
 │       │   │   ├── local/        # File-based (development)
-│       │   │   ├── aws/          # DynamoDB, S3, Secrets Manager
-│       │   │   └── azure/        # Future: CosmosDB, Blob Storage
+│       │   │   └── aws/          # DynamoDB, S3, Secrets Manager
 │       │   └── factory.py        # Provider selection
-```
 │       ├── utils/
 │       │   ├── pkce.py           # PKCE utilities (code_verifier, code_challenge)
 │       │   └── security.py       # Token signing and state generation
 │       └── examples/
-│           └── settings_usage.py # Configuration usage examples
+│           └── settings_usage.py # Configuration usage examples (English)
 ├── tests/
-│   ├── test_pkce.py              # PKCE utilities tests
-│   └── ...                       # Additional test files
+│   ├── unit/                     # Unit tests
+│   ├── integration/              # Integration tests
+│   └── fixtures/                 # Test fixtures
+├── iac/                          # Terraform infrastructure
+│   ├── modules/
+│   │   └── lambda/               # Reusable Lambda module
+│   └── stacks/
+│       └── 01.applications/
+│           ├── 01.network.tf     # VPC, subnets (if needed)
+│           ├── 02.domain-ssl.tf  # API Gateway, ACM, Route53
+│           ├── 03.database.tf    # DynamoDB tables
+│           └── 04.application.tf # Lambda function
 ├── docs/
-│   ├── CONFIGURATION.md          # Pydantic Settings v2 guide
-│   └── LOGGING.md                # Loguru logging documentation
+│   ├── AWS_DEPLOYMENT_GUIDE.md
+│   ├── CERTIFICATE_LIFECYCLE.md
+│   └── INFRASTRUCTURE_ABSTRACTION.md
+├── .devcontainer/                # VS Code Dev Container
+│   ├── devcontainer.json         # Container configuration
+│   ├── Dockerfile                # Python 3.12 + uv + AWS CLI
+│   └── README.md                 # Dev container usage guide
 ├── .env.example                  # Environment variables template
 ├── pyproject.toml                # Project dependencies and tool config
 ├── Dockerfile                    # Standard container deployment
@@ -200,7 +232,7 @@ def verify_code_challenge(code_verifier: str, code_challenge: str) -> bool:
 
 ### OAuth Flow Endpoints
 ```python
-# src/apuntador/routers/oauth.py
+# src/apuntador/v1/oauth/api.py
 @router.post("/authorize/{provider}")
 async def authorize(provider: str, request: OAuthAuthorizeRequest):
     """
@@ -357,12 +389,12 @@ ALLOWED_ORIGINS=http://localhost:3000,capacitor://localhost,tauri://localhost
 # Google Drive OAuth
 GOOGLE_CLIENT_ID=123456789-abc.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-your-secret-here
-GOOGLE_REDIRECT_URI=https://apuntador.ngrok.app/api/oauth/callback/googledrive
+GOOGLE_REDIRECT_URI=https://apuntador.ngrok.app/oauth/callback/googledrive
 
 # Dropbox OAuth
 DROPBOX_CLIENT_ID=your-dropbox-app-key
 DROPBOX_CLIENT_SECRET=your-dropbox-app-secret
-DROPBOX_REDIRECT_URI=https://apuntador.ngrok.app/api/oauth/callback/dropbox
+DROPBOX_REDIRECT_URI=https://apuntador.ngrok.app/oauth/callback/dropbox
 ```
 
 **Optional Variables**:
@@ -375,7 +407,7 @@ ENABLE_REQUEST_LOGGING=true       # Log all HTTP requests
 # OneDrive OAuth (not yet implemented)
 ONEDRIVE_CLIENT_ID=your-client-id
 ONEDRIVE_CLIENT_SECRET=your-client-secret
-ONEDRIVE_REDIRECT_URI=https://apuntador.ngrok.app/api/oauth/callback/onedrive
+ONEDRIVE_REDIRECT_URI=https://apuntador.ngrok.app/oauth/callback/onedrive
 ```
 
 ## API Endpoints Reference
@@ -388,7 +420,7 @@ Response: {"status": "healthy", "version": "1.0.0"}
 
 ### OAuth Authorization
 ```http
-POST /api/oauth/authorize/{provider}
+POST /oauth/authorize/{provider}
 Body: {
   "redirect_uri": "your-app-callback-url",
   "state": "optional-client-state"
@@ -401,7 +433,7 @@ Response: {
 
 ### OAuth Callback
 ```http
-GET /api/oauth/callback/{provider}?code=AUTH_CODE&state=SIGNED_STATE
+GET /oauth/callback/{provider}?code=AUTH_CODE&state=SIGNED_STATE
 Response: {
   "access_token": "ya29.a0AfB_...",
   "refresh_token": "1//0gZ8k...",
@@ -412,7 +444,7 @@ Response: {
 
 ### Token Refresh
 ```http
-POST /api/oauth/token/refresh/{provider}
+POST /oauth/token/refresh/{provider}
 Body: {"refresh_token": "1//0gZ8k..."}
 Response: {
   "access_token": "ya29.a0AfB_...",
@@ -423,7 +455,7 @@ Response: {
 
 ### Token Revocation
 ```http
-POST /api/oauth/token/revoke/{provider}
+POST /oauth/token/revoke/{provider}
 Body: {"token": "ya29.a0AfB_..."}
 Response: {"success": true}
 ```
@@ -493,16 +525,14 @@ gunicorn apuntador.main:app \
 ## Key Files to Reference
 
 - `src/apuntador/config.py` - Configuration patterns with Pydantic Settings v2
-- `src/apuntador/routers/oauth.py` - OAuth endpoint implementation (350 lines)
-- `src/apuntador/services/oauth_base.py` - Abstract base class for new providers
+- `src/apuntador/v1/oauth/api.py` - OAuth endpoint implementation
+- `src/apuntador/services/oauth/oauth_base.py` - Abstract base class for new providers
 - `src/apuntador/utils/pkce.py` - PKCE implementation reference
 - `src/apuntador/middleware/__init__.py` - Trace ID middleware pattern
-- `docs/CONFIGURATION.md` - Comprehensive configuration guide (292 lines)
-- `docs/LOGGING.md` - Logging system documentation (457 lines)
-- `docs/MTLS_IMPLEMENTATION_PLAN.md` - Complete mTLS implementation plan (NEW)
-- `docs/CA_SETUP_GUIDE.md` - Certificate Authority setup instructions (NEW)
-- `docs/CERTIFICATE_LIFECYCLE.md` - Certificate enrollment, renewal, revocation (NEW)
-- `docs/INFRASTRUCTURE_ABSTRACTION.md` - Repository pattern for cloud providers (NEW)
+- `src/apuntador/middleware/mtls_validation.py` - mTLS certificate validation
+- `docs/AWS_DEPLOYMENT_GUIDE.md` - AWS Lambda deployment guide
+- `docs/CERTIFICATE_LIFECYCLE.md` - Certificate enrollment, renewal, revocation
+- `docs/INFRASTRUCTURE_ABSTRACTION.md` - Repository pattern for cloud providers
 - `CLIENT_INTEGRATION.md` - Client-side integration instructions
 
 ## Infrastructure Abstraction Pattern
@@ -538,8 +568,8 @@ class CertificateRepository(ABC):
 ## mTLS Device Enrollment Flow
 
 ```python
-# src/apuntador/routers/device_enrollment.py
-@router.post("/api/device/enroll")
+# src/apuntador/v1/device/api.py
+@router.post("/enroll")
 async def enroll_device(request: EnrollmentRequest):
     """
     Enrolls a device by signing its CSR.
@@ -566,9 +596,9 @@ async def enroll_device(request: EnrollmentRequest):
 
 ## Adding a New OAuth Provider
 
-1. **Create service class** in `src/apuntador/services/`:
+1. **Create service class** in `src/apuntador/services/oauth/`:
 ```python
-# src/apuntador/services/onedrive.py
+# src/apuntador/services/oauth/onedrive.py
 class OneDriveOAuthService(OAuthServiceBase):
     AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
@@ -591,7 +621,7 @@ onedrive_client_secret: str = Field(description="OneDrive OAuth client secret")
 onedrive_redirect_uri: str = Field(description="OneDrive OAuth redirect URI")
 ```
 
-3. **Register in router factory** (`src/apuntador/routers/oauth.py`):
+3. **Register in service factory** (`src/apuntador/v1/oauth/services.py`):
 ```python
 def get_oauth_service(provider: str, settings: Settings) -> OAuthServiceBase:
     services = {

@@ -1,0 +1,20 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameters",
+                "secretsmanager:GetSecretValue",
+                "kms:Decrypt"
+            ],
+            "Resource": [
+                "${CORS_ALLOWED_ORIGINS}",
+                "${SQLALCHEMY_DATABASE_URI}",
+                "${USERS_MASTER_PASSWORD}",
+                "${SELECTOR_TYPES}",
+                "${COMMON_WORK_SHIFT}",
+                "${aws_kms_ssm_default_key}"            ]
+        }
+    ]
+}

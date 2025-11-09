@@ -1,0 +1,39 @@
+[
+  {
+    "name": "${container_name}",
+    "image": "${image}",
+    "command": ["--replSet", "rs0"],
+    "portMappings": [
+      {
+        "containerPort": ${container_port},
+        "protocol": "tcp",
+        "name": "${container_name}-${container_port}-tcp",
+        "hostPort": ${container_port}
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-region": "${logs_region}",
+        "awslogs-stream-prefix": "${stream_prefix}-log-stream",
+        "awslogs-group": "${logs_group}"
+      }
+    },
+    "essential": true,
+    "entrypoint": ${jsonencode(entrypoint)},
+    "mountPoints": [
+      %{ for mount_point in mount_points ~}
+      {
+        "sourceVolume": "${mount_point.source_volume}",
+        "containerPath": "${mount_point.container_path}",
+        "readOnly": false
+      }%{ endfor ~}
+    ],
+    "environment": [
+      {
+        "name": "APP_ENV",
+        "value": "local"
+      }
+    ]
+  }
+]

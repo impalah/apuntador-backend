@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ecs:StartTask",
+        "ecs:StopTask",
+        "ecs:DescribeTasks",
+        "ecs:ListTasks"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "elasticloadbalancing:RegisterTargets",
+        "elasticloadbalancing:DeregisterTargets",
+        "elasticloadbalancing:DescribeTargetHealth"
+      ],
+      "Resource": "arn:aws:elasticloadbalancing:eu-west-1:471112878456:targetgroup/alb-alb-tg-8000/00fbda18859233d9",
+      "Effect": "Allow"
+    }
+  ]
+}

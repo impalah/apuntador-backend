@@ -26,12 +26,15 @@ ENV/
 env/
 .venv
 
-# IDE
-.vscode/
+# IDE - Allow .vscode/ to be committed
 .idea/
 *.swp
 *.swo
 *~
+
+# Python cache and linting
+.mypy_cache/
+.ruff_cache/
 
 # Environment variables
 .env
@@ -61,4 +64,5 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-iac/
+*.conf
+*.tfvars

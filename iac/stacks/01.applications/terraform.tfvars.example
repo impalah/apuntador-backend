@@ -1,0 +1,34 @@
+# ========================================
+# Apuntador Backend Configuration
+# ========================================
+
+# Basic Configuration
+environment = "production"
+project     = "apuntador"
+region      = "eu-west-1"
+
+# API Container Image (from ECR)
+api_image = "670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:0.1.0"
+
+# Application Configuration
+debug           = "false"
+secret_key      = "your-super-secure-secret-key-min-32-chars-here"
+allowed_origins = "https://apuntador.app,capacitor://localhost,tauri://localhost"
+log_level       = "INFO"
+
+# AWS Infrastructure
+aws_region             = "eu-west-1"
+dynamodb_table_name    = "apuntador-certificates"
+s3_bucket_name         = "apuntador-storage-prod"
+secrets_prefix         = "apuntador"
+auto_create_resources  = "true"
+
+# Google Drive OAuth
+google_client_id       = "your-google-client-id.apps.googleusercontent.com"
+google_client_secret   = "GOCSPX-your-google-client-secret"
+google_redirect_uri    = "https://api.apuntador.app/oauth/callback/googledrive"
+
+# Dropbox OAuth
+dropbox_client_id      = "your-dropbox-app-key"
+dropbox_client_secret  = "your-dropbox-app-secret"
+dropbox_redirect_uri   = "https://api.apuntador.app/oauth/callback/dropbox"

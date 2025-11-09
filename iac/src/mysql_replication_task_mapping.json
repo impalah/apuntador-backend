@@ -1,0 +1,14 @@
+{
+  "rules": [
+    {
+      "rule-type": "selection",
+      "rule-id": "1",
+      "rule-name": "1",
+      "object-locator": {
+        "schema-name": "${schema_name}",
+        "table-name": "${table_name}"
+      },
+      "rule-action": "include"
+    }
+  ]
+}

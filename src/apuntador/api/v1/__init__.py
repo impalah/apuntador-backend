@@ -4,8 +4,8 @@ API v1 endpoints.
 Route prefix constants for consistent API versioning.
 """
 
-# Base API prefix for all v1 endpoints
-API_V1_PREFIX: str = "/api"
+# Base API prefix - removed "/api" since domain is already api.apuntador.io
+API_V1_PREFIX: str = ""
 
 # Module-specific prefixes
 OAUTH_PREFIX: str = f"{API_V1_PREFIX}/oauth"

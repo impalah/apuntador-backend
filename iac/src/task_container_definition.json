@@ -1,0 +1,25 @@
+[
+  {
+    "name": "${container_name}",
+    "image": "${image}",
+    "portMappings":
+    [
+      {
+        "containerPort": ${container_port},
+        "protocol": "tcp",
+        "name": "${container_name}-${container_port}-tcp",
+        "hostPort": ${container_port}
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-region": "${logs_region}",
+        "awslogs-stream-prefix": "${stream_prefix}-log-stream",
+        "awslogs-group": "${logs_group}"
+      }
+    },
+    "essential": true,
+    "environment": [${service_environment}]
+  }
+]

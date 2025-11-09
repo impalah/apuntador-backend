@@ -5,6 +5,8 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
+from apuntador.models.errors import ProblemDetail, ValidationErrorDetail
+
 
 def custom_openapi(app: FastAPI) -> dict[str, Any]:
     """Generate customized OpenAPI schema for the API.
@@ -55,26 +57,26 @@ OAuth proxy and mTLS authentication backend for the Apuntador teleprompter appli
 
 ### Health Check
 - `GET /health` - Basic health check
-- `GET /api/v1/health` - Detailed health check with version info
+- `GET /health/public` - Public health check (no mTLS)
 
 ### OAuth
-- `POST /api/oauth/authorize/{provider}` - Get authorization URL
-- `GET /api/oauth/callback/{provider}` - OAuth callback endpoint
-- `POST /api/oauth/token/refresh/{provider}` - Refresh access token
-- `POST /api/oauth/token/revoke/{provider}` - Revoke access token
+- `POST /oauth/authorize/{provider}` - Get authorization URL
+- `GET /oauth/callback/{provider}` - OAuth callback endpoint
+- `POST /oauth/token/refresh/{provider}` - Refresh access token
+- `POST /oauth/token/revoke/{provider}` - Revoke access token
 
 ### Device Enrollment (mTLS)
-- `POST /api/device/enroll` - Enroll new device with CSR
-- `POST /api/device/renew` - Renew device certificate
-- `POST /api/device/revoke` - Revoke device certificate
-- `GET /api/device/status/{device_id}` - Get certificate status
-- `GET /api/device/ca-certificate` - Get CA certificate for pinning
+- `POST /device/enroll` - Enroll new device with CSR
+- `POST /device/renew` - Renew device certificate
+- `POST /device/revoke` - Revoke device certificate
+- `GET /device/status/{device_id}` - Get certificate status
+- `GET /device/ca-certificate` - Get CA certificate for pinning
 
 ### Device Attestation
-- `POST /api/device/attestation/android` - Verify Android SafetyNet
-- `POST /api/device/attestation/ios` - Verify iOS DeviceCheck
-- `POST /api/device/attestation/desktop` - Verify desktop device
-- `POST /api/device/attestation/clear-cache` - Clear attestation cache
+- `POST /device/attest/android` - Verify Android SafetyNet
+- `POST /device/attest/ios` - Verify iOS DeviceCheck
+- `POST /device/attest/desktop` - Verify desktop device
+- `POST /device/attest/clear-cache` - Clear attestation cache
 
 ## Security
 
@@ -94,7 +96,7 @@ All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/ht
   "title": "Validation Error",
   "status": 422,
   "detail": "One or more validation errors occurred (2 errors).",
-  "instance": "/api/oauth/authorize/googledrive",
+  "instance": "/oauth/authorize/googledrive",
   "errors": [
     {
       "type": "missing",
@@ -155,15 +157,98 @@ All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/ht
             "description": "OAuth 2.0 with PKCE (Web browsers)",
             "flows": {
                 "authorizationCode": {
-                    "authorizationUrl": "/api/oauth/authorize/{provider}",
-                    "tokenUrl": "/api/oauth/callback/{provider}",
-                    "refreshUrl": "/api/oauth/token/refresh/{provider}",
+                    "authorizationUrl": "/oauth/authorize/{provider}",
+                    "tokenUrl": "/oauth/callback/{provider}",
+                    "refreshUrl": "/oauth/token/refresh/{provider}",
                     "scopes": {
                         "drive.file": "Google Drive file access",
                         "files.content.read": "Dropbox file read access",
                         "files.content.write": "Dropbox file write access",
                     },
                 }
+            },
+        },
+    }
+
+    # Add error response schemas to components
+    if "schemas" not in openapi_schema["components"]:
+        openapi_schema["components"]["schemas"] = {}
+
+    # Add ProblemDetail schema
+    openapi_schema["components"]["schemas"]["ProblemDetail"] = {
+        "type": "object",
+        "title": "ProblemDetail",
+        "description": "RFC 7807 Problem Details for HTTP APIs",
+        "required": ["title", "status"],
+        "properties": {
+            "type": {
+                "type": "string",
+                "description": "URI reference to the problem type",
+                "example": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.1",
+            },
+            "title": {
+                "type": "string",
+                "description": "Short, human-readable summary",
+                "example": "Bad Request",
+            },
+            "status": {
+                "type": "integer",
+                "description": "HTTP status code",
+                "example": 400,
+            },
+            "detail": {
+                "type": "string",
+                "description": "Human-readable explanation specific to this occurrence",
+                "example": "The request could not be understood due to malformed syntax.",
+            },
+            "instance": {
+                "type": "string",
+                "description": "URI reference identifying the specific occurrence",
+                "example": "/oauth/authorize/googledrive",
+            },
+            "errors": {
+                "type": "array",
+                "description": "List of validation errors (for 422 responses)",
+                "items": {"$ref": "#/components/schemas/ValidationErrorDetail"},
+            },
+        },
+    }
+
+    # Add ValidationErrorDetail schema
+    openapi_schema["components"]["schemas"]["ValidationErrorDetail"] = {
+        "type": "object",
+        "title": "ValidationErrorDetail",
+        "description": "Validation error detail for a specific field",
+        "required": ["type", "loc", "msg", "input"],
+        "properties": {
+            "type": {
+                "type": "string",
+                "description": "Error type",
+                "example": "missing",
+            },
+            "loc": {
+                "type": "array",
+                "description": "Error location in request",
+                "items": {"type": "string"},
+                "example": ["body", "code_challenge"],
+            },
+            "msg": {
+                "type": "string",
+                "description": "Human-readable error message",
+                "example": "Field required",
+            },
+            "input": {
+                "description": "Invalid input value",
+                "example": {},
+            },
+            "ctx": {
+                "type": "object",
+                "description": "Additional error context",
+                "additionalProperties": True,
+            },
+            "url": {
+                "type": "string",
+                "description": "Error documentation URL",
             },
         },
     }

@@ -76,7 +76,7 @@ class ProblemDetail(BaseModel):
             title="Validation Error",
             status=422,
             detail="Invalid OAuth provider specified",
-            instance="/api/oauth/authorize/invalid",
+            instance="/oauth/authorize/invalid",
             errors=[...]
         )
         ```
@@ -107,7 +107,7 @@ class ProblemDetail(BaseModel):
     instance: str | None = Field(
         default=None,
         description="URI reference identifying this occurrence",
-        json_schema_extra={"example": "/api/oauth/authorize/googledrive"},
+        json_schema_extra={"example": "/oauth/authorize/googledrive"},
     )
     errors: list[ValidationErrorDetail] | None = Field(
         default=None,

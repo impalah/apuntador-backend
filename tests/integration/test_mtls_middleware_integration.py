@@ -109,7 +109,7 @@ class TestMTLSMiddlewareIntegration:
 
         # Test authorize endpoint
         response = client.post(
-            "/api/oauth/authorize/googledrive",
+            "/oauth/authorize/googledrive",
             json={
                 "redirect_uri": "http://localhost:3000/callback",
                 "state": "test-state",
@@ -125,7 +125,7 @@ class TestMTLSMiddlewareIntegration:
 
         # Test enrollment endpoint (should be accessible without cert)
         response = client.post(
-            "/api/device/enroll",
+            "/device/enroll",
             json={
                 "csr": "-----BEGIN CERTIFICATE REQUEST-----\ntest\n-----END CERTIFICATE REQUEST-----",
                 "device_id": "test123",
@@ -141,7 +141,7 @@ class TestMTLSMiddlewareIntegration:
         client = TestClient(app)
 
         # Test CA cert endpoint
-        response = client.get("/api/device/ca-certificate")
+        response = client.get("/device/ca-certificate")
 
         # Should succeed without certificate
         # Note: Will return 500 if CA not initialized, but NOT 401 (missing cert)
@@ -153,7 +153,7 @@ class TestMTLSMiddlewareIntegration:
 
         # Test renewal endpoint (requires mTLS)
         response = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test-csr", "device_id": "test123"},
         )
 
@@ -183,7 +183,7 @@ class TestMTLSMiddlewareIntegration:
 
         # Test protected endpoint
         response = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test-csr", "device_id": "testdevice123"},
             headers=headers,
         )
@@ -206,7 +206,7 @@ class TestMTLSMiddlewareIntegration:
 
         # Test protected endpoint
         response = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test-csr", "device_id": "expireddevice456"},
             headers=headers,
         )
@@ -228,7 +228,7 @@ class TestMTLSMiddlewareIntegration:
         # Test X-Client-Cert (AWS API Gateway)
         headers_aws = {"X-Client-Cert": pem_cert.replace("\n", "%0A")}
         response_aws = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test", "device_id": "test"},
             headers=headers_aws,
         )
@@ -238,7 +238,7 @@ class TestMTLSMiddlewareIntegration:
         # Test X-SSL-Client-Cert (Nginx)
         headers_nginx = {"X-SSL-Client-Cert": pem_cert}
         response_nginx = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test", "device_id": "test"},
             headers=headers_nginx,
         )
@@ -250,7 +250,7 @@ class TestMTLSMiddlewareIntegration:
         envoy_header = f'Cert="{b64_cert}"'
         headers_envoy = {"X-Forwarded-Client-Cert": envoy_header}
         response_envoy = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test", "device_id": "test"},
             headers=headers_envoy,
         )
@@ -264,7 +264,7 @@ class TestMTLSMiddlewareIntegration:
         headers = {"X-Client-Cert": "not-a-valid-certificate"}
 
         response = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"csr": "test", "device_id": "test"},
             headers=headers,
         )

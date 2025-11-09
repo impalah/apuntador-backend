@@ -52,7 +52,7 @@ curl -s http://localhost:8000/openapi.json | jq .
 
 ### Get CA Certificate (Public)
 ```bash
-curl -s http://localhost:8000/api/device/ca-certificate | jq .
+curl -s http://localhost:8000/device/ca-certificate | jq .
 ```
 
 **Respuesta esperada**:
@@ -72,7 +72,7 @@ Si obtienes un error 500 "CA certificate not found", verifica que:
 
 **Guardar certificado a archivo**:
 ```bash
-curl -s http://localhost:8000/api/device/ca-certificate | jq -r '.certificate' > ca_cert.pem
+curl -s http://localhost:8000/device/ca-certificate | jq -r '.certificate' > ca_cert.pem
 openssl x509 -in ca_cert.pem -text -noout
 ```
 
@@ -99,7 +99,7 @@ cat test_device.csr
 ```bash
 CSR_CONTENT=$(cat test_device.csr)
 
-curl -X POST http://localhost:8000/api/device/enroll \
+curl -X POST http://localhost:8000/device/enroll \
   -H "Content-Type: application/json" \
   -d "{
     \"csr\": \"$CSR_CONTENT\",
@@ -121,7 +121,7 @@ curl -X POST http://localhost:8000/api/device/enroll \
 
 **3. Guardar certificado del dispositivo**:
 ```bash
-curl -X POST http://localhost:8000/api/device/enroll \
+curl -X POST http://localhost:8000/device/enroll \
   -H "Content-Type: application/json" \
   -d "{
     \"csr\": \"$(cat test_device.csr)\",
@@ -144,7 +144,7 @@ Para acceder a endpoints protegidos con mTLS, necesitas enviar el certificado de
 
 **Sin certificado** (debería fallar):
 ```bash
-curl -s http://localhost:8000/api/protected/example
+curl -s http://localhost:8000/protected/example
 ```
 
 **Respuesta esperada**:
@@ -154,12 +154,12 @@ curl -s http://localhost:8000/api/protected/example
 }
 ```
 
-**Con certificado** (usando nginx o proxy):
+**With certificate** (using nginx or proxy):
 ```bash
-# Esto requiere configurar un proxy HTTPS con mTLS
-# Ver documentación de mTLS para configuración completa
+# This requires configuring an HTTPS proxy with mTLS
+# See mTLS documentation for complete configuration
 
-curl -s https://localhost:8443/api/protected/example \
+curl -s https://localhost:8443/protected/example \
   --cert device_cert.pem \
   --key test_device.key \
   --cacert ca_cert.pem
@@ -171,16 +171,16 @@ curl -s https://localhost:8443/api/protected/example \
 
 ### Google Drive - Authorization
 
-**1. Iniciar flujo OAuth**:
+**1. Start OAuth flow**:
 ```bash
-curl -X POST http://localhost:8000/api/oauth/authorize/googledrive \
+curl -X POST http://localhost:8000/oauth/authorize/googledrive \
   -H "Content-Type: application/json" \
   -d '{
     "redirect_uri": "http://localhost:3000/callback"
   }' | jq .
 ```
 
-**Respuesta esperada**:
+**Expected response**:
 ```json
 {
   "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth?...",
@@ -188,13 +188,13 @@ curl -X POST http://localhost:8000/api/oauth/authorize/googledrive \
 }
 ```
 
-**2. Simular callback** (después de que el usuario autoriza):
+**2. Simulate callback** (after user authorizes):
 ```bash
-# Nota: El código real vendrá de Google después de la autorización
-curl "http://localhost:8000/api/oauth/callback/googledrive?code=AUTHORIZATION_CODE&state=SIGNED_STATE" | jq .
+# Note: The actual code will come from Google after authorization
+curl "http://localhost:8000/oauth/callback/googledrive?code=AUTHORIZATION_CODE&state=SIGNED_STATE" | jq .
 ```
 
-**Respuesta esperada**:
+**Expected response**:
 ```json
 {
   "access_token": "ya29.a0AfB_...",
@@ -208,7 +208,7 @@ curl "http://localhost:8000/api/oauth/callback/googledrive?code=AUTHORIZATION_CO
 
 Similar al flujo de Google Drive:
 ```bash
-curl -X POST http://localhost:8000/api/oauth/authorize/dropbox \
+curl -X POST http://localhost:8000/oauth/authorize/dropbox \
   -H "Content-Type: application/json" \
   -d '{
     "redirect_uri": "http://localhost:3000/callback"
@@ -218,7 +218,7 @@ curl -X POST http://localhost:8000/api/oauth/authorize/dropbox \
 ### Refresh Token
 
 ```bash
-curl -X POST http://localhost:8000/api/oauth/token/refresh/googledrive \
+curl -X POST http://localhost:8000/oauth/token/refresh/googledrive \
   -H "Content-Type: application/json" \
   -d '{
     "refresh_token": "1//0gZ8k..."
@@ -314,7 +314,7 @@ export INFRASTRUCTURE_PROVIDER=local
 DEVICE_ID="test-$(date +%s)"
 CSR_CONTENT=$(cat /tmp/test_device.csr | sed 's/$/\\n/' | tr -d '\n')
 
-curl -X POST http://localhost:8000/api/device/enroll \
+curl -X POST http://localhost:8000/device/enroll \
   -H "Content-Type: application/json" \
   -d "{\"csr\":\"$CSR_CONTENT\",\"device_id\":\"$DEVICE_ID\",\"platform\":\"android\",\"attestation\":null}" \
   | jq .
@@ -399,8 +399,8 @@ echo "🔐 Testing complete device enrollment flow..."
 
 # 1. Get CA certificate
 echo "1️⃣ Getting CA certificate..."
-curl -s http://localhost:8000/api/device/ca-certificate | jq -r '.certificate' > ca.pem
-FINGERPRINT=$(curl -s http://localhost:8000/api/device/ca-certificate | jq -r '.fingerprint')
+curl -s http://localhost:8000/device/ca-certificate | jq -r '.certificate' > ca.pem
+FINGERPRINT=$(curl -s http://localhost:8000/device/ca-certificate | jq -r '.fingerprint')
 echo "   CA Fingerprint: $FINGERPRINT"
 
 # 2. Generate device key and CSR
@@ -412,7 +412,7 @@ openssl req -new -key device.key -out device.csr \
 # 3. Enroll device
 echo "3️⃣ Enrolling device..."
 DEVICE_ID="android-test-$(date +%s)"
-RESPONSE=$(curl -s -X POST http://localhost:8000/api/device/enroll \
+RESPONSE=$(curl -s -X POST http://localhost:8000/device/enroll \
   -H "Content-Type: application/json" \
   -d "{
     \"csr\": \"$(cat device.csr)\",
@@ -448,7 +448,7 @@ echo "✅ Test completed!"
 echo "🌐 Testing OAuth flow..."
 
 # 1. Start authorization
-AUTH_RESPONSE=$(curl -s -X POST http://localhost:8000/api/oauth/authorize/googledrive \
+AUTH_RESPONSE=$(curl -s -X POST http://localhost:8000/oauth/authorize/googledrive \
   -H "Content-Type: application/json" \
   -d '{"redirect_uri": "http://localhost:3000/callback"}')
 
@@ -463,7 +463,7 @@ echo "2️⃣ After authorization, Google will redirect to:"
 echo "   http://localhost:3000/callback?code=AUTHORIZATION_CODE&state=$STATE"
 echo ""
 echo "3️⃣ Then exchange code for token:"
-echo "   curl \"http://localhost:8000/api/oauth/callback/googledrive?code=CODE&state=$STATE\""
+echo "   curl \"http://localhost:8000/oauth/callback/googledrive?code=CODE&state=$STATE\""
 ```
 
 ---

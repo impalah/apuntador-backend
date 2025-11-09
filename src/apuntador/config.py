@@ -172,7 +172,7 @@ class Settings(BaseSettings):
         default="", description="Google OAuth Client Secret"
     )
     google_redirect_uri: str = Field(
-        default="https://apuntador.ngrok.app/api/oauth/callback/googledrive",
+        default="https://apuntador.ngrok.app/oauth/callback/googledrive",
         description="Google OAuth Redirect URI",
     )
 
@@ -182,7 +182,7 @@ class Settings(BaseSettings):
         default="", description="Dropbox OAuth Client Secret"
     )
     dropbox_redirect_uri: str = Field(
-        default="https://apuntador.ngrok.app/api/oauth/callback/dropbox",
+        default="https://apuntador.ngrok.app/oauth/callback/dropbox",
         description="Dropbox OAuth Redirect URI",
     )
 
@@ -192,7 +192,7 @@ class Settings(BaseSettings):
         default="", description="OneDrive OAuth Client Secret"
     )
     onedrive_redirect_uri: str = Field(
-        default="https://apuntador.ngrok.app/api/oauth/callback/onedrive",
+        default="https://apuntador.ngrok.app/oauth/callback/onedrive",
         description="OneDrive OAuth Redirect URI",
     )
 

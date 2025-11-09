@@ -57,17 +57,17 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173,capacitor://localhos
 # Google Drive OAuth
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:8000/api/oauth/callback/googledrive
+GOOGLE_REDIRECT_URI=http://localhost:8000/oauth/callback/googledrive
 
 # Dropbox OAuth
 DROPBOX_CLIENT_ID=your-dropbox-app-key
 DROPBOX_CLIENT_SECRET=your-dropbox-app-secret
-DROPBOX_REDIRECT_URI=http://localhost:8000/api/oauth/callback/dropbox
+DROPBOX_REDIRECT_URI=http://localhost:8000/oauth/callback/dropbox
 
 # OneDrive OAuth (optional)
 # ONEDRIVE_CLIENT_ID=your-client-id
 # ONEDRIVE_CLIENT_SECRET=your-client-secret
-# ONEDRIVE_REDIRECT_URI=http://localhost:8000/api/oauth/callback/onedrive
+# ONEDRIVE_REDIRECT_URI=http://localhost:8000/oauth/callback/onedrive
 ```
 
 ## Running
@@ -76,17 +76,17 @@ DROPBOX_REDIRECT_URI=http://localhost:8000/api/oauth/callback/dropbox
 
 ```bash
 # Using uvicorn directly
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn apuntador.main:app --reload --host 0.0.0.0 --port 8000
 
 # Or using the development script
-python -m app.main
+python -m apuntador.main
 ```
 
 ### Production
 
 ```bash
 # With Gunicorn + Uvicorn workers
-gunicorn app.main:app \
+gunicorn apuntador.main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \
   --bind 0.0.0.0:8000
@@ -97,7 +97,7 @@ gunicorn app.main:app \
 ### Start OAuth authorization
 
 ```http
-POST /api/oauth/authorize/{provider}
+POST /oauth/authorize/{provider}
 Content-Type: application/json
 
 {
@@ -115,7 +115,7 @@ Response:
 ### OAuth callback (internal)
 
 ```http
-GET /api/oauth/callback/{provider}?code=xxx&state=xxx
+GET /oauth/callback/{provider}?code=xxx&state=xxx
 ```
 
 This endpoint is called by the OAuth provider after authorization.
@@ -123,7 +123,7 @@ This endpoint is called by the OAuth provider after authorization.
 ### Exchange code for token
 
 ```http
-POST /api/oauth/token/{provider}
+POST /oauth/token/{provider}
 Content-Type: application/json
 
 {
@@ -144,7 +144,7 @@ Response:
 ### Refresh access token
 
 ```http
-POST /api/oauth/refresh/{provider}
+POST /oauth/refresh/{provider}
 Content-Type: application/json
 
 {
@@ -162,7 +162,7 @@ Response:
 ### Revoke access
 
 ```http
-POST /api/oauth/revoke/{provider}
+POST /oauth/revoke/{provider}
 Content-Type: application/json
 
 {
@@ -187,6 +187,38 @@ Response:
 }
 ```
 
+### Get CA certificate (mTLS)
+
+```http
+GET /device/ca-certificate
+
+Response:
+{
+  "certificate": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+  "format": "PEM",
+  "usage": "Use this certificate for mTLS client authentication"
+}
+```
+
+### Get CA certificate pin (Certificate Pinning)
+
+```http
+GET /device/ca-certificate-pin
+
+Response:
+{
+  "sha256_base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  "sha256_hex": "0000000000000000000000000000000000000000000000000000000000000000",
+  "certificate_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+  "algorithm": "SHA-256",
+  "usage": "Use sha256_base64 for iOS/Android certificate pinning"
+}
+```
+
+**Use case:** Implement certificate pinning in mobile apps to prevent MITM attacks.
+
+See: `apuntador/docs/CERTIFICATE_PINNING.md` for implementation guide.
+
 ## Supported providers
 
 - `googledrive` - Google Drive API
@@ -198,9 +230,160 @@ Response:
 - ✅ Client secrets never exposed to the client
 - ✅ PKCE (Proof Key for Code Exchange) mandatory
 - ✅ State validation to prevent CSRF
+- ✅ mTLS with client certificates (Android/iOS)
+- ✅ Certificate pinning support for mobile apps
 - ✅ Strictly configured CORS
 - ✅ Rate limiting (TODO)
 - ✅ Audit logging
+
+## Production Setup
+
+### Certificate Authority (CA) Setup
+
+For mTLS authentication, you need to set up a private Certificate Authority:
+
+#### 1. Generate CA Private Key and Certificate
+
+```bash
+# Generate CA private key (keep this VERY secure!)
+openssl genrsa -out ca-key.pem 4096
+
+# Generate CA certificate (valid for 10 years)
+openssl req -new -x509 -days 3650 -key ca-key.pem -out ca-cert.pem \
+  -subj "/C=US/ST=State/L=City/O=Apuntador/CN=Apuntador CA"
+
+# Verify CA certificate
+openssl x509 -in ca-cert.pem -text -noout
+```
+
+#### 2. Store CA Private Key in AWS Secrets Manager
+
+```bash
+# Install AWS CLI if not already installed
+# Configure AWS credentials: aws configure
+
+# Store CA private key (CRITICAL: Never commit this to git!)
+aws secretsmanager create-secret \
+  --name apuntador/ca/private-key \
+  --description "Apuntador CA private key for mTLS certificate signing" \
+  --secret-string file://ca-key.pem \
+  --region eu-west-1
+
+# Store CA certificate (public, but stored for convenience)
+aws secretsmanager create-secret \
+  --name apuntador/ca/certificate \
+  --description "Apuntador CA public certificate" \
+  --secret-string file://ca-cert.pem \
+  --region eu-west-1
+
+# Verify secrets were created
+aws secretsmanager list-secrets --region eu-west-1 | grep apuntador/ca
+```
+
+#### 3. Set Permissions for Lambda Execution Role
+
+Your Lambda function needs permission to read these secrets:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:eu-west-1:*:secret:apuntador/ca/*"
+      ]
+    }
+  ]
+}
+```
+
+This is already configured in `iac/modules/lambda/main.tf`.
+
+### Environment Variables for Production
+
+Required environment variables for AWS Lambda (set via Terraform):
+
+```bash
+# AWS Secrets Manager paths
+CA_PRIVATE_KEY_SECRET_ARN=arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:apuntador/ca/private-key-XXXXXX
+CA_CERTIFICATE_SECRET_ARN=arn:aws:secretsmanager:eu-west-1:ACCOUNT_ID:secret:apuntador/ca/certificate-XXXXXX
+
+# DynamoDB table for certificate whitelist
+CERTIFICATE_TABLE_NAME=apuntador-certificates
+
+# Infrastructure provider (local for dev, aws for production)
+INFRASTRUCTURE_PROVIDER=aws
+SECRETS_PROVIDER=aws
+CERTIFICATE_DB_PROVIDER=aws
+
+# OAuth credentials (store in Secrets Manager or Terraform variables)
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI=https://api.apuntador.io/oauth/callback/googledrive
+
+DROPBOX_CLIENT_ID=your-dropbox-app-key
+DROPBOX_CLIENT_SECRET=your-dropbox-app-secret
+DROPBOX_REDIRECT_URI=https://api.apuntador.io/oauth/callback/dropbox
+
+# Security
+SECRET_KEY=generate-strong-random-key-min-32-chars
+ALLOWED_ORIGINS=https://apuntador.io,https://app.apuntador.io
+
+# Backend mode
+DEBUG=false
+LOG_LEVEL=INFO
+```
+
+### DynamoDB Certificate Whitelist Setup
+
+The certificate whitelist is automatically created by Terraform in `iac/stacks/01.applications/03.database.tf`.
+
+Table structure:
+- **Table Name**: `apuntador-certificates`
+- **Partition Key**: `serial_number` (String) - Certificate serial number
+- **Attributes**:
+  - `device_id` (String) - Unique device identifier
+  - `platform` (String) - android, ios, or desktop
+  - `issued_at` (Number) - Unix timestamp
+  - `expires_at` (Number) - Unix timestamp
+  - `status` (String) - active, revoked, or expired
+
+Certificates are automatically added when devices enroll via `/device/enroll` endpoint.
+
+### OAuth Provider Configuration
+
+#### Google Drive
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing
+3. Enable Google Drive API
+4. Create OAuth 2.0 credentials:
+   - Application type: Web application
+   - Authorized redirect URIs: `https://api.apuntador.io/oauth/callback/googledrive`
+5. Copy Client ID and Client Secret to environment variables
+
+#### Dropbox
+
+1. Go to [Dropbox App Console](https://www.dropbox.com/developers/apps)
+2. Create a new app:
+   - API: Scoped access
+   - Access: Full Dropbox
+3. Configure OAuth2 redirect URIs: `https://api.apuntador.io/oauth/callback/dropbox`
+4. Copy App key (Client ID) and App secret to environment variables
+
+### Certificate Lifecycle
+
+1. **Enrollment**: Device generates CSR → Backend signs with CA → Returns certificate (7-30 days validity)
+2. **Renewal**: Client requests renewal when < 5 days remaining → Backend issues new certificate
+3. **Revocation**: Admin or automated process marks certificate as revoked in DynamoDB
+4. **Validation**: Every mTLS request checks certificate against whitelist (cached with 5-min TTL)
+
+See `docs/CERTIFICATE_LIFECYCLE.md` for detailed workflow.
 
 ## Deployment
 
@@ -236,36 +419,80 @@ mypy app/
 ## Project structure
 
 ```
-apuntador-oauth-backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # Main FastAPI application
-│   ├── config.py            # Configuration and environment variables
-│   ├── models.py            # Pydantic models
-│   ├── dependencies.py      # Injectable dependencies
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── oauth.py         # Main OAuth routes
-│   │   └── health.py        # Health checks
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── oauth_base.py    # Base class for OAuth
-│   │   ├── googledrive.py   # Google Drive service
-│   │   ├── dropbox.py       # Dropbox service
-│   │   └── onedrive.py      # OneDrive service
-│   └── utils/
+apuntador-backend/
+├── src/
+│   └── apuntador/
 │       ├── __init__.py
-│       ├── pkce.py          # PKCE utilities
-│       └── security.py      # Security utilities
+│       ├── main.py              # FastAPI application entry point
+│       ├── lambda_main.py       # AWS Lambda handler (Mangum)
+│       ├── config.py            # Pydantic Settings configuration
+│       ├── openapi.py           # OpenAPI/Swagger documentation
+│       ├── api/
+│       │   └── v1/
+│       │       ├── __init__.py  # API route prefixes
+│       │       ├── oauth/       # OAuth 2.0 endpoints
+│       │       └── device/      # Device enrollment & mTLS
+│       ├── core/
+│       │   └── logging.py       # Loguru configuration
+│       ├── middleware/
+│       │   ├── __init__.py      # TraceID middleware
+│       │   └── mtls_validation.py  # Client certificate validation
+│       ├── models/
+│       │   ├── __init__.py
+│       │   ├── oauth.py         # OAuth request/response models
+│       │   ├── device.py        # Device enrollment models
+│       │   └── errors.py        # RFC 7807 Problem Details
+│       ├── services/
+│       │   ├── oauth/
+│       │   │   ├── oauth_base.py      # Abstract OAuth service
+│       │   │   ├── googledrive.py     # Google Drive OAuth
+│       │   │   └── dropbox.py         # Dropbox OAuth
+│       │   ├── certificate/
+│       │   │   ├── certificate_authority.py  # CA signing
+│       │   │   ├── certificate_manager.py    # Certificate lifecycle
+│       │   │   └── certificate_storage.py    # DynamoDB interface
+│       │   └── device_attestation/
+│       │       ├── android_safetynet.py      # Android attestation
+│       │       └── ios_devicecheck.py        # iOS attestation
+│       ├── infrastructure/       # Repository pattern for cloud abstraction
+│       │   ├── repositories/
+│       │   │   ├── certificate_repository.py
+│       │   │   ├── secrets_repository.py
+│       │   │   └── storage_repository.py
+│       │   ├── implementations/
+│       │   │   ├── local/       # File-based (development)
+│       │   │   └── aws/         # DynamoDB, S3, Secrets Manager
+│       │   └── factory.py       # Provider selection
+│       └── utils/
+│           ├── pkce.py          # PKCE utilities
+│           ├── security.py      # Token signing, state generation
+│           └── crypto/
+│               ├── csr.py       # CSR parsing and validation
+│               └── x509.py      # Certificate utilities
+├── iac/                         # Terraform infrastructure
+│   ├── modules/
+│   │   └── lambda/              # Reusable Lambda module
+│   └── stacks/
+│       └── 01.applications/
+│           ├── 01.network.tf    # VPC, subnets (if needed)
+│           ├── 02.domain-ssl.tf # API Gateway, ACM, Route53
+│           ├── 03.database.tf   # DynamoDB tables
+│           ├── 04.application.tf # Lambda function
+│           └── configuration.application.tfvars
+├── docs/
+│   ├── AWS_DEPLOYMENT_GUIDE.md
+│   ├── CERTIFICATE_LIFECYCLE.md
+│   ├── MTLS_IMPLEMENTATION_PLAN.md
+│   └── INFRASTRUCTURE_ABSTRACTION.md
 ├── tests/
-│   ├── __init__.py
-│   ├── test_oauth.py
-│   └── test_services.py
+│   ├── unit/
+│   └── integration/
 ├── .env.example
 ├── .gitignore
 ├── Dockerfile
-├── requirements.txt
-├── pyproject.toml
+├── Dockerfile.lambda            # AWS Lambda container
+├── Makefile                     # Development commands
+├── pyproject.toml               # Python project configuration
 └── README.md
 ```
 

@@ -1,9 +1,9 @@
 """
-Ejemplos de cómo usar settings en diferentes contextos.
+Examples of how to use settings in different contexts.
 
-Este archivo demuestra las dos formas de acceder a la configuración:
+This file demonstrates the two ways to access configuration:
 1. Dependency injection (FastAPI routers/endpoints)
-2. Importación directa (services, utils, scripts)
+2. Direct import (services, utils, scripts)
 """
 
 from typing import Annotated
@@ -13,10 +13,10 @@ from fastapi import APIRouter, Depends
 from apuntador.config import Settings, get_settings, settings
 
 # ============================================================================
-# OPCIÓN 1: Usando Dependency Injection (Recomendado en endpoints)
+# OPTION 1: Using Dependency Injection (Recommended in endpoints)
 # ============================================================================
 
-router_di = APIRouter(tags=["ejemplos-dependency-injection"])
+router_di = APIRouter(tags=["examples-dependency-injection"])
 
 
 @router_di.get("/example/di/project-info")
@@ -24,12 +24,12 @@ async def get_project_info_di(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, str]:
     """
-    Ejemplo: Usar Depends(get_settings) en endpoints FastAPI.
+    Example: Use Depends(get_settings) in FastAPI endpoints.
 
-    Ventajas:
-    - FastAPI refresca automáticamente si cambian las env vars
-    - Fácil de mockear en tests
-    - Patrón estándar de FastAPI
+    Advantages:
+    - FastAPI automatically refreshes if env vars change
+    - Easy to mock in tests
+    - Standard FastAPI pattern
     """
     return {
         "project_name": settings.project_name,
@@ -42,7 +42,7 @@ async def get_project_info_di(
 async def get_oauth_config_di(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, str]:
-    """Ejemplo: Acceder a configuración OAuth con dependency injection."""
+    """Example: Access OAuth configuration with dependency injection."""
     return {
         "google_configured": bool(settings.google_client_id),
         "dropbox_configured": bool(settings.dropbox_client_id),
@@ -51,24 +51,24 @@ async def get_oauth_config_di(
 
 
 # ============================================================================
-# OPCIÓN 2: Importación directa (Para código fuera de FastAPI)
+# OPTION 2: Direct Import (For code outside FastAPI)
 # ============================================================================
 
-router_direct = APIRouter(tags=["ejemplos-importacion-directa"])
+router_direct = APIRouter(tags=["examples-direct-import"])
 
 
 @router_direct.get("/example/direct/project-info")
 async def get_project_info_direct() -> dict[str, str]:
     """
-    Ejemplo: Usar instancia global 'settings' directamente.
+    Example: Use global 'settings' instance directly.
 
-    Ventajas:
-    - Más simple, no necesitas Depends()
-    - Útil en código que no es FastAPI (utils, services, scripts)
+    Advantages:
+    - Simpler, no need for Depends()
+    - Useful in code that's not FastAPI (utils, services, scripts)
 
-    Desventajas:
-    - No se refresca automáticamente (cacheado)
-    - Más difícil de mockear en tests
+    Disadvantages:
+    - Doesn't auto-refresh (cached)
+    - Harder to mock in tests
     """
     return {
         "project_name": settings.project_name,
@@ -79,7 +79,7 @@ async def get_project_info_direct() -> dict[str, str]:
 
 @router_direct.get("/example/direct/cors-config")
 async def get_cors_config_direct() -> dict[str, any]:
-    """Ejemplo: Usar métodos helper de settings."""
+    """Example: Use helper methods from settings."""
     return {
         "allowed_origins": settings.get_allowed_origins(),
         "allowed_methods": settings.get_cors_allowed_methods(),
@@ -88,20 +88,20 @@ async def get_cors_config_direct() -> dict[str, any]:
 
 
 # ============================================================================
-# OPCIÓN 3: Llamando get_settings() en código no-FastAPI
+# OPTION 3: Calling get_settings() in non-FastAPI code
 # ============================================================================
 
 
 def example_service_function() -> str:
     """
-    Ejemplo: Usar settings en una función de servicio.
+    Example: Use settings in a service function.
 
-    Esta es la forma recomendada para código fuera de FastAPI endpoints.
+    This is the recommended way for code outside FastAPI endpoints.
     """
-    # Opción A: Usar instancia global (más simple)
+    # Option A: Use global instance (simpler)
     project_name = settings.project_name
 
-    # Opción B: Llamar get_settings() (equivalente, pero más explícito)
+    # Option B: Call get_settings() (equivalent, but more explicit)
     current_settings = get_settings()
     project_version = current_settings.project_version
 
@@ -110,22 +110,22 @@ def example_service_function() -> str:
 
 class ExampleService:
     """
-    Ejemplo: Usar settings en una clase de servicio.
+    Example: Use settings in a service class.
     """
 
     def __init__(self):
-        """Opción 1: Inicializar con instancia global."""
+        """Option 1: Initialize with global instance."""
         self.config = settings
 
     @classmethod
     def from_settings(cls, settings: Settings):
-        """Opción 2: Inyectar settings como parámetro."""
+        """Option 2: Inject settings as parameter."""
         instance = cls()
         instance.config = settings
         return instance
 
     def get_oauth_providers(self) -> list[str]:
-        """Ejemplo: Método que usa la configuración."""
+        """Example: Method that uses configuration."""
         providers = []
 
         if self.config.google_client_id:
@@ -141,43 +141,43 @@ class ExampleService:
 
 
 # ============================================================================
-# OPCIÓN 4: Refrescar settings (en tests o desarrollo)
+# OPTION 4: Refresh settings (in tests or development)
 # ============================================================================
 
 
 def example_refresh_settings():
     """
-    Ejemplo: Limpiar cache para refrescar settings.
+    Example: Clear cache to refresh settings.
 
-    Útil en:
-    - Tests que cambian variables de entorno
-    - Desarrollo con hot reload
-    - Scripts que modifican el .env
+    Useful in:
+    - Tests that change environment variables
+    - Development with hot reload
+    - Scripts that modify the .env file
     """
-    # Limpiar cache
+    # Clear cache
     get_settings.cache_clear()
 
-    # Obtener nueva instancia con valores actualizados
+    # Get new instance with updated values
     fresh_settings = get_settings()
 
     return fresh_settings
 
 
 # ============================================================================
-# RESUMEN: ¿Cuándo usar cada opción?
+# SUMMARY: When to use each option?
 # ============================================================================
 
 """
 1. Dependency Injection (Depends):
-   ✅ En FastAPI endpoints/routers
-   ✅ Cuando necesitas testing fácil
-   ✅ Para auto-refresh en desarrollo
-   ❌ No disponible fuera de FastAPI
+   ✅ In FastAPI endpoints/routers
+   ✅ When you need easy testing
+   ✅ For auto-refresh in development
+   ❌ Not available outside FastAPI
 
-2. Instancia global (settings):
-   ✅ En servicios, utils, scripts
-   ✅ Código que no es FastAPI
-   ✅ Más simple y directo
+2. Global instance (settings):
+   ✅ In services, utils, scripts
+   ✅ Code that's not FastAPI
+   ✅ Simpler and more direct
    ❌ Cacheado (no auto-refresh)
 
 3. Llamar get_settings():

@@ -1,0 +1,302 @@
+[
+
+    {
+        "name": "websocket",
+        "image":  "${image}",
+        "portMappings":  [
+            {
+                "containerPort": 6001,
+                "protocol":  "tcp",
+                "name":  "web-6001-tcp",
+                "hostPort":  6001
+            }
+        ],
+        "logConfiguration":  {
+
+            "logDriver":  "awslogs",
+            "options":  {
+                            "awslogs-region":  "${logs-region}",
+                            "awslogs-stream-prefix":  "${stream_prefix}-log-stream",
+                            "awslogs-group":  "${logs-group}"
+                        }
+        },
+        "essential": true,
+        "command": ["php", "artisan", "websockets:serve"],
+        "environment":  [
+            {
+                "name": "NAS_FTP_HOST",
+                "value": "ftp"
+            },
+            {
+                "name": "APP_ENV",
+                "value": "local"
+            },
+            {
+                "name": "MAIL_ENCRYPTION",
+                "value": "null"
+            },
+            {
+                "name": "FOLDER_CMR_OK",
+                "value": "cmr_ok"
+            },
+            {
+                "name": "FTP_PATH",
+                "value": "/Projects/tmp/ftp"
+            },
+            {
+                "name": "FOLDER_TRANSPORT",
+                "value": "transport"
+            },
+            {
+                "name": "DB_PORT",
+                "value": "3306"
+            },
+            {
+                "name": "RETENTION_PERCENTAGE",
+                "value": "1"
+            },
+            {
+                "name": "APP_NAME",
+                "value": "Laravel"
+            },
+            {
+                "name": "APP_KEY",
+                "value": "base64:e3OWGIQMDU4yswTcZcjjPZsmsgGpqHqOhrxKxJHU73c"
+            },
+            {
+                "name": "DB_USERNAME",
+                "value": "irisdbuser"
+            },
+            {
+                "name": "REDIS_PORT",
+                "value": "6379"
+            },
+            {
+                "name": "LOCAL_PORT",
+                "value": "80"
+            },
+            {
+                "name": "MAIL_FROM_NAME",
+                "value": "laravel"
+            },
+            {
+                "name": "DB_CONNECTION",
+                "value": "mysql"
+            },
+            {
+                "name": "APP_URL",
+                "value": "https://3vxs3juvmh.execute-api.eu-west-1.amazonaws.com"
+            },
+            {
+                "name": "LOG_LEVEL",
+                "value": "debug"
+            },
+            {
+                "name": "NAS_FTP_PASS",
+                "value": "123456789"
+            },
+            {
+                "name": "APP_TIMEZONE",
+                "value": "Europe/Madrid"
+            },
+            {
+                "name": "FOLDER_DRIVER",
+                "value": "driver"
+            },
+            {
+                "name": "PUSHER_APP_HOST",
+                "value": "127.0.0.1"
+            },
+            {
+                "name": "FTP_USER",
+                "value": "user_iris2"
+            },
+            {
+                "name": "FOLDER_CMR_TEMP",
+                "value": "cmr_temp"
+            },
+            {
+                "name": "COMPANY_DAYS_TRANSPORT_FOR_RECOVERED",
+                "value": "180"
+            },
+            {
+                "name": "NAS_FTP_DRIVER",
+                "value": "ftp"
+            },
+            {
+                "name": "LOG_CHANNEL",
+                "value": "stderr"
+            },
+            {
+                "name": "QUOTE_RESEND_EXPIRATION_BEFORE_MINUTES",
+                "value": "60"
+            },
+            {
+                "name": "TRANSPORT_DAY_FOR_OLD",
+                "value": "60"
+            },
+            {
+                "name": "APP_DEBUG_NOTIFICATION",
+                "value": "true"
+            },
+            {
+                "name": "FOLDER_VEHICLE",
+                "value": "vehicle"
+            },
+            {
+                "name": "MAIL_PASSWORD",
+                "value": "null"
+            },
+            {
+                "name": "FOLDER_QUOTE_REQUEST_ATTACHMENTS",
+                "value": "quote_requests"
+            },
+            {
+                "name": "PUSHER_APP_CLUSTER",
+                "value": "mt1"
+            },
+            {
+                "name": "MAIL_HOST",
+                "value": "mailhog"
+            },
+            {
+                "name": "QUOTE_EXPIRATION_HOURS",
+                "value": "2"
+            },
+            {
+                "name": "FOLDER_COMPANY",
+                "value": "company"
+            },
+            {
+                "name": "SESSION_LIFETIME",
+                "value": "120"
+            },
+            {
+                "name": "AWS_DEFAULT_REGION",
+                "value": "eu-west-1"
+            },
+            {
+                "name": "BILL_EXPIRED_DAY_FOR_OLD",
+                "value": "30"
+            },
+            {
+                "name": "SESSION_DRIVER",
+                "value": "file"
+            },
+            {
+                "name": "QUEUE_CONNECTION",
+                "value": "sync"
+            },
+            {
+                "name": "NAS_FTP_PORT",
+                "value": "21"
+            },
+            {
+                "name": "REDIS_PASSWORD",
+                "value": "null"
+            },
+            {
+                "name": "DISCOUNT_PERCENTAGE",
+                "value": "2"
+            },
+            {
+                "name": "BILL_DAY_PAY",
+                "value": "10,20,30"
+            },
+            {
+                "name": "APP_DEBUG",
+                "value": "true"
+            },
+            {
+                "name": "FORWARD_REDIS_PORT",
+                "value": "6379"
+            },
+            {
+                "name": "FTP_PASSWORD",
+                "value": "123456789"
+            },
+            {
+                "name": "COMPANY_NUM_TRANSPORT_FOR_NEW",
+                "value": "5"
+            },
+            {
+                "name": "REDIS_HOST",
+                "value": "iris-redis.sy9dci.0001.euw1.cache.amazonaws.com"
+            },
+            {
+                "name": "MAIL_USERNAME",
+                "value": "null"
+            },
+            {
+                "name": "WEBSOCKET_PORT",
+                "value": "6001"
+            },
+            {
+                "name": "FTP_UID",
+                "value": "1000"
+            },
+            {
+                "name": "DB_HOST",
+                "value": "dev-iris.czgyti34brhd.eu-west-1.rds.amazonaws.com"
+            },
+            {
+                "name": "NAS_FTP_USER",
+                "value": "user_iris"
+            },
+            {
+                "name": "BILL_RISK_EVOLUTION_DAY",
+                "value": "0,30,60,90,120"
+            },
+            {
+                "name": "MAIL_PORT",
+                "value": "1025"
+            },
+            {
+                "name": "PUSHER_APP_SCHEME",
+                "value": "http"
+            },
+            {
+                "name": "FOLDER_CMR",
+                "value": "cmr"
+            },
+            {
+                "name": "MEMCACHED_HOST",
+                "value": "127.0.0.1"
+            },
+            {
+                "name": "MAIL_FROM_ADDRESS",
+                "value": "null"
+            },
+            {
+                "name": "NAS_FTP_ROOT",
+                "value": "/application/"
+            },
+            {
+                "name": "MAIL_MAILER",
+                "value": "smtp"
+            },
+            {
+                "name": "FTP_GID",
+                "value": "1000"
+            },
+            {
+                "name": "BROADCAST_DRIVER",
+                "value": "log"
+            },
+            {
+                "name": "CACHE_DRIVER",
+                "value": "file"
+            },
+            {
+                "name": "DB_DATABASE",
+                "value": "irisdb"
+            },
+            {
+                "name": "DB_PASSWORD",
+                "value": "irisdbpassword"
+            }
+
+        ]
+    }
+]
+ 

@@ -1,4 +1,4 @@
-name: Inspect, Build and Release
+name: Inspect, Test and Build
 
 on:
   # push:
@@ -20,32 +20,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry==1.7.1
-
       - name: Install project dependencies
         run: |
-          poetry --version
-          poetry env use python3.12
-          poetry export -f requirements.txt --output requirements.txt --with dev --without-hashes
-          source $(poetry env info --path)/bin/activate
-          pip install -r requirements.txt
-          pip install -e .
+          uv sync --all-extras
 
       - name: Run tests
         run: |
-          poetry run pytest ./tests
+          uv run pytest ./tests --cov=src/apuntador --cov-report=term --cov-report=xml
 
       - name: Update project version
         run: |
-          poetry version patch
+          # Get current version using toml-cli
+          CURRENT_VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version)
+          echo "🔧 Current version: $CURRENT_VERSION"
+          
+          # Bump patch version using bump2version
+          uvx --from=bump2version bumpversion --allow-dirty --current-version "$CURRENT_VERSION" patch pyproject.toml
+          
+          # Get new version
+          NEW_VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version)
+          echo "✅ Version bumped from $CURRENT_VERSION to $NEW_VERSION"
 
       - name: Commit and push version update
         run: |
@@ -58,14 +63,14 @@ jobs:
       - name: Read version and set ImageTag
         id: version
         run: |
-          VERSION=$(poetry version | cut -d ' ' -f 2)
+          VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version)
           echo "IMAGE_TAG=${VERSION}" >> $GITHUB_ENV
-          echo "IMAGE_LAMBDA_TAG=${VERSION}-lambda" >> $GITHUB_ENV
+          echo "IMAGE_LAMBDA_TAG=${VERSION}" >> $GITHUB_ENV
           echo "IMAGE_BUILD_TAG=${VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Build documentation
         run: |
-          poetry run sphinx-build docs_source docs
+          uv run sphinx-build docs_source docs
 
       - name: Commit and push documentation
         run: |
@@ -93,43 +98,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-  
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registry: ${{ vars.AWS_ECR_REGISTRY }}
           region: ${{ vars.AWS_REGION }}
-  
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
-  
-      - name: Build and push image
-        uses: docker/build-push-action@v6
-        with:
-          file: ./Dockerfile
-          sbom: true
-          push: true
-          provenance: mode=max
-          platforms: linux/amd64
-          tags: |
-            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
-            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_BUILD_TAG }}
-            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:latest          
-            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
-            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_BUILD_TAG }}
-            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:latest
-  
-      # Lambda manifest requires no provenance
+
+      # Build and push Lambda image to AWS ECR
       - name: Build and push lambda image
         uses: docker/build-push-action@v6
         with:
@@ -138,44 +114,19 @@ jobs:
           provenance: false
           platforms: linux/amd64
           tags: |
-            ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_LAMBDA_TAG }}
             ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_LAMBDA_TAG }}
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:latest
 
       - name: Set IMAGE output
         env:
-          REPOSITORY: ${{ vars.DOCKER_HUB_USERNAME }}/${{ vars.REPOSITORY }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_LAMBDA_TAG: ${{ env.IMAGE_LAMBDA_TAG }}
           IMAGE_BUILD_TAG: ${{ env.IMAGE_BUILD_TAG }}
         id: set_output
         run: |
-          IMAGE="${REPOSITORY}:${IMAGE_TAG}"
+          IMAGE="${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${IMAGE_LAMBDA_TAG}"
           echo "${IMAGE_TAG}" > ${{ github.workspace }}/image_tag.txt
           echo "image=${IMAGE}" >> $GITHUB_OUTPUT
-  
-      # - name: Create Release
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     IMAGE_TAG: ${{ env.IMAGE_TAG }}
-      #     IMAGE_BUILD_TAG: ${{ env.IMAGE_BUILD_TAG }}
-      #   with:
-      #     tag_name: ${{ env.IMAGE_TAG }}
-      #     release_name: ${{ env.IMAGE_TAG }}
-      #     draft: false
-      #     prerelease: false
-  
-      # - name: Upload Release Asset
-      #   id: upload_release
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ${{ github.workspace }}/image_tag.txt
-      #     asset_name: image_tag.txt
-      #     asset_content_type: text/plain
-    
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -185,5 +136,3 @@ jobs:
   
     outputs:
       image: ${{ steps.set_output.outputs.image }}
-  
-  

@@ -22,12 +22,12 @@ def code_verifier():
 
 
 class TestOAuthAuthorize:
-    """Tests for POST /api/oauth/authorize/{provider}"""
+    """Tests for POST /oauth/authorize/{provider}"""
 
     def test_authorize_googledrive(self, client, code_verifier):
         """Test authorization for Google Drive."""
         response = client.post(
-            "/api/oauth/authorize/googledrive",
+            "/oauth/authorize/googledrive",
             json={
                 "code_verifier": code_verifier,
                 "redirect_uri": "http://localhost:3000/callback",
@@ -44,7 +44,7 @@ class TestOAuthAuthorize:
     def test_authorize_dropbox(self, client, code_verifier):
         """Test authorization for Dropbox."""
         response = client.post(
-            "/api/oauth/authorize/dropbox",
+            "/oauth/authorize/dropbox",
             json={
                 "code_verifier": code_verifier,
                 "redirect_uri": "http://localhost:3000/callback",
@@ -61,7 +61,7 @@ class TestOAuthAuthorize:
     def test_authorize_invalid_provider(self, client, code_verifier):
         """Test authorization with invalid provider."""
         response = client.post(
-            "/api/oauth/authorize/invalid",
+            "/oauth/authorize/invalid",
             json={
                 "code_verifier": code_verifier,
                 "redirect_uri": "http://localhost:3000/callback",
@@ -72,7 +72,7 @@ class TestOAuthAuthorize:
 
 
 class TestOAuthCallback:
-    """Tests for GET /api/oauth/callback/{provider} and POST /api/oauth/token/{provider}"""
+    """Tests for GET /oauth/callback/{provider} and POST /oauth/token/{provider}"""
 
     def test_callback_redirect(self, client):
         """Test callback redirect for Google Drive."""
@@ -87,7 +87,7 @@ class TestOAuthCallback:
         )
 
         response = client.get(
-            f"/api/oauth/callback/googledrive?code=test-code&state={signed_state}",
+            f"/oauth/callback/googledrive?code=test-code&state={signed_state}",
             follow_redirects=False,
         )
 
@@ -105,7 +105,7 @@ class TestOAuthCallback:
         }
 
         response = client.post(
-            "/api/oauth/token/googledrive",
+            "/oauth/token/googledrive",
             json={
                 "code": "test-code",
                 "code_verifier": "test-verifier",
@@ -120,7 +120,7 @@ class TestOAuthCallback:
 
 
 class TestOAuthTokenRefresh:
-    """Tests for POST /api/oauth/refresh/{provider}"""
+    """Tests for POST /oauth/refresh/{provider}"""
 
     @patch("apuntador.api.v1.oauth.services.OAuthService.refresh_access_token")
     def test_refresh_token_googledrive(self, mock_refresh, client):
@@ -132,7 +132,7 @@ class TestOAuthTokenRefresh:
         }
 
         response = client.post(
-            "/api/oauth/refresh/googledrive",
+            "/oauth/refresh/googledrive",
             json={"refresh_token": "test-refresh-token"},
         )
 
@@ -145,7 +145,7 @@ class TestOAuthTokenRefresh:
     def test_refresh_token_missing_token(self, client):
         """Test token refresh without refresh token."""
         response = client.post(
-            "/api/oauth/refresh/googledrive",
+            "/oauth/refresh/googledrive",
             json={},
         )
 
@@ -153,7 +153,7 @@ class TestOAuthTokenRefresh:
 
 
 class TestOAuthTokenRevoke:
-    """Tests for POST /api/oauth/revoke/{provider}"""
+    """Tests for POST /oauth/revoke/{provider}"""
 
     @patch("apuntador.api.v1.oauth.services.OAuthService.revoke_token")
     def test_revoke_token_googledrive(self, mock_revoke, client):
@@ -161,7 +161,7 @@ class TestOAuthTokenRevoke:
         mock_revoke.return_value = True
 
         response = client.post(
-            "/api/oauth/revoke/googledrive",
+            "/oauth/revoke/googledrive",
             json={"token": "test-token"},
         )
 
@@ -176,7 +176,7 @@ class TestOAuthTokenRevoke:
         mock_revoke.return_value = False
 
         response = client.post(
-            "/api/oauth/revoke/googledrive",
+            "/oauth/revoke/googledrive",
             json={"token": "test-token"},
         )
 
@@ -188,7 +188,7 @@ class TestOAuthTokenRevoke:
     def test_revoke_token_missing_token(self, client):
         """Test token revocation without token."""
         response = client.post(
-            "/api/oauth/revoke/googledrive",
+            "/oauth/revoke/googledrive",
             json={},
         )
 

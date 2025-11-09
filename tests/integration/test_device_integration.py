@@ -27,12 +27,12 @@ A1UECwwDRGV2MRgwFgYDVQQDDA9kZXZpY2UtMTIzNDU2Nzg=
 
 
 class TestDeviceEnrollment:
-    """Tests for POST /api/device/enroll"""
+    """Tests for POST /device/enroll"""
 
     def test_enroll_validation_errors(self, client):
         """Test enrollment with missing fields."""
         response = client.post(
-            "/api/device/enroll",
+            "/device/enroll",
             json={},
         )
 
@@ -40,12 +40,12 @@ class TestDeviceEnrollment:
 
 
 class TestCertificateRevocation:
-    """Tests for POST /api/device/revoke"""
+    """Tests for POST /device/revoke"""
 
     def test_revoke_missing_serial(self, client):
         """Test revocation with missing serial."""
         response = client.post(
-            "/api/device/revoke",
+            "/device/revoke",
             json={"reason": "test"},
         )
 
@@ -53,12 +53,12 @@ class TestCertificateRevocation:
 
 
 class TestCertificateRenewal:
-    """Tests for POST /api/device/renew"""
+    """Tests for POST /device/renew"""
 
     def test_renew_missing_csr(self, client):
         """Test renewal with missing CSR."""
         response = client.post(
-            "/api/device/renew",
+            "/device/renew",
             json={"old_serial": "ABC123"},
         )
 
@@ -66,11 +66,11 @@ class TestCertificateRenewal:
 
 
 class TestCertificateStatus:
-    """Tests for GET /api/device/certificate/status/{serial}"""
+    """Tests for GET /device/certificate/status/{serial}"""
 
     def test_status_not_found(self, client):
         """Test getting status of non-existent certificate."""
-        response = client.get("/api/device/certificate/status/nonexistent")
+        response = client.get("/device/certificate/status/nonexistent")
 
         # The endpoint might return 404 or provide a not_found status
         assert response.status_code in [200, 404]
@@ -96,14 +96,14 @@ class TestCertificateStatus:
         )
         mock_factory_dep.return_value = mock_factory_instance
 
-        response = client.get("/api/device/certificate/status/ABC123")
+        response = client.get("/device/certificate/status/ABC123")
 
         # Should return valid status
         assert response.status_code in [200, 404, 500]
 
 
 class TestCACertificate:
-    """Tests for GET /api/device/ca-certificate"""
+    """Tests for GET /device/ca-certificate"""
 
     @patch("apuntador.api.v1.device.api.CertificateAuthorityDep")
     def test_get_ca_certificate(self, mock_ca_dep, client):
@@ -115,7 +115,7 @@ class TestCACertificate:
         )
         mock_ca_dep.return_value = mock_ca
 
-        response = client.get("/api/device/ca-certificate")
+        response = client.get("/device/ca-certificate")
 
         # Check if endpoint exists
         assert response.status_code in [200, 404, 500]

@@ -30,12 +30,12 @@ nano .env  # or your favorite editor
 # Google Drive OAuth (required)
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
-GOOGLE_REDIRECT_URI=http://localhost:8000/api/oauth/callback/googledrive
+GOOGLE_REDIRECT_URI=http://localhost:8000/oauth/callback/googledrive
 
 # Dropbox OAuth (required)
 DROPBOX_CLIENT_ID=your-dropbox-app-key
 DROPBOX_CLIENT_SECRET=your-dropbox-app-secret  
-DROPBOX_REDIRECT_URI=http://localhost:8000/api/oauth/callback/dropbox
+DROPBOX_REDIRECT_URI=http://localhost:8000/oauth/callback/dropbox
 
 # Secret key (change in production)
 SECRET_KEY=generate-a-random-secret-key-here
@@ -48,7 +48,7 @@ SECRET_KEY=generate-a-random-secret-key-here
 make dev
 
 # Or directly
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn apuntador.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## 4. Test
@@ -90,7 +90,7 @@ Make sure you have configured all variables in `.env`.
 
 Verify that the redirect URI in Google Cloud Console matches exactly with the one in `.env`:
 ```
-http://localhost:8000/api/oauth/callback/googledrive
+http://localhost:8000/oauth/callback/googledrive
 ```
 
 ## Next steps

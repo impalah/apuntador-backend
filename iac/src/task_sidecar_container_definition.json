@@ -1,0 +1,41 @@
+[
+  {
+    "name": "${container_name}",
+    "image": "${proxy_image}",
+    "portMappings":
+    [
+      {
+        "containerPort": ${container_port},
+        "protocol": "tcp",
+        "name": "${container_name}-${container_port}-tcp",
+        "hostPort": ${container_port}
+      }
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-region": "${logs_region}",
+        "awslogs-stream-prefix": "${stream_prefix}-proxy-log-stream",
+        "awslogs-group": "${logs_group}"
+      }
+    },
+    "essential": true,
+    "environment": [${proxy_environment}]
+  },
+  {
+    "name": "${container_name}-service",
+    "essential": true,
+    "image": "${image}",
+    "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-region": "${logs_region}",
+          "awslogs-stream-prefix": "${stream_prefix}-log-stream",
+          "awslogs-group": "${logs_group}"
+        }
+    },
+    "command": ${jsonencode(command)},
+    "environment": [${service_environment}],
+    "mountPoints": [${mount_points}]
+  }
+]

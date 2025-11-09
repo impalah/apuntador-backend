@@ -1,0 +1,18 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "cognito-idp:AdminCreateUser",
+                "cognito-idp:AdminAddUserToGroup",
+                "cognito-idp:AdminSetUserPassword",
+                "cognito-idp:AdminRemoveUserFromGroup",
+                "cognito-idp:AdminDeleteUser",
+                "cognito-idp:AdminInitiateAuth",
+                "cognito-idp:InitiateAuth"
+            ],
+            "Resource": "${userPoolArn}",
+            "Effect": "Allow"
+        }
+    ]
+}

@@ -1,34 +1,27 @@
-FROM python:3.12 AS requirements-stage
-
-ARG package_name=strata
-ARG module_name=strata
-
-# Create structure and install poetry
-WORKDIR /tmp
-RUN mkdir projects
-RUN pip install poetry==1.8.5
-
-# Build requirements
-COPY ./pyproject.toml ./poetry.lock* ./projects/${package_name}/
-RUN cd projects/${package_name} && poetry export -f requirements.txt --output requirements.txt --without-hashes
-
-# ---------------------------------
-
 FROM public.ecr.aws/lambda/python:3.12
 
-# ARGs are needed in all the stages
-ARG package_name=strata
-ARG module_name=strata
-ARG lambda_name
+# Debug: view the current directory
+RUN echo ${LAMBDA_TASK_ROOT}
 
-# Install the function's dependencies using file requirements.txt
-# from your project folder.
-COPY --from=requirements-stage /tmp/projects/${package_name}/requirements.txt /requirements.txt
+RUN dnf install -y tar gzip
 
-RUN pip3 install -r /requirements.txt --target "${LAMBDA_TASK_ROOT}"
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv ~/.local/bin/uv /usr/local/bin/
+RUN uv --version
+
+# Generate requirements txt
+COPY pyproject.toml uv.lock README.md ${LAMBDA_TASK_ROOT}
+RUN uv export --no-emit-project --no-hashes --frozen --no-dev --no-editable -o ${LAMBDA_TASK_ROOT}/requirements.txt
+
+# # Copy requirements.txt
+# COPY requirements.txt ${LAMBDA_TASK_ROOT}
+
+# Install the specified packages
+RUN pip install -r requirements.txt
 
 # Copy function code
-COPY ./src/${module_name}/ ${LAMBDA_TASK_ROOT}/${module_name}
+COPY src/.  ${LAMBDA_TASK_ROOT}/
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 CMD ["apuntador.lambda_main.lambda_handler"]

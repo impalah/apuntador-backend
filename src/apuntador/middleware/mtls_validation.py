@@ -70,13 +70,13 @@ class MTLSValidationMiddleware(BaseHTTPMiddleware):
 
         # Exempt prefixes (will match paths starting with these)
         self.exempt_prefixes = [
-            "/api/oauth/",  # OAuth endpoints for web
+            "/oauth/",  # All OAuth endpoints (browser-based, no mTLS)
         ]
 
         # Exempt exact paths (won't match prefixes)
         self.exempt_exact = {
-            "/api/device/enroll",  # Initial enrollment (no cert yet)
-            "/api/device/ca-certificate",  # Public CA cert download
+            "/device/enroll",  # Initial enrollment (no cert yet)
+            "/device/ca-certificate",  # Public CA cert download
         }
 
         logger.info("Initialized MTLSValidationMiddleware")
@@ -154,7 +154,7 @@ class MTLSValidationMiddleware(BaseHTTPMiddleware):
         if path in self.exempt_paths or path in self.exempt_exact:
             return True
 
-        # Check prefix matches (e.g., /api/oauth/*)
+        # Check prefix matches (e.g., /oauth/*)
         for prefix in self.exempt_prefixes:
             if path.startswith(prefix):
                 return True

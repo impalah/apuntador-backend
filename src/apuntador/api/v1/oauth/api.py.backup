@@ -23,7 +23,7 @@ from apuntador.models import (
 from apuntador.utils.pkce import generate_code_challenge
 from apuntador.utils.security import generate_state, sign_data, verify_signed_data
 
-router = APIRouter(prefix="/api/oauth", tags=["OAuth"])
+router = APIRouter(prefix="/oauth", tags=["OAuth"])
 
 
 @router.post(

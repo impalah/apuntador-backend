@@ -1,0 +1,78 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "venv",
+      "type": "shell",
+      "command": "make venv",
+      "group": "build"
+    },
+    {
+      "label": "bump version",
+      "type": "shell",
+      "command": "make bump-version"
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "make build",
+      "group": "build"
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "make clean"
+    },
+    {
+      "label": "publish",
+      "type": "shell",
+      "command": "make publish"
+    },
+    {
+      "label": "publish-test",
+      "type": "shell",
+      "command": "make publish-test"
+    },
+    {
+      "label": "docker-build",
+      "type": "shell",
+      "command": "make docker-build"
+    },
+    {
+      "label": "docker-release",
+      "type": "shell",
+      "command": "make docker-release"
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "make lint"
+    },
+    {
+      "label": "format",
+      "type": "shell",
+      "command": "make format"
+    },
+    {
+      "label": "type-check",
+      "type": "shell",
+      "command": "make type-check"
+    },
+    {
+      "label": "security-check",
+      "type": "shell",
+      "command": "make security-check"
+    },
+    {
+      "label": "check",
+      "type": "shell",
+      "command": "make check"
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "make test",
+      "group": "test"
+    }
+  ]
+}

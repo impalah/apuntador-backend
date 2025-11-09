@@ -282,3 +282,75 @@ async def get_ca_certificate(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve CA certificate",
         )
+
+
+@router.get(
+    "/ca-certificate-pin",
+    summary="Get CA certificate SHA-256 pin",
+    description="""
+    Get the SHA-256 hash of the CA certificate public key for certificate pinning.
+
+    This endpoint returns the hash that clients should use to pin the CA certificate.
+    Used for implementing certificate pinning in mobile apps.
+
+    Returns:
+    - sha256_base64: Base64-encoded SHA-256 hash of the public key
+    - sha256_hex: Hex-encoded SHA-256 hash of the public key
+    - certificate_pem: Full PEM certificate (for reference)
+    """,
+)
+async def get_ca_certificate_pin(
+    ca: CertificateAuthorityDep,
+) -> dict[str, Any]:
+    """
+    Get CA certificate SHA-256 pin for certificate pinning.
+
+    Args:
+        ca: Certificate Authority service (injected)
+
+    Returns:
+        Certificate pin hashes in multiple formats
+    """
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives import hashes, serialization
+        import base64
+
+        # Get CA certificate PEM
+        service = DeviceService(ca)
+        ca_cert_data = await service.get_ca_certificate()
+        ca_cert_pem = ca_cert_data["certificate"]
+
+        # Parse certificate
+        cert = x509.load_pem_x509_certificate(ca_cert_pem.encode(), default_backend())
+
+        # Extract public key
+        public_key = cert.public_key()
+        public_key_der = public_key.public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        # Calculate SHA-256 hash
+        import hashlib
+
+        sha256_hash = hashlib.sha256(public_key_der).digest()
+        sha256_base64 = base64.b64encode(sha256_hash).decode("utf-8")
+        sha256_hex = sha256_hash.hex()
+
+        logger.info(f"CA certificate pin calculated: {sha256_base64}")
+
+        return {
+            "sha256_base64": sha256_base64,
+            "sha256_hex": sha256_hex,
+            "certificate_pem": ca_cert_pem,
+            "algorithm": "SHA-256",
+            "usage": "Use sha256_base64 for iOS/Android certificate pinning",
+        }
+    except Exception as e:
+        logger.exception(f"Failed to calculate CA certificate pin: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to calculate CA certificate pin",
+        )

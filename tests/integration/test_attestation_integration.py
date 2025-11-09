@@ -14,12 +14,12 @@ def client():
 
 
 class TestAndroidAttestation:
-    """Tests for POST /api/device/attest/android"""
+    """Tests for POST /device/attest/android"""
 
     def test_android_attestation_validation(self, client):
         """Test Android attestation with missing fields."""
         response = client.post(
-            "/api/device/attest/android",
+            "/device/attest/android",
             json={},
         )
 
@@ -27,12 +27,12 @@ class TestAndroidAttestation:
 
 
 class TestIOSAttestation:
-    """Tests for POST /api/device/attest/ios"""
+    """Tests for POST /device/attest/ios"""
 
     def test_ios_attestation_validation(self, client):
         """Test iOS attestation with missing fields."""
         response = client.post(
-            "/api/device/attest/ios",
+            "/device/attest/ios",
             json={},
         )
 
@@ -40,12 +40,12 @@ class TestIOSAttestation:
 
 
 class TestDesktopAttestation:
-    """Tests for POST /api/device/attest/desktop"""
+    """Tests for POST /device/attest/desktop"""
 
     def test_desktop_attestation_validation(self, client):
         """Test Desktop attestation with missing fields."""
         response = client.post(
-            "/api/device/attest/desktop",
+            "/device/attest/desktop",
             json={},
         )
 

@@ -42,7 +42,7 @@ async def test_trace_id_middleware_sets_context_var(middleware):
     # Arrange
     request = AsyncMock(spec=Request)
     request.method = "POST"
-    request.url.path = "/api/test"
+    request.url.path = "/test"
 
     response = Response()
 

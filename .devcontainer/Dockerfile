@@ -1,11 +1,11 @@
 FROM mcr.microsoft.com/devcontainers/python:1-3.12-bullseye
 
-# Instala uv y mueve el binario al PATH global
+# Install uv and move binary to global PATH
 RUN curl -Ls https://astral.sh/uv/install.sh | sh && \
     mv /root/.local/bin/uv /usr/local/bin/ && \
     mv /root/.local/bin/uvx /usr/local/bin/
 
-# Instala AWS CLI v2 y jq, con detección automática de arquitectura
+# Install AWS CLI v2 and jq with automatic architecture detection
 RUN apt-get update && \
     apt-get install -y unzip curl groff less jq && \
     ARCH=$(uname -m) && \
@@ -21,11 +21,11 @@ RUN apt-get update && \
     ./aws/install && \
     rm -rf awscliv2.zip aws
 
-# Establece el directorio de trabajo
+# Set working directory
 WORKDIR /workspace
 
-# Copia archivos para sincronizar dependencias
+# Copy files to sync dependencies
 COPY pyproject.toml ./
 COPY uv.lock* ./
 
-# No se crea entorno ni instala nada aquí — eso lo hace el postCreateCommand
+# Don't create environment or install here - that's done by postCreateCommand

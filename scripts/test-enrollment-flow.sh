@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # 1. Get CA certificate
 echo -e "${BLUE}1️⃣ Getting CA certificate...${NC}"
-CA_RESPONSE=$(curl -s https://apuntador.ngrok.app/api/device/ca-certificate)
+CA_RESPONSE=$(curl -s https://apuntador.ngrok.app/device/ca-certificate)
 echo "$CA_RESPONSE" | jq -r '.certificate' > /tmp/ca.pem
 
 if [ ! -s /tmp/ca.pem ]; then
@@ -45,7 +45,7 @@ echo ""
 echo -e "${BLUE}3️⃣ Enrolling device...${NC}"
 CSR_CONTENT=$(cat /tmp/device.csr | sed 's/$/\\n/' | tr -d '\n')
 
-ENROLL_RESPONSE=$(curl -s -X POST https://apuntador.ngrok.app/api/device/enroll \
+ENROLL_RESPONSE=$(curl -s -X POST https://apuntador.ngrok.app/device/enroll \
   -H "Content-Type: application/json" \
   -d "{\"csr\":\"$CSR_CONTENT\",\"device_id\":\"$DEVICE_ID\",\"platform\":\"android\",\"attestation\":null}")
 

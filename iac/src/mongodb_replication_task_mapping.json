@@ -1,0 +1,24 @@
+{
+  "rules": [
+    {
+      "rule-type": "selection",
+      "rule-id": "1",
+      "rule-name": "1",
+      "object-locator": {
+        "schema-name": "${schema_name}",
+        "table-name": "${table_name}"
+      },
+      "rule-action": "include"
+    },
+    {
+      "rule-type": "selection",
+      "rule-id": "3",
+      "rule-name": "3",
+      "object-locator": {
+        "schema-name": "admin",
+        "table-name": "%"
+      },
+      "rule-action": "exclude"
+    }
+  ]
+}

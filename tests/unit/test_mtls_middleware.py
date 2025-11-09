@@ -107,18 +107,18 @@ class TestMTLSValidationMiddleware:
         assert middleware._is_exempt_path("/openapi.json")
 
         # OAuth endpoints should be exempt
-        assert middleware._is_exempt_path("/api/oauth/authorize/googledrive")
-        assert middleware._is_exempt_path("/api/oauth/callback/dropbox")
-        assert middleware._is_exempt_path("/api/oauth/token/refresh/googledrive")
+        assert middleware._is_exempt_path("/oauth/authorize/googledrive")
+        assert middleware._is_exempt_path("/oauth/callback/dropbox")
+        assert middleware._is_exempt_path("/oauth/token/refresh/googledrive")
 
         # Device enrollment should be exempt
-        assert middleware._is_exempt_path("/api/device/enroll")
-        assert middleware._is_exempt_path("/api/device/ca-certificate")
+        assert middleware._is_exempt_path("/device/enroll")
+        assert middleware._is_exempt_path("/device/ca-certificate")
 
         # Protected endpoints should NOT be exempt
-        assert not middleware._is_exempt_path("/api/device/renew")
-        assert not middleware._is_exempt_path("/api/device/certificate/test123")
-        assert not middleware._is_exempt_path("/api/protected/data")
+        assert not middleware._is_exempt_path("/device/renew")
+        assert not middleware._is_exempt_path("/device/certificate/test123")
+        assert not middleware._is_exempt_path("/protected/data")
 
     def test_extract_certificate_from_x_client_cert(
         self, mock_infrastructure_factory, valid_certificate
