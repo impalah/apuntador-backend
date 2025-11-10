@@ -19,7 +19,7 @@ jobs:
 
       - name: Download Artifact
         run: |
-          ARTIFACT_NAME="image_tag.txt"
+          ARTIFACT_NAME="image_tag"
           # Obtener la lista de artefactos del workflow
           ARTIFACTS_URL=$(curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -32,7 +32,7 @@ jobs:
             "$ARTIFACTS_URL"
 
       - name: Unzip Artifact
-        run: unzip -q image_tag.txt.zip -d ${{ github.workspace }}
+        run: unzip -q image_tag.zip -d ${{ github.workspace }}
   
       - name: List workspace contents
         run: |

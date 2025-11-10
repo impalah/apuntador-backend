@@ -1,4 +1,4 @@
-name: Inspect, Test and Build
+name: Inspect, Build and Release
 
 on:
   # push:
@@ -127,10 +127,28 @@ jobs:
           IMAGE="${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${IMAGE_LAMBDA_TAG}"
           echo "${IMAGE_TAG}" > ${{ github.workspace }}/image_tag.txt
           echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.IMAGE_TAG }}
+          name: Release ${{ env.IMAGE_TAG }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ github.workspace }}/image_tag.txt
+          body: |
+            ## Docker Image
+            - **Lambda Image**: `${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}`
+            - **Build Number**: ${{ github.run_number }}
+            
+            ### Deployment
+            Use the `deploy-release.yml` workflow to deploy this version to any environment.
+
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: image_tag.txt
+          name: image_tag
           path: ${{ github.workspace }}/image_tag.txt
           if-no-files-found: error
   
