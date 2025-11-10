@@ -496,6 +496,6 @@ apuntador-backend/
 └── README.md
 ```
 
-## License
+## 📄 License
 
-Same as Apuntador
+MIT License - see [LICENSE](LICENSE) file for details.

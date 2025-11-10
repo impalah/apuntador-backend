@@ -312,10 +312,11 @@ async def get_ca_certificate_pin(
         Certificate pin hashes in multiple formats
     """
     try:
+        import base64
+
         from cryptography import x509
         from cryptography.hazmat.backends import default_backend
-        from cryptography.hazmat.primitives import hashes, serialization
-        import base64
+        from cryptography.hazmat.primitives import serialization
 
         # Get CA certificate PEM
         service = DeviceService(ca)
