@@ -1,0 +1,185 @@
+name: Auto Deploy Lambda on PRO
+
+on:
+  workflow_run:
+    workflows: ["Inspect, Test and Build"]
+    types:
+      - completed
+
+jobs:
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: pro
+    if: ${{ github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion == 'success' }}
+  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Artifact
+        run: |
+          ARTIFACT_NAME="image_tag.txt"
+          # Obtener la lista de artefactos del workflow
+          ARTIFACTS_URL=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts" \
+            | jq -r ".artifacts[] | select(.name == \"$ARTIFACT_NAME\") | .archive_download_url")
+          # Descargar el artefacto
+          curl -L -o "${ARTIFACT_NAME}.zip" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "$ARTIFACTS_URL"
+
+      - name: Unzip Artifact
+        run: unzip -q image_tag.txt.zip -d ${{ github.workspace }}
+  
+      - name: List workspace contents
+        run: |
+          echo "Listing workspace:"
+          ls -la ${{ github.workspace }}
+          echo "Image tag content:"
+          cat image_tag.txt
+
+      - name: Set Image Tag
+        id: settag
+        run: |
+          IMAGE_TAG=$(cat image_tag.txt)
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "Deploying image tag: ${IMAGE_TAG}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+  
+      - name: Update Lambda function image
+        env:
+          LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          ECR_REPOSITORY: ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          # Construir la URI completa de la imagen
+          IMAGE_URI="${ECR_REPOSITORY}:${IMAGE_TAG}"
+          echo "Updating Lambda function: ${LAMBDA_FUNCTION_NAME}"
+          echo "New image: ${IMAGE_URI}"
+          
+          # Actualizar la función Lambda con la nueva imagen
+          aws lambda update-function-code \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --image-uri "${IMAGE_URI}" \
+            --region "${AWS_REGION}" \
+            --output json > lambda_update_response.json
+          
+          # Mostrar la respuesta
+          cat lambda_update_response.json
+          
+          # Extraer el estado de actualización
+          UPDATE_STATUS=$(jq -r '.LastUpdateStatus' lambda_update_response.json)
+          echo "Lambda update status: ${UPDATE_STATUS}"
+
+      - name: Wait for Lambda update to complete
+        env:
+          LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          echo "Waiting for Lambda function update to complete..."
+          
+          # Esperar hasta que la actualización se complete (máximo 5 minutos)
+          MAX_ATTEMPTS=60
+          SLEEP_SECONDS=5
+          ATTEMPT=0
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            STATUS=$(aws lambda get-function \
+              --function-name "${LAMBDA_FUNCTION_NAME}" \
+              --region "${AWS_REGION}" \
+              --query 'Configuration.LastUpdateStatus' \
+              --output text)
+            
+            echo "Attempt $((ATTEMPT + 1))/${MAX_ATTEMPTS}: Status = ${STATUS}"
+            
+            if [ "${STATUS}" = "Successful" ]; then
+              echo "✅ Lambda function updated successfully!"
+              
+              # Obtener información de la función actualizada
+              aws lambda get-function \
+                --function-name "${LAMBDA_FUNCTION_NAME}" \
+                --region "${AWS_REGION}" \
+                --query '{FunctionName: Configuration.FunctionName, Version: Configuration.Version, LastModified: Configuration.LastModified, CodeSize: Configuration.CodeSize, Runtime: Configuration.PackageType, ImageUri: Code.ImageUri}' \
+                --output table
+              
+              exit 0
+            elif [ "${STATUS}" = "Failed" ]; then
+              echo "❌ Lambda function update failed!"
+              
+              # Obtener detalles del error
+              aws lambda get-function \
+                --function-name "${LAMBDA_FUNCTION_NAME}" \
+                --region "${AWS_REGION}" \
+                --query 'Configuration.{LastUpdateStatus: LastUpdateStatus, LastUpdateStatusReason: LastUpdateStatusReason, LastUpdateStatusReasonCode: LastUpdateStatusReasonCode}' \
+                --output table
+              
+              exit 1
+            fi
+            
+            # Esperar antes del siguiente intento
+            sleep ${SLEEP_SECONDS}
+            ATTEMPT=$((ATTEMPT + 1))
+          done
+          
+          echo "⚠️  Timeout waiting for Lambda update to complete after $((MAX_ATTEMPTS * SLEEP_SECONDS)) seconds"
+          exit 1
+
+      - name: Verify deployment
+        env:
+          LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          echo "Verifying Lambda deployment..."
+          
+          # Obtener configuración actual
+          aws lambda get-function-configuration \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --region "${AWS_REGION}" \
+            --query '{FunctionName: FunctionName, State: State, LastUpdateStatus: LastUpdateStatus, MemorySize: MemorySize, Timeout: Timeout, Version: Version}' \
+            --output table
+          
+          # Verificar que la función está activa
+          STATE=$(aws lambda get-function-configuration \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --region "${AWS_REGION}" \
+            --query 'State' \
+            --output text)
+          
+          if [ "${STATE}" != "Active" ]; then
+            echo "❌ Lambda function is not in Active state: ${STATE}"
+            exit 1
+          fi
+          
+          echo "✅ Lambda function is active and ready"
+
+      - name: Test Lambda function (optional)
+        env:
+          LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          echo "Testing Lambda function with a simple health check..."
+          
+          # Invocar la función Lambda con un evento de prueba
+          # Ajusta el payload según tu endpoint de health check
+          aws lambda invoke \
+            --function-name "${LAMBDA_FUNCTION_NAME}" \
+            --region "${AWS_REGION}" \
+            --payload '{"resource": "/health", "httpMethod": "GET", "path": "/health", "headers": {}}' \
+            --cli-binary-format raw-in-base64-out \
+            response.json || echo "Lambda invocation test skipped (optional)"
+          
+          if [ -f response.json ]; then
+            echo "Lambda response:"
+            cat response.json
+          fi
+
