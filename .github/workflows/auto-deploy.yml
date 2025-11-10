@@ -2,7 +2,7 @@ name: Auto Deploy Lambda on PRO
 
 on:
   workflow_run:
-    workflows: ["Inspect, Test and Build"]
+    workflows: ["Inspect, Build and Release"]
     types:
       - completed
 
