@@ -166,6 +166,12 @@ class Settings(BaseSettings):
     # OAUTH PROVIDERS SETTINGS
     # ============================================================================
 
+    # Enabled cloud providers (comma-separated list)
+    enabled_cloud_providers: str = Field(
+        default="googledrive,dropbox",
+        description="Comma-separated list of enabled cloud providers (googledrive, dropbox, onedrive)",
+    )
+
     # Google Drive OAuth
     google_client_id: str = Field(default="", description="Google OAuth Client ID")
     google_client_secret: str = Field(
@@ -230,6 +236,31 @@ class Settings(BaseSettings):
         if self.cors_allowed_headers == "*":
             return ["*"]
         return [header.strip() for header in self.cors_allowed_headers.split(",")]
+
+    def get_enabled_cloud_providers(self) -> list[str]:
+        """
+        Get list of enabled cloud providers.
+
+        Returns:
+            list[str]: List of enabled provider IDs (e.g., ["googledrive", "dropbox"]).
+        """
+        return [
+            provider.strip().lower()
+            for provider in self.enabled_cloud_providers.split(",")
+            if provider.strip()
+        ]
+
+    def is_provider_enabled(self, provider_id: str) -> bool:
+        """
+        Check if a specific cloud provider is enabled.
+
+        Args:
+            provider_id: Provider identifier (e.g., "googledrive", "dropbox").
+
+        Returns:
+            bool: True if the provider is enabled, False otherwise.
+        """
+        return provider_id.lower() in self.get_enabled_cloud_providers()
 
 
 # ============================================================================
