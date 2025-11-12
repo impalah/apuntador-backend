@@ -45,7 +45,7 @@ wheels = [
 
 [[package]]
 name = "apuntador-backend"
-version = "1.0.11"
+version = "1.0.14"
 source = { editable = "." }
 dependencies = [
     { name = "authlib" },

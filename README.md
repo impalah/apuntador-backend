@@ -20,6 +20,7 @@ OAuth Providers (Google, Dropbox, etc.)
 - ✅ Secure client secrets in the backend
 - ✅ Unified REST API for all clients
 - ✅ CORS configured for development and production
+- ✅ **Structured JSON logging** for easy integration with CloudWatch, Datadog, ELK, Splunk
 
 ## Requirements
 
@@ -337,7 +338,51 @@ ALLOWED_ORIGINS=https://apuntador.io,https://app.apuntador.io
 # Backend mode
 DEBUG=false
 LOG_LEVEL=INFO
+LOG_FORMAT=json  # Use 'json' for production, 'human' for development
 ```
+
+## Logging
+
+The backend supports **structured JSON logging** for easy integration with logging services.
+
+### Configuration
+
+Set the log format via environment variable:
+
+```bash
+# JSON format (recommended for production)
+LOG_FORMAT=json
+
+# Human-readable format (recommended for development)
+LOG_FORMAT=human
+
+# Log level
+LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+### JSON Log Example
+
+```json
+{
+  "timestamp": "2025-11-12 12:27:23.540",
+  "level": "INFO",
+  "trace_id": "2ZkABC123",
+  "name": "apuntador.api.v1.oauth.api",
+  "function": "authorize",
+  "line": 67,
+  "message": "Starting OAuth authorization for provider=googledrive"
+}
+```
+
+### Features
+
+- ✅ Structured JSON format for CloudWatch, Datadog, ELK, Splunk
+- ✅ Automatic trace_id for request correlation
+- ✅ Exception details with type and value
+- ✅ Source location (module, function, line number)
+- ✅ Human-readable format for local development
+
+📄 **Full Documentation**: [docs/JSON_LOGGING.md](docs/JSON_LOGGING.md)
 
 ### DynamoDB Certificate Whitelist Setup
 
@@ -482,6 +527,7 @@ apuntador-backend/
 ├── docs/
 │   ├── AWS_DEPLOYMENT_GUIDE.md
 │   ├── CERTIFICATE_LIFECYCLE.md
+│   ├── JSON_LOGGING.md          # Structured logging documentation
 │   ├── MTLS_IMPLEMENTATION_PLAN.md
 │   └── INFRASTRUCTURE_ABSTRACTION.md
 ├── tests/

@@ -299,3 +299,8 @@ variable "api_gateway_log_retention_days" {
 }
 
 
+variable "log_format" {
+  description = "Log format (json or human)"
+  type        = string
+  default     = "human"
+}

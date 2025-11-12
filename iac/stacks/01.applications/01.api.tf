@@ -23,7 +23,7 @@ module "apuntador-api" {
     
     # Logging Configuration
     LOG_LEVEL                = var.log_level
-    LOG_FORMAT               = "json"
+    LOG_FORMAT               = var.log_format
     ENABLE_REQUEST_LOGGING   = "true"
     
     # Cloud Provider Configuration

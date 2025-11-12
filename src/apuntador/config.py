@@ -75,8 +75,8 @@ class Settings(BaseSettings):
         description="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
     )
     log_format: str = Field(
-        default="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | trace_id={extra[trace_id]} | {name}:{function}:{line} - {message}",  # noqa: E501
-        description="Log format",
+        default="json",
+        description="Log format: 'json' for structured JSON logs, or 'human' for human-readable text",
     )
     logger_name: str = Field(default="apuntador", description="Logger name")
     logger_enqueue: bool = Field(

@@ -3,19 +3,74 @@ Loguru configuration for the application.
 
 This module configures loguru with:
 - Automatic Trace ID in each log
-- Configurable format from settings
+- Configurable format from settings (JSON or human-readable)
 - Redirection of standard library logs to loguru
 - Support for colorization in development
 """
 
+import json
 import logging
 import sys
-from typing import Any
+from typing import Any, TextIO
 
 from loguru import logger
 
 from apuntador.config import settings
 from apuntador.core.trace_context import trace_id_context
+
+
+class JsonSink:
+    """
+    Custom sink for JSON-formatted logs.
+
+    This sink formats log records as JSON objects with structured fields
+    suitable for ingestion by logging services (CloudWatch, Datadog, etc.).
+    """
+
+    def __init__(self, stream: TextIO = sys.stderr):
+        """
+        Initialize the JSON sink.
+
+        Args:
+            stream: Output stream (default: stderr)
+        """
+        self.stream = stream
+
+    def write(self, message: Any) -> None:
+        """
+        Process and write a log record in JSON format.
+
+        Args:
+            message: Loguru message object (has .record attribute)
+        """
+        record = message.record
+
+        # Extract timestamp
+        timestamp = record["time"].strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+        # Build structured log object
+        log_data = {
+            "timestamp": timestamp,
+            "level": record["level"].name,
+            "trace_id": record["extra"].get("trace_id", "N/A"),
+            "name": record["name"],
+            "function": record["function"],
+            "line": record["line"],
+            "message": record["message"],
+        }
+
+        # Add exception info if present
+        if record["exception"] is not None:
+            exc_type, exc_value, exc_traceback = record["exception"]
+            log_data["exception"] = {
+                "type": exc_type.__name__ if exc_type else "Unknown",
+                "value": str(exc_value) if exc_value else "",
+            }
+
+        # Write JSON to stream
+        json_str = json.dumps(log_data, ensure_ascii=False)
+        self.stream.write(json_str + "\n")
+        self.stream.flush()
 
 
 def add_trace_id(record: dict[str, Any]) -> bool:
@@ -36,6 +91,16 @@ def add_trace_id(record: dict[str, Any]) -> bool:
     return True
 
 
+def get_log_format() -> str:
+    """
+    Returns the appropriate log format based on settings.
+
+    Returns:
+        Format string for human-readable logs
+    """
+    return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | trace_id={extra[trace_id]} | {name}:{function}:{line} - {message}"
+
+
 def configure_logger() -> None:
     """
     Configures loguru with application settings.
@@ -44,22 +109,39 @@ def configure_logger() -> None:
     1. Removes default loguru handlers
     2. Adds handler to stderr with custom configuration
     3. Configures level, format, colorization, etc.
+    4. Uses JSON serialization if configured
     """
     # Remove default configuration
     logger.remove()
 
-    # Add configured handler
-    logger.add(
-        sink=sys.stderr,
-        level=settings.log_level.upper(),
-        format=settings.log_format,
-        filter=add_trace_id,
-        colorize=False,
-        serialize=False,
-        backtrace=True,
-        diagnose=True,
-        enqueue=settings.logger_enqueue,
-    )
+    # Determine if we're using JSON format
+    use_json = settings.log_format.lower() == "json"
+
+    if use_json:
+        # JSON format: use custom sink
+        json_sink = JsonSink(sys.stderr)
+        logger.add(
+            sink=json_sink.write,
+            level=settings.log_level.upper(),
+            format="{message}",  # Minimal format, actual formatting in sink
+            filter=add_trace_id,
+            colorize=False,
+            backtrace=True,
+            diagnose=True,
+            enqueue=settings.logger_enqueue,
+        )
+    else:
+        # Human-readable format
+        logger.add(
+            sink=sys.stderr,
+            level=settings.log_level.upper(),
+            format=get_log_format(),
+            filter=add_trace_id,
+            colorize=False,
+            backtrace=True,
+            diagnose=True,
+            enqueue=settings.logger_enqueue,
+        )
 
 
 # Configure logger when importing the module
