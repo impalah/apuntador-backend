@@ -71,6 +71,7 @@ class MTLSValidationMiddleware(BaseHTTPMiddleware):
         # Exempt prefixes (will match paths starting with these)
         self.exempt_prefixes = [
             "/oauth/",  # All OAuth endpoints (browser-based, no mTLS)
+            "/config/",  # Configuration endpoints (used by web clients)
         ]
 
         # Exempt exact paths (won't match prefixes)

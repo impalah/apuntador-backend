@@ -59,10 +59,10 @@ def create_app() -> FastAPI:
     # CORS configuration
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.allowed_origins,
+        allow_origins=settings.get_allowed_origins(),  # Use helper method to get list
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=settings.get_cors_allowed_methods(),
+        allow_headers=settings.get_cors_allowed_headers(),
     )
 
     # Register routes
@@ -74,6 +74,6 @@ def create_app() -> FastAPI:
     logger.info(f"✅ FastAPI application created (v{__version__})")
     logger.info("✅ Exception handlers registered (RFC 7807 Problem Details)")
     logger.info("✅ OpenAPI documentation customized")
-    logger.info(f"CORS origins: {settings.allowed_origins}")
+    logger.info(f"CORS origins: {settings.get_allowed_origins()}")
 
     return app
