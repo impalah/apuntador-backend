@@ -26,6 +26,9 @@ module "apuntador-api" {
     LOG_FORMAT               = "json"
     ENABLE_REQUEST_LOGGING   = "true"
     
+    # Cloud Provider Configuration
+    ENABLED_CLOUD_PROVIDERS  = var.enabled_cloud_providers
+    
     # Infrastructure Provider (AWS for Lambda)
     INFRASTRUCTURE_PROVIDER  = "aws"
     # AWS_REGION              = var.aws_region

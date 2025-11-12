@@ -16,6 +16,10 @@ secret_key      = "your-super-secure-secret-key-min-32-chars-here"
 allowed_origins = "https://apuntador.app,capacitor://localhost,tauri://localhost"
 log_level       = "INFO"
 
+# Cloud Provider Configuration
+# Comma-separated list of enabled providers: googledrive, dropbox, onedrive
+enabled_cloud_providers = "googledrive,dropbox"
+
 # AWS Infrastructure
 aws_region             = "eu-west-1"
 dynamodb_table_name    = "apuntador-certificates"

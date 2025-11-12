@@ -217,6 +217,13 @@ variable "auto_create_resources" {
   default     = "true"
 }
 
+# Cloud Provider Configuration
+variable "enabled_cloud_providers" {
+  description = "Comma-separated list of enabled cloud providers (googledrive, dropbox, onedrive)"
+  type        = string
+  default     = "googledrive,dropbox"
+}
+
 # Google Drive OAuth Configuration
 variable "google_client_id" {
   description = "Google OAuth client ID"
