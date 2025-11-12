@@ -56,7 +56,7 @@ async def authorize(
     """
     try:
         service = OAuthService(settings)
-        auth_url, signed_state = await service.create_authorization(
+        auth_url, signed_state = service.create_authorization(
             provider=provider,
             code_verifier=request.code_verifier,
             redirect_uri=request.redirect_uri,
