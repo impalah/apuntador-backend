@@ -170,7 +170,7 @@ async def test_exchange_code_for_token_http_error(google_drive_service):
 async def test_refresh_access_token_success(google_drive_service):
     """Test successful token refresh."""
     # Arrange
-    refresh_token = "goog_refresh_token_def"
+    refresh_token = "goog_refresh_token_def"  # NOSONAR - Test fixture, not a real secret
 
     mock_response = {
         "access_token": "new_goog_access_token_ghi",
@@ -207,7 +207,7 @@ async def test_refresh_access_token_success(google_drive_service):
 async def test_refresh_access_token_http_error(google_drive_service):
     """Test token refresh with HTTP error."""
     # Arrange
-    refresh_token = "invalid_refresh_token"
+    refresh_token = "invalid_refresh_token"  # NOSONAR - Test fixture, not a real secret
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = mock_client_class.return_value.__aenter__.return_value
@@ -237,7 +237,7 @@ async def test_refresh_access_token_http_error(google_drive_service):
 async def test_revoke_token_success(google_drive_service):
     """Test successful token revocation."""
     # Arrange
-    token = "goog_access_token_to_revoke"
+    token = "goog_access_token_to_revoke"  # NOSONAR - Test fixture, not a real secret
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = mock_client_class.return_value.__aenter__.return_value
@@ -263,7 +263,7 @@ async def test_revoke_token_success(google_drive_service):
 async def test_revoke_token_http_error(google_drive_service):
     """Test token revocation with HTTP error."""
     # Arrange
-    token = "invalid_token"
+    token = "invalid_token"  # NOSONAR - Test fixture, not a real secret
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = mock_client_class.return_value.__aenter__.return_value

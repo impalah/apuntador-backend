@@ -92,7 +92,7 @@ def test_verify_signed_data_tampered():
 def test_verify_signed_data_invalid_format():
     """Test verification fails for invalid format."""
     # Arrange
-    invalid_token = "this-is-not-a-valid-signed-token"
+    invalid_token = "this-is-not-a-valid-signed-token"  # NOSONAR - Test fixture, not a real secret
 
     # Act
     result = verify_signed_data(invalid_token)

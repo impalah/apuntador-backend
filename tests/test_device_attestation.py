@@ -95,7 +95,7 @@ async def test_safetynet_valid_attestation(attestation_service):
 async def test_safetynet_invalid_jws_format(attestation_service):
     """Test SafetyNet verification with invalid JWS format."""
     # Create a token that's > 100 chars but invalid format
-    invalid_token = "a" * 120  # Long enough but not valid JWS
+    invalid_token = "a" * 120  # NOSONAR - Test fixture, not a real secret
     nonce = "test-nonce-456789"
 
     request = SafetyNetAttestationRequest(
@@ -193,7 +193,7 @@ async def test_devicecheck_unsupported(attestation_service):
     service_no_creds = DeviceAttestationService()
 
     # Create valid-length token and challenge
-    device_token = "a" * 120  # > 100 chars
+    device_token = "a" * 120  # NOSONAR - Test fixture, not a real secret
     challenge = "test-challenge-16c"  # 18 chars
 
     request = DeviceCheckAttestationRequest(
@@ -211,7 +211,7 @@ async def test_devicecheck_unsupported(attestation_service):
 @pytest.mark.asyncio
 async def test_devicecheck_not_implemented(attestation_service):
     """Test DeviceCheck verification (not fully implemented yet)."""
-    device_token = "b" * 120
+    device_token = "b" * 120  # NOSONAR - Test fixture, not a real secret
     challenge = "test-challenge-17c"
 
     request = DeviceCheckAttestationRequest(
