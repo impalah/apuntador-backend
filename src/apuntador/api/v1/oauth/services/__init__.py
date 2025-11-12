@@ -21,7 +21,7 @@ class OAuthService:
         """
         self.settings = settings
 
-    async def create_authorization(
+    def create_authorization(
         self,
         provider: str,
         code_verifier: str,

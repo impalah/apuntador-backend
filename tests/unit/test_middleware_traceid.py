@@ -46,8 +46,9 @@ async def test_trace_id_middleware_sets_context_var(middleware):
 
     response = Response()
 
-    async def call_next_with_check(req):
+    async def call_next_with_check(req):  # noqa: ASYNC100
         # Verify context var is set during request
+        # Note: This callback must be async to match middleware signature
         trace_id = trace_id_context.get()
         assert trace_id is not None
         return response
@@ -66,7 +67,8 @@ async def test_trace_id_middleware_handles_exception(middleware):
     request.method = "GET"
     request.url.path = "/error"
 
-    async def call_next_raises(req):
+    async def call_next_raises(req):  # noqa: ASYNC100
+        # Note: This callback must be async to match middleware signature
         raise ValueError("Test error")
 
     # Act & Assert

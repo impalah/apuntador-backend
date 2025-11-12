@@ -223,7 +223,7 @@ class AWSCertificateRepository(CertificateRepository):
             logger.error(f"Failed to get certificate for {device_id}: {e}")
             raise
 
-    async def get_certificate_by_serial(self, serial: str) -> Certificate | None:
+    def get_certificate_by_serial(self, serial: str) -> Certificate | None:
         """Get certificate by serial number.
 
         Args:

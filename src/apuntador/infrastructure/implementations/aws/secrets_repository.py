@@ -118,7 +118,7 @@ class AWSSecretsRepository(SecretsRepository):
                 logger.error(f"Failed to get secret {secret_name}: {e}")
                 raise
 
-    async def delete_secret(self, key: str) -> None:
+    def delete_secret(self, key: str) -> None:
         """Delete a secret from AWS Secrets Manager.
 
         Note: Secrets are scheduled for deletion (7-30 days recovery window)
@@ -144,7 +144,7 @@ class AWSSecretsRepository(SecretsRepository):
                 logger.error(f"Failed to delete secret {secret_name}: {e}")
                 raise
 
-    async def list_secrets(self) -> list[str]:
+    def list_secrets(self) -> list[str]:
         """List all secrets with the configured prefix.
 
         Returns:

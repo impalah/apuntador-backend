@@ -12,8 +12,11 @@ from apuntador.core.logging import logger
 from apuntador.models.errors import ProblemDetail, ValidationErrorDetail
 
 
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:  # noqa: ASYNC100
     """Handle HTTPException with RFC 7807 ProblemDetail response.
+
+    Note: FastAPI requires exception handlers to be async even if they don't
+    perform async operations. This is part of FastAPI's architecture.
 
     Args:
         request: The FastAPI request object.
@@ -45,8 +48,11 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     )
 
 
-async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ASYNC100
     """Handle unexpected exceptions with 500 Internal Server Error.
+
+    Note: FastAPI requires exception handlers to be async even if they don't
+    perform async operations. This is part of FastAPI's architecture.
 
     Args:
         request: The FastAPI request object.
@@ -78,10 +84,13 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 
-async def validation_exception_handler(
+async def validation_exception_handler(  # noqa: ASYNC100
     request: Request, exc: RequestValidationError
 ) -> JSONResponse:
     """Handle validation errors with detailed field-level information.
+
+    Note: FastAPI requires exception handlers to be async even if they don't
+    perform async operations. This is part of FastAPI's architecture.
 
     Args:
         request: The FastAPI request object.

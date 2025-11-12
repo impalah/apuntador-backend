@@ -76,11 +76,9 @@ class InfrastructureFactory:
             )
         """
         # Handle legacy usage: InfrastructureFactory(base_dir=...)
+        # Default to local provider if not specified
         if provider is None:
-            if "base_dir" in config:
-                provider = "local"
-            else:
-                provider = "local"  # Default to local
+            provider = "local"
 
         self.provider = provider
         self.config = config

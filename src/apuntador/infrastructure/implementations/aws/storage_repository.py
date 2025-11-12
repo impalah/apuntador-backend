@@ -281,7 +281,7 @@ class AWSStorageRepository(StorageRepository):
             logger.error(f"Failed to generate pre-signed URL: {e}")
             raise
 
-    async def list_files(self, prefix: str = "") -> list[str]:
+    def list_files(self, prefix: str = "") -> list[str]:
         """List all files with given prefix.
 
         Args:
