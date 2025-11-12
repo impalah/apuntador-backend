@@ -19,7 +19,7 @@ echo -e "${BLUE}1️⃣ Getting CA certificate...${NC}"
 CA_RESPONSE=$(curl -s https://apuntador.ngrok.app/device/ca-certificate)
 echo "$CA_RESPONSE" | jq -r '.certificate' > /tmp/ca.pem
 
-if [ ! -s /tmp/ca.pem ]; then
+if [[ ! -s /tmp/ca.pem ]]; then
     echo -e "${YELLOW}❌ Failed to get CA certificate${NC}"
     exit 1
 fi
@@ -54,7 +54,7 @@ SERIAL=$(echo "$ENROLL_RESPONSE" | jq -r '.serial')
 ISSUED_AT=$(echo "$ENROLL_RESPONSE" | jq -r '.issued_at')
 EXPIRES_AT=$(echo "$ENROLL_RESPONSE" | jq -r '.expires_at')
 
-if [ ! -s /tmp/device.pem ]; then
+if [[ ! -s /tmp/device.pem ]]; then
     echo -e "${YELLOW}❌ Failed to enroll device${NC}"
     echo "$ENROLL_RESPONSE" | jq .
     exit 1

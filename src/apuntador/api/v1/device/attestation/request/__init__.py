@@ -6,6 +6,11 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from apuntador.api.v1.device.attestation.constants import (
+    DEVICE_ID_DESCRIPTION,
+    DEVICE_ID_PATTERN,
+)
+
 
 class AttestationPlatform(str, Enum):
     """Supported attestation platforms."""
@@ -29,8 +34,8 @@ class SafetyNetAttestationRequest(BaseModel):
     )
     device_id: str = Field(
         ...,
-        description="Unique device identifier",
-        pattern=r"^[a-zA-Z0-9_-]{8,64}$",
+        description=DEVICE_ID_DESCRIPTION,
+        pattern=DEVICE_ID_PATTERN,
     )
     nonce: str = Field(
         ...,
@@ -52,8 +57,8 @@ class DeviceCheckAttestationRequest(BaseModel):
     )
     device_id: str = Field(
         ...,
-        description="Unique device identifier",
-        pattern=r"^[a-zA-Z0-9_-]{8,64}$",
+        description=DEVICE_ID_DESCRIPTION,
+        pattern=DEVICE_ID_PATTERN,
     )
     challenge: str = Field(
         ..., description="Challenge string used in attestation request", min_length=16
@@ -69,8 +74,8 @@ class DesktopAttestationRequest(BaseModel):
 
     device_id: str = Field(
         ...,
-        description="Unique device identifier",
-        pattern=r"^[a-zA-Z0-9_-]{8,64}$",
+        description=DEVICE_ID_DESCRIPTION,
+        pattern=DEVICE_ID_PATTERN,
     )
     fingerprint: str = Field(
         ...,

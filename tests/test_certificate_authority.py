@@ -4,6 +4,7 @@ Unit tests for Certificate Authority service.
 Tests CSR signing, certificate verification, revocation, and lifecycle management.
 """
 
+import asyncio
 import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -78,9 +79,7 @@ async def certificate_authority_with_ca(
         .public_key(ca_private_key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.now(UTC).replace(tzinfo=None))
-        .not_valid_after(
-            datetime.now(UTC).replace(tzinfo=None) + timedelta(days=365)
-        )
+        .not_valid_after(datetime.now(UTC).replace(tzinfo=None) + timedelta(days=365))
         .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)
         .sign(ca_private_key, hashes.SHA256(), default_backend())
     )
@@ -89,19 +88,27 @@ async def certificate_authority_with_ca(
     secrets_dir = test_infrastructure_dir / "secrets"
 
     ca_key_path = secrets_dir / "ca_private_key.pem"
-    with open(ca_key_path, "wb") as f:
-        f.write(
-            ca_private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption(),
+
+    def _write_key():
+        with open(ca_key_path, "wb") as f:
+            f.write(
+                ca_private_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.NoEncryption(),
+                )
             )
-        )
-    os.chmod(ca_key_path, 0o600)
+        os.chmod(ca_key_path, 0o600)
+
+    await asyncio.to_thread(_write_key)
 
     ca_cert_path = secrets_dir / "ca_certificate.pem"
-    with open(ca_cert_path, "wb") as f:
-        f.write(ca_cert.public_bytes(serialization.Encoding.PEM))
+
+    def _write_cert():
+        with open(ca_cert_path, "wb") as f:
+            f.write(ca_cert.public_bytes(serialization.Encoding.PEM))
+
+    await asyncio.to_thread(_write_cert)
 
     # Create Certificate Authority
     ca = CertificateAuthority(infrastructure_factory)

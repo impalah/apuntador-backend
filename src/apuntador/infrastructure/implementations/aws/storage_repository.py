@@ -8,6 +8,7 @@ This module provides file storage using AWS S3 with:
 - CDN integration via CloudFront (optional)
 """
 
+import mimetypes
 
 try:
     import boto3
@@ -130,6 +131,18 @@ class AWSStorageRepository(StorageRepository):
         path = path.lstrip("/")
         return f"{self.prefix}/{path}" if self.prefix else path
 
+    def _get_content_type(self, path: str) -> str:
+        """Detect content type from file path.
+
+        Args:
+            path: File path
+
+        Returns:
+            MIME type string (defaults to 'application/octet-stream')
+        """
+        content_type, _ = mimetypes.guess_type(path)
+        return content_type or "application/octet-stream"
+
     async def upload_file(self, path: str, content: bytes) -> str:
         """Upload file to S3.
 
@@ -141,12 +154,14 @@ class AWSStorageRepository(StorageRepository):
             S3 URI (s3://bucket/key)
         """
         s3_key = self._get_s3_key(path)
+        content_type = self._get_content_type(path)
 
         try:
             self.client.put_object(
                 Bucket=self.bucket_name,
                 Key=s3_key,
                 Body=content,
+                ContentType=content_type,
                 ServerSideEncryption="AES256",
             )
 

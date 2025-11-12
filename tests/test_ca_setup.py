@@ -4,6 +4,7 @@ Integration test for CA setup script.
 Tests the setup-ca.sh script and verifies CA generation works correctly.
 """
 
+import asyncio
 import shutil
 import subprocess
 import tempfile
@@ -95,7 +96,8 @@ class TestCASetupScript:
 
         # Generate CA
         script_path = Path(__file__).parent.parent / "scripts" / "setup-ca.sh"
-        subprocess.run(
+        await asyncio.to_thread(
+            subprocess.run,
             [str(script_path), "--local", "--output", temp_ca_dir],
             capture_output=True,
             input=b"yes\n",  # Use bytes, not string

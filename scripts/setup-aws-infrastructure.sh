@@ -80,7 +80,7 @@ else
   echo "➕ Creating S3 bucket: $BUCKET_NAME"
   
   # Create bucket with proper location constraint for non-us-east-1 regions
-  if [ "$AWS_REGION" = "us-east-1" ]; then
+  if [[ "$AWS_REGION" = "us-east-1" ]]; then
     aws s3api create-bucket \
       --bucket "$BUCKET_NAME" \
       --region "$AWS_REGION" > /dev/null
@@ -140,7 +140,7 @@ echo "🔑 Checking secret: $SECRET_NAME"
 if secret_exists "$SECRET_NAME"; then
   echo "✅ Secret already exists: $SECRET_NAME"
 else
-  if [ -f "../.local_infrastructure/secrets/ca-private-key.pem" ]; then
+  if [[ -f "../.local_infrastructure/secrets/ca-private-key.pem" ]]; then
     echo "➕ Creating secret: $SECRET_NAME"
     aws secretsmanager create-secret \
       --name "$SECRET_NAME" \
@@ -161,7 +161,7 @@ echo "📜 Checking secret: $SECRET_NAME"
 if secret_exists "$SECRET_NAME"; then
   echo "✅ Secret already exists: $SECRET_NAME"
 else
-  if [ -f "../.local_infrastructure/secrets/ca-certificate.pem" ]; then
+  if [[ -f "../.local_infrastructure/secrets/ca-certificate.pem" ]]; then
     echo "➕ Creating secret: $SECRET_NAME"
     aws secretsmanager create-secret \
       --name "$SECRET_NAME" \

@@ -6,7 +6,7 @@ echo "🚀 Iniciando Apuntador OAuth Backend"
 echo ""
 
 # Verificar si existe .env
-if [ ! -f .env ]; then
+if [[ ! -f .env ]]; then
     echo "⚠️  No se encontró archivo .env"
     echo "📝 Creando .env desde .env.example..."
     cp .env.example .env
@@ -18,7 +18,7 @@ if [ ! -f .env ]; then
 fi
 
 # Verificar si existe venv
-if [ ! -d "venv" ]; then
+if [[ ! -d "venv" ]]; then
     echo "📦 Creando entorno virtual..."
     python3 -m venv venv
     echo "✅ Entorno virtual creado"

@@ -81,7 +81,7 @@ echo -e "  ${GREEN}✓${NC} $OPENSSL_VERSION"
 echo ""
 
 # Set validity based on mode
-if [ "$MODE" = "production" ]; then
+if [[ "$MODE" = "production" ]]; then
     CA_DAYS=3650  # 10 years
     echo -e "${YELLOW}→ Mode: Production${NC}"
     echo -e "  CA validity: ${GREEN}$CA_DAYS days (10 years)${NC}"
@@ -105,13 +105,13 @@ CA_CERT="$OUTPUT_DIR/ca_certificate.pem"
 CA_CONFIG="$OUTPUT_DIR/ca_openssl.cnf"
 
 # Check if CA already exists
-if [ -f "$CA_KEY" ] || [ -f "$CA_CERT" ]; then
+if [[ -f "$CA_KEY" ]] || [[ -f "$CA_CERT" ]]; then
     echo -e "${RED}⚠ Warning: CA files already exist!${NC}"
     echo -e "  Key:  $CA_KEY"
     echo -e "  Cert: $CA_CERT"
     echo ""
     read -p "Overwrite existing CA? (yes/no): " CONFIRM
-    if [ "$CONFIRM" != "yes" ]; then
+    if [[ "$CONFIRM" != "yes" ]]; then
         echo -e "${YELLOW}Aborted. Existing CA preserved.${NC}"
         exit 0
     fi
@@ -197,7 +197,7 @@ echo -e "  ${GREEN}✓${NC} CA Certificate: $CA_CERT"
 echo -e "  ${GREEN}✓${NC} OpenSSL Config: $CA_CONFIG"
 echo ""
 
-if [ "$MODE" = "production" ]; then
+if [[ "$MODE" = "production" ]]; then
     echo -e "${RED}⚠ PRODUCTION MODE SECURITY CHECKLIST:${NC}"
     echo -e "  ${YELLOW}1.${NC} Move CA private key to AWS Secrets Manager:"
     echo -e "     ${BLUE}aws secretsmanager create-secret \\${NC}"

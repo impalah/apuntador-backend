@@ -7,6 +7,9 @@ before certificate enrollment.
 
 from fastapi import APIRouter, HTTPException
 
+from apuntador.api.v1.device.attestation.constants import (
+    INTERNAL_SERVER_ERROR_ATTESTATION,
+)
 from apuntador.api.v1.device.attestation.request import (
     DesktopAttestationRequest,
     DeviceCheckAttestationRequest,
@@ -60,7 +63,7 @@ async def verify_android_safetynet(
         logger.exception(f"Unexpected error during SafetyNet verification: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Internal server error during attestation verification",
+            detail=INTERNAL_SERVER_ERROR_ATTESTATION,
         )
 
 
@@ -101,7 +104,7 @@ async def verify_ios_devicecheck(
         logger.exception(f"Unexpected error during DeviceCheck verification: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Internal server error during attestation verification",
+            detail=INTERNAL_SERVER_ERROR_ATTESTATION,
         )
 
 
@@ -140,7 +143,7 @@ async def verify_desktop_fingerprint(
         logger.exception(f"Unexpected error during desktop verification: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Internal server error during attestation verification",
+            detail=INTERNAL_SERVER_ERROR_ATTESTATION,
         )
 
 

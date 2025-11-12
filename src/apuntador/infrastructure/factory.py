@@ -38,6 +38,9 @@ if TYPE_CHECKING:
 
 InfrastructureProvider = Literal["local", "aws", "azure"]
 
+# Error messages
+AZURE_NOT_IMPLEMENTED_ERROR = "Azure provider not yet implemented"
+
 
 class InfrastructureFactory:
     """
@@ -148,7 +151,7 @@ class InfrastructureFactory:
 
         elif self.provider == "azure":
             # TODO: Implement Azure CosmosDB repository
-            raise NotImplementedError("Azure provider not yet implemented")
+            raise NotImplementedError(AZURE_NOT_IMPLEMENTED_ERROR)
 
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
@@ -186,7 +189,7 @@ class InfrastructureFactory:
 
         elif self.provider == "azure":
             # TODO: Implement Azure Key Vault repository
-            raise NotImplementedError("Azure provider not yet implemented")
+            raise NotImplementedError(AZURE_NOT_IMPLEMENTED_ERROR)
 
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
@@ -228,7 +231,7 @@ class InfrastructureFactory:
 
         elif self.provider == "azure":
             # TODO: Implement Azure Blob Storage repository
-            raise NotImplementedError("Azure provider not yet implemented")
+            raise NotImplementedError(AZURE_NOT_IMPLEMENTED_ERROR)
 
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
