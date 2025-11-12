@@ -5,7 +5,6 @@ This module provides secure secret storage using AWS Secrets Manager.
 Secrets are encrypted at rest using AWS KMS.
 """
 
-
 try:
     import boto3
     from botocore.exceptions import ClientError

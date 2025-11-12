@@ -12,7 +12,9 @@ from apuntador.core.logging import logger
 from apuntador.models.errors import ProblemDetail, ValidationErrorDetail
 
 
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:  # noqa: ASYNC100
+async def http_exception_handler(
+    request: Request, exc: HTTPException
+) -> JSONResponse:  # noqa: ASYNC100
     """Handle HTTPException with RFC 7807 ProblemDetail response.
 
     Note: FastAPI requires exception handlers to be async even if they don't
@@ -48,7 +50,9 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     )
 
 
-async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ASYNC100
+async def general_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:  # noqa: ASYNC100
     """Handle unexpected exceptions with 500 Internal Server Error.
 
     Note: FastAPI requires exception handlers to be async even if they don't
