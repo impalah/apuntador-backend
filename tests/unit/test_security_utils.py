@@ -4,7 +4,6 @@ Unit tests for security utilities.
 Tests token signing, state generation, and verification.
 """
 
-
 from apuntador.utils.security import generate_state, sign_data, verify_signed_data
 
 
@@ -92,7 +91,9 @@ def test_verify_signed_data_tampered():
 def test_verify_signed_data_invalid_format():
     """Test verification fails for invalid format."""
     # Arrange
-    invalid_token = "this-is-not-a-valid-signed-token"  # NOSONAR - Test fixture, not a real secret
+    invalid_token = (
+        "this-is-not-a-valid-signed-token"  # NOSONAR - Test fixture, not a real secret
+    )
 
     # Act
     result = verify_signed_data(invalid_token)

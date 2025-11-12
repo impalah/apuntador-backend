@@ -170,7 +170,9 @@ async def test_exchange_code_for_token_http_error(google_drive_service):
 async def test_refresh_access_token_success(google_drive_service):
     """Test successful token refresh."""
     # Arrange
-    refresh_token = "goog_refresh_token_def"  # NOSONAR - Test fixture, not a real secret
+    refresh_token = (
+        "goog_refresh_token_def"  # NOSONAR - Test fixture, not a real secret
+    )
 
     mock_response = {
         "access_token": "new_goog_access_token_ghi",

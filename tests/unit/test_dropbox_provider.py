@@ -165,7 +165,9 @@ async def test_exchange_code_for_token_http_error(dropbox_service):
 async def test_refresh_access_token_success(dropbox_service):
     """Test successful token refresh."""
     # Arrange
-    refresh_token = "dropbox_refresh_token_456"  # NOSONAR - Test fixture, not a real secret
+    refresh_token = (
+        "dropbox_refresh_token_456"  # NOSONAR - Test fixture, not a real secret
+    )
 
     mock_response = {
         "access_token": "new_dropbox_access_token_789",
@@ -201,7 +203,9 @@ async def test_refresh_access_token_success(dropbox_service):
 async def test_refresh_access_token_http_error(dropbox_service):
     """Test token refresh with HTTP error."""
     # Arrange
-    refresh_token = "invalid_dropbox_refresh_token"  # NOSONAR - Test fixture, not a real secret
+    refresh_token = (
+        "invalid_dropbox_refresh_token"  # NOSONAR - Test fixture, not a real secret
+    )
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = mock_client_class.return_value.__aenter__.return_value
@@ -231,7 +235,9 @@ async def test_refresh_access_token_http_error(dropbox_service):
 async def test_revoke_token_success(dropbox_service):
     """Test successful token revocation."""
     # Arrange
-    token = "dropbox_access_token_to_revoke"  # NOSONAR - Test fixture, not a real secret
+    token = (
+        "dropbox_access_token_to_revoke"  # NOSONAR - Test fixture, not a real secret
+    )
 
     with patch("httpx.AsyncClient") as mock_client_class:
         mock_client = mock_client_class.return_value.__aenter__.return_value
