@@ -78,7 +78,7 @@ class DeviceAttestationService:
     # Android SafetyNet
     # ===========================
 
-    def verify_safetynet(
+    async def verify_safetynet(
         self, request: SafetyNetAttestationRequest
     ) -> SafetyNetAttestationResponse:
         """Verify Android SafetyNet attestation.
@@ -197,7 +197,7 @@ class DeviceAttestationService:
     # iOS DeviceCheck
     # ===========================
 
-    def verify_devicecheck(
+    async def verify_devicecheck(
         self, request: DeviceCheckAttestationRequest
     ) -> DeviceCheckAttestationResponse:
         """Verify iOS DeviceCheck attestation.
@@ -273,7 +273,7 @@ class DeviceAttestationService:
     # Desktop Fingerprinting
     # ===========================
 
-    def verify_desktop(
+    async def verify_desktop(
         self, request: DesktopAttestationRequest
     ) -> DesktopAttestationResponse:
         """Verify desktop device fingerprint.

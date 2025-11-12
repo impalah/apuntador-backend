@@ -202,7 +202,7 @@ class TestAWSCertificateRepository:
             auto_create_table=False,
         )
 
-        cert = await repo.get_certificate_by_serial("ABC123")
+        cert = repo.get_certificate_by_serial("ABC123")
 
         assert cert is not None
         assert cert.device_id == "device-123"
