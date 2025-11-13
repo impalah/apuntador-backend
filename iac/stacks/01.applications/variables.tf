@@ -98,6 +98,53 @@ variable "vpc_db_private_subnets_ids" {
   default     = []
 }
 
+variable "cors_allowed_origins" {
+  description = "List of allowed CORS origins for API Gateway"
+  type        = list(string)
+  default = [
+    "https://app.apuntador.io",
+    "http://localhost:3000",
+    "http://localhost:5173"
+  ]
+}
+
+variable "cors_allowed_methods" {
+  description = "List of allowed HTTP methods for CORS"
+  type        = list(string)
+  default     = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+}
+
+variable "cors_allowed_headers" {
+  description = "List of allowed headers for CORS"
+  type        = list(string)
+  default = [
+    "content-type",
+    "x-amz-date",
+    "authorization",
+    "x-api-key",
+    "x-amz-security-token",
+    "x-amz-user-agent"
+  ]
+}
+
+variable "cors_expose_headers" {
+  description = "List of headers to expose in CORS responses"
+  type        = list(string)
+  default     = ["content-type", "x-amz-date"]
+}
+
+variable "cors_max_age" {
+  description = "Maximum age (in seconds) for CORS preflight cache"
+  type        = number
+  default     = 86400
+}
+
+variable "cors_allow_credentials" {
+  description = "Whether credentials are allowed in CORS requests"
+  type        = bool
+  default     = false
+}
+
 
 
 variable "api_service_name" {

@@ -139,11 +139,17 @@ resource "aws_iam_role_policy" "lambda_secrets_policy" {
 ####################################################################
 
 module "api_gateway" {
-  source               = "../../modules/api-gateway"
-  environment          = var.environment
-  project              = var.project
-  lambda_function_arn  = module.apuntador-api.function_arn
-  lambda_function_name = module.apuntador-api.function_name
+  source                  = "../../modules/api-gateway"
+  environment             = var.environment
+  project                 = var.project
+  lambda_function_arn     = module.apuntador-api.function_arn
+  lambda_function_name    = module.apuntador-api.function_name
+  cors_allowed_origins    = var.cors_allowed_origins
+  cors_allowed_methods    = var.cors_allowed_methods
+  cors_allowed_headers    = var.cors_allowed_headers
+  cors_expose_headers     = var.cors_expose_headers
+  cors_max_age            = var.cors_max_age
+  cors_allow_credentials  = var.cors_allow_credentials
   # vpc_id          = var.vpc_id
   # vpc_subnets_ids = var.vpc_private_subnets_ids
 

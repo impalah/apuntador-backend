@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 def verify_api_key(
-    x_api_key: Annotated[str | None, Header()] = None,
+    authorization: Annotated[str | None, Header()] = None,
     settings: Settings = Depends(get_settings),
 ) -> None:
     """
@@ -27,30 +27,41 @@ def verify_api_key(
     to configuration information.
 
     Args:
-        x_api_key: API key from request header.
+        authorization: Authorization header with Bearer token.
         settings: Application settings.
 
     Raises:
-        HTTPException: If API key is missing or invalid.
+        HTTPException: If Authorization header is missing or invalid.
     """
     # For now, we use the SECRET_KEY as API key
     # In production, you might want a separate CONFIG_API_KEY
     expected_key = settings.secret_key
 
-    if not x_api_key:
-        logger.warning("Configuration request missing X-API-Key header")
+    if not authorization:
+        logger.warning("Configuration request missing Authorization header")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing X-API-Key header",
-            headers={"WWW-Authenticate": "ApiKey"},
+            detail="Missing Authorization header",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if x_api_key != expected_key:
+    # Extract token from "Bearer <token>" format
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        logger.warning("Configuration request with invalid Authorization format")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Authorization header format. Expected: Bearer <token>",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = parts[1]
+    if token != expected_key:
         logger.warning("Configuration request with invalid API key")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API key",
-            headers={"WWW-Authenticate": "ApiKey"},
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
 
@@ -61,7 +72,7 @@ def verify_api_key(
     description="""
     Returns the list of enabled cloud providers and their configuration.
     
-    Requires authentication via X-API-Key header.
+    Requires authentication via Authorization: Bearer <token> header.
     
     Clients should cache this response for the duration specified in cache_ttl.
     """,
