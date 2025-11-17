@@ -104,7 +104,10 @@ variable "cors_allowed_origins" {
   default = [
     "https://app.apuntador.io",
     "http://localhost:3000",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "capacitor://localhost",
+    "ionic://localhost",
+    "tauri://localhost"
   ]
 }
 
@@ -123,7 +126,9 @@ variable "cors_allowed_headers" {
     "authorization",
     "x-api-key",
     "x-amz-security-token",
-    "x-amz-user-agent"
+    "x-amz-user-agent",
+    "x-client-cert",
+    "x-device-id"
   ]
 }
 
@@ -142,7 +147,7 @@ variable "cors_max_age" {
 variable "cors_allow_credentials" {
   description = "Whether credentials are allowed in CORS requests"
   type        = bool
-  default     = false
+  default     = true  # Necesario para Authorization header
 }
 
 

@@ -26,15 +26,17 @@ resource "aws_apigatewayv2_api" "api" {
   )
   name = format("%s-%s-api", replace(var.environment, "_", "-"), lower(var.project), )
 
-  # CORS Configuration
-  cors_configuration {
-    allow_origins     = var.cors_allowed_origins
-    allow_methods     = var.cors_allowed_methods
-    allow_headers     = var.cors_allowed_headers
-    expose_headers    = var.cors_expose_headers
-    max_age           = var.cors_max_age
-    allow_credentials = var.cors_allow_credentials
-  }
+  # CORS Configuration - DISABLED
+  # API Gateway no soporta esquemas personalizados (capacitor://, tauri://, ionic://)
+  # FastAPI CORSMiddleware maneja todo el CORS incluyendo OPTIONS
+  # cors_configuration {
+  #   allow_origins     = var.cors_allowed_origins
+  #   allow_methods     = var.cors_allowed_methods
+  #   allow_headers     = var.cors_allowed_headers
+  #   expose_headers    = var.cors_expose_headers
+  #   max_age           = var.cors_max_age
+  #   allow_credentials = var.cors_allow_credentials
+  # }
 
 }
 
