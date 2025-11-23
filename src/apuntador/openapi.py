@@ -144,6 +144,10 @@ All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/ht
         },
     ]
 
+    # Ensure components exists before adding security schemes
+    if "components" not in openapi_schema:
+        openapi_schema["components"] = {}
+
     # Add security schemes
     openapi_schema["components"]["securitySchemes"] = {
         "mTLS": {

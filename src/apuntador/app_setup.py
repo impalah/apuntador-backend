@@ -39,7 +39,7 @@ def add_root_endpoint(app: FastAPI) -> None:
     settings = get_settings()
 
     @app.get("/")
-    async def root() -> dict[str, str]:
+    async def root() -> dict[str, str | None]:
         """Root endpoint with API information."""
         return {
             "message": "Apuntador OAuth Backend",

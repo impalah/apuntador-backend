@@ -2,6 +2,8 @@
 Tests para utilidades PKCE.
 """
 
+import pytest
+
 from apuntador.utils.pkce import (
     generate_code_challenge,
     generate_code_verifier,
@@ -14,6 +16,15 @@ def test_generate_code_verifier():
     verifier = generate_code_verifier()
     assert len(verifier) == 128
     assert verifier.replace("-", "").replace("_", "").isalnum()
+
+
+def test_generate_code_verifier_invalid_length():
+    """Test generación de code verifier con longitud inválida."""
+    with pytest.raises(ValueError, match="Length must be between 43 and 128"):
+        generate_code_verifier(length=42)
+
+    with pytest.raises(ValueError, match="Length must be between 43 and 128"):
+        generate_code_verifier(length=129)
 
 
 def test_generate_code_challenge():
