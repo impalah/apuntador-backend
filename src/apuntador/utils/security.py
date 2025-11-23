@@ -36,9 +36,8 @@ def create_serializer() -> URLSafeTimedSerializer:
     return URLSafeTimedSerializer(settings.secret_key)
 
 
-def sign_data(data: dict[str, Any], max_age: int = 600) -> str:
-    """
-    Sign data with timestamp for tamper detection.
+def sign_data(data: dict[str, Any]) -> str:
+    """Sign data with timestamp for tamper detection.
 
     Creates a signed token that includes the data and a timestamp,
     ensuring data integrity and freshness. The token can only be
@@ -46,14 +45,13 @@ def sign_data(data: dict[str, Any], max_age: int = 600) -> str:
 
     Args:
         data: Dictionary to sign (will be JSON-serialized)
-        max_age: Maximum validity time in seconds (default: 600 = 10 minutes)
 
     Returns:
         str: Signed token (URL-safe base64 string)
 
     Example:
         >>> token = sign_data({"user_id": 123, "action": "login"})
-        >>> # Token can be verified within 10 minutes
+        >>> # Token can be verified within 10 minutes using verify_signed_data
     """
     serializer = create_serializer()
     return serializer.dumps(data)

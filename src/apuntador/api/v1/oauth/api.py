@@ -20,9 +20,9 @@ from apuntador.api.v1.oauth.response import (
     OAuthTokenResponse,
 )
 from apuntador.api.v1.oauth.services import OAuthService
+from apuntador.api.v1.common.models import ErrorResponse
 from apuntador.core.logging import logger
 from apuntador.di import SettingsDep
-from apuntador.models import ErrorResponse
 from apuntador.utils.security import verify_signed_data
 
 router = APIRouter()

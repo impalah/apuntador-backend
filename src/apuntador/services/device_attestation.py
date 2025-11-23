@@ -78,7 +78,7 @@ class DeviceAttestationService:
     # Android SafetyNet
     # ===========================
 
-    async def verify_safetynet(
+    def verify_safetynet(
         self, request: SafetyNetAttestationRequest
     ) -> SafetyNetAttestationResponse:
         """Verify Android SafetyNet attestation.
@@ -197,7 +197,7 @@ class DeviceAttestationService:
     # iOS DeviceCheck
     # ===========================
 
-    async def verify_devicecheck(
+    def verify_devicecheck(
         self, request: DeviceCheckAttestationRequest
     ) -> DeviceCheckAttestationResponse:
         """Verify iOS DeviceCheck attestation.
@@ -273,7 +273,7 @@ class DeviceAttestationService:
     # Desktop Fingerprinting
     # ===========================
 
-    async def verify_desktop(
+    def verify_desktop(
         self, request: DesktopAttestationRequest
     ) -> DesktopAttestationResponse:
         """Verify desktop device fingerprint.
@@ -319,7 +319,7 @@ class DeviceAttestationService:
             # Check rate limiting
             # In production: use Redis or DynamoDB to track enrollment attempts
             # For now: simple in-memory check
-            rate_limit_ok = self._check_rate_limit(request.device_id)
+            rate_limit_ok = self._check_rate_limit()
 
             # Fingerprint matching would check against stored fingerprint
             # For first-time enrollment, we accept the fingerprint
@@ -405,7 +405,7 @@ class DeviceAttestationService:
         self._cache[cache_key] = entry
         logger.debug(f"Cached attestation for {cache_key} until {expires_at}")
 
-    def _check_rate_limit(self, device_id: str) -> bool:
+    def _check_rate_limit(self) -> bool:
         """Check if device is within rate limits.
 
         Simple in-memory implementation. In production, use Redis.

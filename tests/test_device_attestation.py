@@ -70,8 +70,7 @@ def create_safetynet_token(
 # ===========================
 
 
-@pytest.mark.asyncio
-async def test_safetynet_valid_attestation(attestation_service):
+def test_safetynet_valid_attestation(attestation_service):
     """Test successful SafetyNet attestation verification."""
     nonce = "test-nonce-123456"  # 18 chars (min 16)
     token = create_safetynet_token(nonce)
@@ -82,7 +81,7 @@ async def test_safetynet_valid_attestation(attestation_service):
         nonce=nonce,
     )
 
-    response = await attestation_service.verify_safetynet(request)
+    response = attestation_service.verify_safetynet(request)
 
     assert response.status == AttestationStatus.VALID
     assert response.device_id == "android-device-123"
@@ -91,8 +90,7 @@ async def test_safetynet_valid_attestation(attestation_service):
     assert response.error_message is None
 
 
-@pytest.mark.asyncio
-async def test_safetynet_invalid_jws_format(attestation_service):
+def test_safetynet_invalid_jws_format(attestation_service):
     """Test SafetyNet verification with invalid JWS format."""
     # Create a token that's > 100 chars but invalid format
     invalid_token = "a" * 120  # NOSONAR - Test fixture, not a real secret
@@ -104,15 +102,14 @@ async def test_safetynet_invalid_jws_format(attestation_service):
         nonce=nonce,
     )
 
-    response = await attestation_service.verify_safetynet(request)
+    response = attestation_service.verify_safetynet(request)
 
     assert response.status == AttestationStatus.FAILED
     assert response.device_id == "android-device-456"
     assert response.error_message is not None
 
 
-@pytest.mark.asyncio
-async def test_safetynet_nonce_mismatch(attestation_service):
+def test_safetynet_nonce_mismatch(attestation_service):
     """Test SafetyNet verification with nonce mismatch."""
     correct_nonce = "test-nonce-correct"
     wrong_nonce = "test-nonce-wronggg"
@@ -124,14 +121,13 @@ async def test_safetynet_nonce_mismatch(attestation_service):
         nonce=wrong_nonce,  # Different from token payload
     )
 
-    response = await attestation_service.verify_safetynet(request)
+    response = attestation_service.verify_safetynet(request)
 
     assert response.status == AttestationStatus.INVALID
     assert response.error_message == "Nonce mismatch"
 
 
-@pytest.mark.asyncio
-async def test_safetynet_failed_integrity(attestation_service):
+def test_safetynet_failed_integrity(attestation_service):
     """Test SafetyNet verification with failed integrity checks."""
     nonce = "test-nonce-failed1"
     token = create_safetynet_token(
@@ -147,7 +143,7 @@ async def test_safetynet_failed_integrity(attestation_service):
         nonce=nonce,
     )
 
-    response = await attestation_service.verify_safetynet(request)
+    response = attestation_service.verify_safetynet(request)
 
     assert response.status == AttestationStatus.INVALID
     assert response.cts_profile_match is False
@@ -155,8 +151,7 @@ async def test_safetynet_failed_integrity(attestation_service):
     assert response.advice == "RESTORE_TO_FACTORY_ROM"
 
 
-@pytest.mark.asyncio
-async def test_safetynet_cache_hit(attestation_service):
+def test_safetynet_cache_hit(attestation_service):
     """Test SafetyNet attestation cache hit."""
     nonce = "test-nonce-cache123"
     token = create_safetynet_token(nonce)
@@ -168,14 +163,14 @@ async def test_safetynet_cache_hit(attestation_service):
     )
 
     # First request - should verify and cache
-    response1 = await attestation_service.verify_safetynet(request)
+    response1 = attestation_service.verify_safetynet(request)
 
     # Verify cache was populated
     cache_key = f"android-cached-device:{AttestationPlatform.ANDROID.value}"
     assert cache_key in attestation_service._cache
 
     # Second request - should use cache
-    response2 = await attestation_service.verify_safetynet(request)
+    response2 = attestation_service.verify_safetynet(request)
 
     # Both should have same status
     assert response1.status == response2.status == AttestationStatus.VALID
@@ -186,8 +181,7 @@ async def test_safetynet_cache_hit(attestation_service):
 # ===========================
 
 
-@pytest.mark.asyncio
-async def test_devicecheck_unsupported(attestation_service):
+def test_devicecheck_unsupported(attestation_service):
     """Test DeviceCheck when Apple credentials not configured."""
     # Create service without Apple credentials
     service_no_creds = DeviceAttestationService()
@@ -202,14 +196,13 @@ async def test_devicecheck_unsupported(attestation_service):
         challenge=challenge,
     )
 
-    response = await service_no_creds.verify_devicecheck(request)
+    response = service_no_creds.verify_devicecheck(request)
 
     assert response.status == AttestationStatus.UNSUPPORTED
     assert response.error_message == "DeviceCheck not configured"
 
 
-@pytest.mark.asyncio
-async def test_devicecheck_not_implemented(attestation_service):
+def test_devicecheck_not_implemented(attestation_service):
     """Test DeviceCheck verification (not fully implemented yet)."""
     device_token = "b" * 120  # NOSONAR - Test fixture, not a real secret
     challenge = "test-challenge-17c"
@@ -220,7 +213,7 @@ async def test_devicecheck_not_implemented(attestation_service):
         challenge=challenge,
     )
 
-    response = await attestation_service.verify_devicecheck(request)
+    response = attestation_service.verify_devicecheck(request)
 
     # Should return unsupported until fully implemented
     assert response.status == AttestationStatus.UNSUPPORTED
@@ -232,8 +225,7 @@ async def test_devicecheck_not_implemented(attestation_service):
 # ===========================
 
 
-@pytest.mark.asyncio
-async def test_desktop_valid_fingerprint(attestation_service):
+def test_desktop_valid_fingerprint(attestation_service):
     """Test successful desktop fingerprint verification."""
     request = DesktopAttestationRequest(
         device_id="desktop-device-123",
@@ -245,7 +237,7 @@ async def test_desktop_valid_fingerprint(attestation_service):
         },
     )
 
-    response = await attestation_service.verify_desktop(request)
+    response = attestation_service.verify_desktop(request)
 
     assert response.status == AttestationStatus.VALID
     assert response.device_id == "desktop-device-123"
@@ -253,8 +245,7 @@ async def test_desktop_valid_fingerprint(attestation_service):
     assert response.rate_limit_ok is True
 
 
-@pytest.mark.asyncio
-async def test_desktop_cache_hit(attestation_service):
+def test_desktop_cache_hit(attestation_service):
     """Test desktop fingerprint cache hit."""
     request = DesktopAttestationRequest(
         device_id="desktop-cached-device",
@@ -263,14 +254,14 @@ async def test_desktop_cache_hit(attestation_service):
     )
 
     # First request - should verify and cache
-    response1 = await attestation_service.verify_desktop(request)
+    response1 = attestation_service.verify_desktop(request)
 
     # Verify cache was populated
     cache_key = f"desktop-cached-device:{AttestationPlatform.DESKTOP.value}"
     assert cache_key in attestation_service._cache
 
     # Second request - should use cache
-    response2 = await attestation_service.verify_desktop(request)
+    response2 = attestation_service.verify_desktop(request)
 
     # Both should have same status
     assert response1.status == response2.status == AttestationStatus.VALID
@@ -346,11 +337,8 @@ def test_cache_expiration(attestation_service):
 # ===========================
 
 
-@pytest.mark.asyncio
-async def test_concurrent_attestation_requests(attestation_service):
+def test_concurrent_attestation_requests(attestation_service):
     """Test handling concurrent attestation requests for same device."""
-    import asyncio
-
     nonce = "test-nonce-concurrent123"
     token = create_safetynet_token(nonce)
 
@@ -360,9 +348,8 @@ async def test_concurrent_attestation_requests(attestation_service):
         nonce=nonce,
     )
 
-    # Make 5 concurrent requests
-    tasks = [attestation_service.verify_safetynet(request) for _ in range(5)]
-    responses = await asyncio.gather(*tasks)
+    # Make 5 sequential requests (methods are synchronous now)
+    responses = [attestation_service.verify_safetynet(request) for _ in range(5)]
 
     # All should return same status
     assert all(r.status == AttestationStatus.VALID for r in responses)

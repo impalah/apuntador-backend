@@ -7,7 +7,7 @@ Provides health check endpoints for monitoring service status.
 from fastapi import APIRouter
 
 from apuntador import __version__
-from apuntador.models import HealthResponse
+from apuntador.api.v1.health.models import HealthResponse
 
 router = APIRouter()
 
@@ -20,7 +20,9 @@ async def health_check() -> HealthResponse:
     Returns:
         Service status and version
     """
-    return HealthResponse(status="ok", version=__version__, message="Service is healthy")
+    return HealthResponse(
+        status="ok", version=__version__, message="Service is healthy"
+    )
 
 
 @router.get("/health/public", response_model=HealthResponse)

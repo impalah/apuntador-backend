@@ -143,18 +143,22 @@ class AWSStorageRepository(StorageRepository):
         content_type, _ = mimetypes.guess_type(path)
         return content_type or "application/octet-stream"
 
-    async def upload_file(self, path: str, content: bytes) -> str:
+    async def upload_file(
+        self, path: str, content: bytes, content_type: str | None = None
+    ) -> str:
         """Upload file to S3.
 
         Args:
             path: File path (will be prefixed)
             content: File content as bytes
+            content_type: MIME type (auto-detected from path if not provided)
 
         Returns:
             S3 URI (s3://bucket/key)
         """
         s3_key = self._get_s3_key(path)
-        content_type = self._get_content_type(path)
+        if content_type is None:
+            content_type = self._get_content_type(path)
 
         try:
             self.client.put_object(

@@ -61,7 +61,7 @@ class JsonSink:
 
         # Add exception info if present
         if record["exception"] is not None:
-            exc_type, exc_value, exc_traceback = record["exception"]
+            exc_type, exc_value, _ = record["exception"]
             log_data["exception"] = {
                 "type": exc_type.__name__ if exc_type else "Unknown",
                 "value": str(exc_value) if exc_value else "",
