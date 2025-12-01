@@ -20,6 +20,9 @@ RUN uv export --no-emit-project --no-hashes --frozen --no-dev --no-editable -o $
 # Install the specified packages
 RUN pip install -r requirements.txt
 
+# Install AWS ADOT (OpenTelemetry) for Lambda
+RUN pip install aws-opentelemetry-distro[otlp]
+
 # Copy function code
 COPY src/.  ${LAMBDA_TASK_ROOT}/
 

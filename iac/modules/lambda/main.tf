@@ -128,8 +128,9 @@ resource "aws_lambda_function" "lambda_function" {
   skip_destroy                   = "false"
   timeout                        = var.function_timeout
   
-  # Lambda Layers (e.g., ADOT for OpenTelemetry)
-  layers                         = var.layers
+  # Lambda Layers - NOT supported for container images
+  # For container images, include dependencies in the Dockerfile
+  # layers                         = var.layers
 
   tracing_config {
     mode = var.tracing_mode
