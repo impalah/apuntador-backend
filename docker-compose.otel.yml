@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Your FastAPI backend
+  apuntador-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.lambda
+    ports:
+      - "8000:8000"
+    environment:
+      # OpenTelemetry configuration
+      - OTEL_SERVICE_NAME=apuntador-backend
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://adot-collector:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_TRACES_ENABLED=true
+      - OTEL_PROPAGATORS=xray
+      - AWS_REGION=eu-west-1
+      # Your app configuration
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=human
+    depends_on:
+      - adot-collector
+    networks:
+      - apuntador-network
+
+  # AWS Distro for OpenTelemetry (ADOT) Collector
+  adot-collector:
+    image: public.ecr.aws/aws-observability/aws-otel-collector:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "13133:13133" # Health check
+    environment:
+      - AWS_REGION=eu-west-1
+      # For local development, use AWS credentials from host
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+    networks:
+      - apuntador-network
+
+networks:
+  apuntador-network:
+    driver: bridge

@@ -1,0 +1,71 @@
+# AWS Distro for OpenTelemetry (ADOT) Configuration
+# This file configures the ADOT Collector to receive traces from your application
+# and send them to AWS X-Ray (which integrates with CloudWatch)
+
+receivers:
+  # OTLP receiver for OpenTelemetry protocol
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317  # Default OTLP gRPC port
+      http:
+        endpoint: 0.0.0.0:4318  # Default OTLP HTTP port
+
+processors:
+  # Batch processor for efficient sending
+  batch:
+    timeout: 10s
+    send_batch_size: 50
+    send_batch_max_size: 100
+
+  # Resource detection for AWS metadata
+  resourcedetection/aws:
+    detectors:
+      - env
+      - ec2
+      - ecs
+      - lambda
+      - elasticbeanstalk
+    timeout: 2s
+    override: false
+
+  # Add AWS X-Ray specific attributes
+  attributes/xray:
+    actions:
+      - key: aws.xray.sdk_version
+        value: "opentelemetry"
+        action: insert
+
+exporters:
+  # AWS X-Ray exporter (integrates with CloudWatch)
+  awsxray:
+    region: ${AWS_REGION}  # Will be set from environment variable
+    indexed_attributes:
+      - aws.operation
+      - http.method
+      - http.status_code
+      - error
+    
+  # CloudWatch Logs exporter (optional, for structured logs)
+  awscloudwatchlogs:
+    region: ${AWS_REGION}
+    log_group_name: /aws/apuntador-backend/traces
+    log_stream_name: ${HOSTNAME}
+    
+  # Logging exporter for debugging (remove in production)
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    # Traces pipeline: OTLP -> AWS X-Ray -> CloudWatch
+    traces:
+      receivers: [otlp]
+      processors: [batch, resourcedetection/aws, attributes/xray]
+      exporters: [awsxray, logging]  # Remove logging in production
+    
+    # Optional: Metrics pipeline
+    # metrics:
+    #   receivers: [otlp]
+    #   processors: [batch, resourcedetection/aws]
+    #   exporters: [awsemf]  # AWS EMF (Embedded Metric Format) for CloudWatch Metrics

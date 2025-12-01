@@ -132,3 +132,19 @@ variable "log_retention_days" {
   type        = number
   default     = 14
 }
+
+variable "layers" {
+  description = "List of Lambda Layer ARNs to attach to the function"
+  type        = list(string)
+  default     = []
+}
+
+variable "tracing_mode" {
+  description = "X-Ray tracing mode: Active (full Lambda tracing), PassThrough (propagate only), or Disabled"
+  type        = string
+  default     = "PassThrough"
+  validation {
+    condition     = contains(["Active", "PassThrough"], var.tracing_mode)
+    error_message = "Tracing mode must be either 'Active' or 'PassThrough'."
+  }
+}

@@ -127,9 +127,12 @@ resource "aws_lambda_function" "lambda_function" {
   role                           = aws_iam_role.lambda_exec_role.arn
   skip_destroy                   = "false"
   timeout                        = var.function_timeout
+  
+  # Lambda Layers (e.g., ADOT for OpenTelemetry)
+  layers                         = var.layers
 
   tracing_config {
-    mode = "PassThrough"
+    mode = var.tracing_mode
   }
 
   # image_config {

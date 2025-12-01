@@ -18,6 +18,17 @@ from loguru import logger
 from apuntador.config import settings
 from apuntador.core.trace_context import trace_id_context
 
+# OpenTelemetry integration (optional, only if telemetry is configured)
+try:
+    from apuntador.core.telemetry import get_current_trace_id, get_current_span_id
+    OTEL_AVAILABLE = True
+except ImportError:
+    OTEL_AVAILABLE = False
+    def get_current_trace_id() -> str:
+        return "N/A"
+    def get_current_span_id() -> str:
+        return "N/A"
+
 
 class JsonSink:
     """
@@ -53,6 +64,7 @@ class JsonSink:
             "timestamp": timestamp,
             "level": record["level"].name,
             "trace_id": record["extra"].get("trace_id", "N/A"),
+            "span_id": record["extra"].get("span_id", "N/A"),
             "name": record["name"],
             "function": record["function"],
             "line": record["line"],
@@ -77,8 +89,10 @@ def add_trace_id(record: dict[str, Any]) -> bool:
     """
     Adds the trace_id to the log record.
 
-    The trace_id is obtained from the current request context,
-    allowing tracking of logs from the same request.
+    The trace_id is obtained from OpenTelemetry context if available,
+    otherwise falls back to the legacy context variable.
+    This allows tracking of logs from the same request and correlating
+    them with distributed traces in AWS X-Ray / CloudWatch.
 
     Args:
         record: Loguru record
@@ -86,8 +100,19 @@ def add_trace_id(record: dict[str, Any]) -> bool:
     Returns:
         True to indicate that the filter passed
     """
+    # Try to get trace_id from OpenTelemetry first
+    if OTEL_AVAILABLE:
+        otel_trace_id = get_current_trace_id()
+        otel_span_id = get_current_span_id()
+        if otel_trace_id != "N/A":
+            record["extra"]["trace_id"] = otel_trace_id
+            record["extra"]["span_id"] = otel_span_id
+            return True
+    
+    # Fallback to legacy context variable
     trace_id = trace_id_context.get()
     record["extra"]["trace_id"] = trace_id if trace_id else "N/A"
+    record["extra"]["span_id"] = "N/A"
     return True
 
 
@@ -96,9 +121,12 @@ def get_log_format() -> str:
     Returns the appropriate log format based on settings.
 
     Returns:
-        Format string for human-readable logs
+        Format string for human-readable logs (includes trace_id and span_id for OpenTelemetry)
     """
-    return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | trace_id={extra[trace_id]} | {name}:{function}:{line} - {message}"
+    if OTEL_AVAILABLE:
+        return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | trace={extra[trace_id]} span={extra[span_id]} | {name}:{function}:{line} - {message}"
+    else:
+        return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | trace_id={extra[trace_id]} | {name}:{function}:{line} - {message}"
 
 
 def configure_logger() -> None:
