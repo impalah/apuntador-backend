@@ -8,6 +8,7 @@ for multiple OAuth providers.
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 
+from apuntador.api.v1.common.models import ErrorResponse
 from apuntador.api.v1.oauth.request import (
     OAuthAuthorizeRequest,
     OAuthRefreshRequest,
@@ -20,7 +21,6 @@ from apuntador.api.v1.oauth.response import (
     OAuthTokenResponse,
 )
 from apuntador.api.v1.oauth.services import OAuthService
-from apuntador.api.v1.common.models import ErrorResponse
 from apuntador.core.logging import logger
 from apuntador.di import SettingsDep
 from apuntador.utils.security import verify_signed_data

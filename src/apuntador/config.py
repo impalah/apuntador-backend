@@ -76,7 +76,10 @@ class Settings(BaseSettings):
     )
     log_format: str = Field(
         default="json",
-        description="Log format: 'json' for structured JSON logs, or 'human' for human-readable text",
+        description=(
+            "Log format: 'json' for structured JSON logs, "
+            "or 'human' for human-readable text"
+        ),
     )
     logger_name: str = Field(default="apuntador", description="Logger name")
     logger_enqueue: bool = Field(
@@ -118,7 +121,10 @@ class Settings(BaseSettings):
     )
     infrastructure_base_dir: str = Field(
         default="./.credentials",
-        description="Base directory for local infrastructure storage (credentials, CA keys, etc.)",
+        description=(
+            "Base directory for local infrastructure storage "
+            "(credentials, CA keys, etc.)"
+        ),
     )
 
     # AWS Infrastructure Configuration
@@ -169,7 +175,10 @@ class Settings(BaseSettings):
     # Enabled cloud providers (comma-separated list)
     enabled_cloud_providers: str = Field(
         default="googledrive,dropbox",
-        description="Comma-separated list of enabled cloud providers (googledrive, dropbox, onedrive)",
+        description=(
+            "Comma-separated list of enabled cloud providers "
+            "(googledrive, dropbox, onedrive)"
+        ),
     )
 
     # Google Drive OAuth
@@ -220,7 +229,8 @@ class Settings(BaseSettings):
         Get list of allowed HTTP methods for CORS.
 
         Returns:
-            list[str]: List of allowed HTTP methods. Returns ["*"] if all methods are allowed.
+            list[str]: List of allowed HTTP methods.
+                Returns ["*"] if all methods are allowed.
         """
         if self.cors_allowed_methods == "*":
             return ["*"]
@@ -231,7 +241,8 @@ class Settings(BaseSettings):
         Get list of allowed headers for CORS.
 
         Returns:
-            list[str]: List of allowed headers. Returns ["*"] if all headers are allowed.
+            list[str]: List of allowed headers.
+                Returns ["*"] if all headers are allowed.
         """
         if self.cors_allowed_headers == "*":
             return ["*"]

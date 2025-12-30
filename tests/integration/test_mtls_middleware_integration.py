@@ -128,7 +128,11 @@ class TestMTLSMiddlewareIntegration:
         response = client.post(
             "/device/enroll",
             json={
-                "csr": "-----BEGIN CERTIFICATE REQUEST-----\ntest\n-----END CERTIFICATE REQUEST-----",
+                "csr": (
+                    "-----BEGIN CERTIFICATE REQUEST-----\n"
+                    "test\n"
+                    "-----END CERTIFICATE REQUEST-----"
+                ),
                 "device_id": "test123",
                 "platform": "android",
             },

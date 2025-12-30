@@ -340,7 +340,7 @@ class TestMTLSValidationMiddleware:
     ):
         """Test extracting device_id from certificate CN."""
         factory, _ = mock_infrastructure_factory
-        middleware = MTLSValidationMiddleware(
+        MTLSValidationMiddleware(
             app=MagicMock(), infrastructure_factory=factory
         )
 
@@ -359,7 +359,7 @@ class TestMTLSValidationMiddleware:
     ):
         """Test extracting platform from certificate CN."""
         factory, _ = mock_infrastructure_factory
-        middleware = MTLSValidationMiddleware(
+        MTLSValidationMiddleware(
             app=MagicMock(), infrastructure_factory=factory
         )
 

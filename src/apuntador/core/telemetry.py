@@ -10,7 +10,6 @@ This module configures OpenTelemetry with:
 """
 
 import logging
-from typing import Optional
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -19,10 +18,10 @@ from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.aws import AwsXRayPropagator
+from opentelemetry.sdk.extension.aws.trace import AwsXRayIdGenerator
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.extension.aws.trace import AwsXRayIdGenerator
 
 from apuntador.config import settings
 
@@ -31,8 +30,8 @@ logger = logging.getLogger(__name__)
 
 def configure_opentelemetry(
     service_name: str = "apuntador-backend",
-    service_version: Optional[str] = None,
-    environment: Optional[str] = None,
+    service_version: str | None = None,
+    environment: str | None = None,
 ) -> None:
     """
     Configures OpenTelemetry with AWS X-Ray integration for CloudWatch.
@@ -61,7 +60,7 @@ def configure_opentelemetry(
     # Default values from settings
     if service_version is None:
         service_version = getattr(settings, "version", "unknown")
-    
+
     if environment is None:
         environment = getattr(settings, "environment", "development")
 
@@ -113,19 +112,16 @@ def _configure_span_exporters(
     # Development: Console exporter for debugging
     if environment in ["development", "dev", "local"]:
         console_exporter = ConsoleSpanExporter()
-        tracer_provider.add_span_processor(
-            BatchSpanProcessor(console_exporter)
-        )
+        tracer_provider.add_span_processor(BatchSpanProcessor(console_exporter))
         logger.info("📊 Console span exporter configured (development mode)")
 
     # Production: OTLP exporter to AWS X-Ray via ADOT Collector
     else:
         # AWS Distro for OpenTelemetry (ADOT) Collector endpoint
-        # When running in AWS Lambda/ECS, the ADOT Collector is typically at localhost:4317
+        # When running in AWS Lambda/ECS, the ADOT Collector is typically
+        # at localhost:4317
         otlp_endpoint = getattr(
-            settings,
-            "otel_exporter_otlp_endpoint",
-            "http://localhost:4317"
+            settings, "otel_exporter_otlp_endpoint", "http://localhost:4317"
         )
 
         otlp_exporter = OTLPSpanExporter(
@@ -133,9 +129,7 @@ def _configure_span_exporters(
             insecure=True,  # Use TLS in production if endpoint uses HTTPS
         )
 
-        tracer_provider.add_span_processor(
-            BatchSpanProcessor(otlp_exporter)
-        )
+        tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
         logger.info(f"📊 OTLP span exporter configured: endpoint={otlp_endpoint}")
 
 

@@ -43,8 +43,10 @@ class DeviceService:
         Initialize device service.
 
         Args:
-            ca: Certificate Authority service for signing and revoking certificates
-            factory: Infrastructure factory for repository access (optional for simple operations)
+            ca: Certificate Authority service for signing and revoking
+                certificates
+            factory: Infrastructure factory for repository access
+                (optional for simple operations)
         """
         self.ca = ca
         self.factory = factory

@@ -6,7 +6,7 @@ REGISTRY_URI="670089840758.dkr.ecr.eu-west-1.amazonaws.com"
 REPOSITORY_NAME="backend"
 PLATFORM="linux/amd64"
 BUILDER_NAME="mybuilder"
-PART ?= patch  # puede sobrescribirse con: make bump-version PART=minor
+PART ?= patch  # Can be overwritten with: make bump-version PART=minor
 
 
 .PHONY: help install dev test lint format clean docker-build docker-run sync kill-port docker-builder-reset

@@ -5,12 +5,13 @@ This module creates the FastAPI application using the application factory
 pattern for clean separation of concerns.
 """
 
-from apuntador.application import create_app
 from apuntador.app_setup import add_root_endpoint, setup_app
+from apuntador.application import create_app
 from apuntador.config import get_settings
 from apuntador.core.logging import intercept_standard_logging
 
-# Configure OpenTelemetry BEFORE anything else (optional, only if dependencies installed)
+# Configure OpenTelemetry BEFORE anything else
+# (optional, only if dependencies installed)
 try:
     from apuntador.core.telemetry import (
         configure_opentelemetry,
@@ -18,20 +19,22 @@ try:
         instrument_httpx,
         instrument_logging,
     )
-    
+
     # Initialize OpenTelemetry with AWS X-Ray integration
     configure_opentelemetry(
         service_name="apuntador-backend",
         service_version="1.0.0",  # Update from settings if available
-        environment=get_settings().environment if hasattr(get_settings(), "environment") else "development",
+        environment=get_settings().environment
+        if hasattr(get_settings(), "environment")
+        else "development",
     )
-    
+
     # Instrument logging BEFORE configuring loguru
     instrument_logging()
-    
+
     # Instrument HTTPX client for outgoing requests
     instrument_httpx()
-    
+
     OTEL_ENABLED = True
 except ImportError:
     # OpenTelemetry not installed, continue without it

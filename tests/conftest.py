@@ -36,4 +36,3 @@ for key, value in _TEST_ENV_VARS.items():
     os.environ.setdefault(key, value)
 
 # Now it's safe to import pytest
-import pytest  # noqa: E402

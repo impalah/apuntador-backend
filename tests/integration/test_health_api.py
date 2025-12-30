@@ -1,8 +1,8 @@
 """Tests for health check endpoints."""
 
 import pytest
-from fastapi.testclient import TestClient
 from fastapi import status
+from fastapi.testclient import TestClient
 
 from apuntador import __version__
 from apuntador.application import create_app

@@ -56,7 +56,8 @@ class AWSSecretsRepository(SecretsRepository):
         self.client = boto3.client("secretsmanager", region_name=region_name)
 
         logger.info(
-            f"Initialized AWSSecretsRepository with region={region_name}, prefix={prefix}"
+            f"Initialized AWSSecretsRepository with "
+            f"region={region_name}, prefix={prefix}"
         )
 
     def _get_secret_name(self, key: str) -> str:

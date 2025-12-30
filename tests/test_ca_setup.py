@@ -50,9 +50,9 @@ class TestCASetupScript:
 
         # Verify file permissions (private key should be 0600)
         key_perms = oct(ca_key.stat().st_mode)[-3:]
-        assert (
-            key_perms == "600"
-        ), f"Private key permissions should be 0600, got {key_perms}"
+        assert key_perms == "600", (
+            f"Private key permissions should be 0600, got {key_perms}"
+        )
 
         # Verify CA certificate is valid X.509
         verify_result = subprocess.run(

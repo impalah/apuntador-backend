@@ -4,6 +4,7 @@ OAuth service for Dropbox.
 Implementation of OAuth 2.0 flow for Dropbox API access.
 """
 
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
@@ -68,7 +69,7 @@ class DropboxOAuthService(OAuthServiceBase):
         self,
         code: str,
         code_verifier: str,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Exchanges authorization code for access and refresh tokens.
 
@@ -110,7 +111,7 @@ class DropboxOAuthService(OAuthServiceBase):
     async def refresh_access_token(
         self,
         refresh_token: str,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Refreshes expired access token.
 

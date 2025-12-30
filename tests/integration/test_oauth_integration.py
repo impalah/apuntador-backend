@@ -18,7 +18,10 @@ def client():
 @pytest.fixture
 def code_verifier():
     """Generate a valid code verifier."""
-    return "VQm4dxVSU5CUn4FNrRDHCanXgZqqSs3tS_8Z0GuAN3TCMuWRtMnxvy6WoJURT3yNGq8YxtsKAbDFxOZE_CuQTodJDGzQw0mc66N6NAl-MKPgi8C3htx-nV4y3xush5KZ"
+    return (
+        "VQm4dxVSU5CUn4FNrRDHCanXgZqqSs3tS_8Z0GuAN3TCMuWRtMnxvy6WoJURT3yNGq8Yxts"
+        "KAbDFxOZE_CuQTodJDGzQw0mc66N6NAl-MKPgi8C3htx-nV4y3xush5KZ"
+    )
 
 
 class TestOAuthAuthorize:

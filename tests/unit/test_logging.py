@@ -4,9 +4,6 @@ import io
 import json
 from unittest.mock import patch
 
-import pytest
-from loguru import logger
-
 from apuntador.core.logging import JsonSink, add_trace_id, get_log_format
 from apuntador.core.trace_context import trace_id_context
 

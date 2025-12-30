@@ -20,12 +20,15 @@ from apuntador.core.trace_context import trace_id_context
 
 # OpenTelemetry integration (optional, only if telemetry is configured)
 try:
-    from apuntador.core.telemetry import get_current_trace_id, get_current_span_id
+    from apuntador.core.telemetry import get_current_span_id, get_current_trace_id
+
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False
+
     def get_current_trace_id() -> str:
         return "N/A"
+
     def get_current_span_id() -> str:
         return "N/A"
 
@@ -108,7 +111,7 @@ def add_trace_id(record: dict[str, Any]) -> bool:
             record["extra"]["trace_id"] = otel_trace_id
             record["extra"]["span_id"] = otel_span_id
             return True
-    
+
     # Fallback to legacy context variable
     trace_id = trace_id_context.get()
     record["extra"]["trace_id"] = trace_id if trace_id else "N/A"
@@ -121,12 +124,22 @@ def get_log_format() -> str:
     Returns the appropriate log format based on settings.
 
     Returns:
-        Format string for human-readable logs (includes trace_id and span_id for OpenTelemetry)
+        Format string for human-readable logs (includes trace_id
+        and span_id for OpenTelemetry)
     """
     if OTEL_AVAILABLE:
-        return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | trace={extra[trace_id]} span={extra[span_id]} | {name}:{function}:{line} - {message}"
-    else:
-        return "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | trace_id={extra[trace_id]} | {name}:{function}:{line} - {message}"
+        return (
+            "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
+            "{level: <8} | "
+            "trace={extra[trace_id]} span={extra[span_id]} | "
+            "{name}:{function}:{line} - {message}"
+        )
+    return (
+        "{time:YYYY-MM-DD HH:mm:ss.SSS} | "
+        "{level: <8} | "
+        "trace_id={extra[trace_id]} | "
+        "{name}:{function}:{line} - {message}"
+    )
 
 
 def configure_logger() -> None:

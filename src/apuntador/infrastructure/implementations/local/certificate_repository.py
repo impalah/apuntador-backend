@@ -145,9 +145,7 @@ class LocalCertificateRepository(CertificateRepository):
     async def list_expiring_certificates(self, days: int) -> list[Certificate]:
         """List certificates expiring within specified days."""
         expiring = []
-        threshold = datetime.now(UTC).replace(tzinfo=None) + timedelta(
-            days=days
-        )
+        threshold = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=days)
 
         for cert_file in self.certs_dir.glob("*.json"):
             data = json.loads(cert_file.read_text())

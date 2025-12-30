@@ -86,7 +86,9 @@ OAuth proxy and mTLS authentication backend for the Apuntador teleprompter appli
 
 ## Error Handling
 
-All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) format:
+All errors follow
+[RFC 7807 Problem Details](https://datatracker.ietf.org/doc/html/rfc7807)
+format:
 
 ```json
 {
@@ -132,7 +134,10 @@ All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/ht
         },
         {
             "name": "OAuth",
-            "description": "OAuth 2.0 authentication with PKCE for cloud storage providers",
+            "description": (
+                "OAuth 2.0 authentication with PKCE "
+                "for cloud storage providers"
+            ),
         },
         {
             "name": "Device Enrollment",
@@ -140,7 +145,10 @@ All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/ht
         },
         {
             "name": "Device Attestation",
-            "description": "Hardware-backed device verification (SafetyNet, DeviceCheck)",
+            "description": (
+                "Hardware-backed device verification "
+                "(SafetyNet, DeviceCheck)"
+            ),
         },
     ]
 
@@ -200,8 +208,13 @@ All errors follow [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/ht
             },
             "detail": {
                 "type": "string",
-                "description": "Human-readable explanation specific to this occurrence",
-                "example": "The request could not be understood due to malformed syntax.",
+                "description": (
+                    "Human-readable explanation specific to this occurrence"
+                ),
+                "example": (
+                    "The request could not be understood due to "
+                    "malformed syntax."
+                ),
             },
             "instance": {
                 "type": "string",

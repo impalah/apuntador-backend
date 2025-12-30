@@ -66,9 +66,11 @@ class CertificateModel(Model):
 
     Global Secondary Indexes:
     - SerialIndex: serial_number (partition key) for whitelist lookups
-    - ExpirationIndex: device_id (partition) + expires_at (range) for expiring certs
+    - ExpirationIndex: device_id (partition) + expires_at (range) for
+      expiring certs
 
-    Note: table_name and region are configured dynamically in AWSCertificateRepository.__init__
+    Note: table_name and region are configured dynamically in
+    AWSCertificateRepository.__init__
     """
 
     class Meta:
@@ -143,7 +145,8 @@ class AWSCertificateRepository(CertificateRepository):
             self._ensure_table_exists()
 
         logger.info(
-            f"Initialized AWSCertificateRepository (PynamoDB) with table={table_name}, region={region_name}"
+            f"Initialized AWSCertificateRepository (PynamoDB) with "
+            f"table={table_name}, region={region_name}"
         )
 
     def _ensure_table_exists(self) -> None:
@@ -188,7 +191,8 @@ class AWSCertificateRepository(CertificateRepository):
             cert_model.save()
 
             logger.debug(
-                f"Saved certificate: device={certificate.device_id}, serial={certificate.serial}"
+                f"Saved certificate: device={certificate.device_id}, "
+                f"serial={certificate.serial}"
             )
 
         except Exception as e:

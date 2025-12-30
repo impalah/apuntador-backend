@@ -1,8 +1,7 @@
 """Tests for additional coverage of infrastructure and core modules."""
 
+
 import pytest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
 
 from apuntador.infrastructure.implementations.local.secrets_repository import (
     LocalSecretsRepository,

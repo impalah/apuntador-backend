@@ -1,11 +1,12 @@
 """Tests for local certificate repository implementation."""
 
-import pytest
+import shutil
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-import tempfile
-import shutil
 from zoneinfo import ZoneInfo
+
+import pytest
 
 from apuntador.infrastructure.implementations.local.certificate_repository import (
     LocalCertificateRepository,
@@ -118,7 +119,10 @@ async def test_find_expiring_certificates_excludes_revoked(cert_repo):
         serial="ACTIVE-123",
         device_id="device-active",
         platform="android",
-        certificate_pem="-----BEGIN CERTIFICATE-----\nactive\n-----END CERTIFICATE-----",
+        certificate_pem=(
+            "-----BEGIN CERTIFICATE-----\nactive\n"
+            "-----END CERTIFICATE-----"
+        ),
         issued_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(days=25),
         expires_at=(datetime.now(UTC) + timedelta(days=2)).replace(tzinfo=None),
         revoked=False,
@@ -129,7 +133,10 @@ async def test_find_expiring_certificates_excludes_revoked(cert_repo):
         serial="REVOKED-456",
         device_id="device-revoked",
         platform="ios",
-        certificate_pem="-----BEGIN CERTIFICATE-----\nrevoked\n-----END CERTIFICATE-----",
+        certificate_pem=(
+            "-----BEGIN CERTIFICATE-----\nrevoked\n"
+            "-----END CERTIFICATE-----"
+        ),
         issued_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(days=25),
         expires_at=(datetime.now(UTC) + timedelta(days=2)).replace(tzinfo=None),
         revoked=True,

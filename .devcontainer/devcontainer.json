@@ -4,7 +4,7 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "postCreateCommand": "uv venv .venv && uv sync",
+  "postCreateCommand": "uv sync --all-extras && cat .devcontainer/.bashrc >> ~/.bashrc && echo '✅ Dev container ready! Type: verify'",
   "customizations": {
     "vscode": {
       "settings": {
@@ -43,7 +43,9 @@
     }
   },
   "remoteUser": "vscode",
+  "initializeCommand": "mkdir -p ${localWorkspaceFolder}/.venv ~/.aws ~/.ssh && touch ~/.gitconfig",
   "mounts": [
+    "source=${localWorkspaceFolder}/.venv,target=/workspace/.venv,type=bind,consistency=cached",
     "source=${env:HOME}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
     "source=${env:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,consistency=cached",
     "source=${env:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"

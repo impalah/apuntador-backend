@@ -60,7 +60,8 @@ class AttestationService:
         response = await self.domain_service.verify_safetynet(request)
 
         if response.status == AttestationStatus.FAILED:
-            error_msg = f"SafetyNet verification failed: {response.error_message or 'Unknown error'}"
+            err_msg = response.error_message or "Unknown error"
+            error_msg = f"SafetyNet verification failed: {err_msg}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -72,8 +73,9 @@ class AttestationService:
             raise ValueError(error_msg)
 
         logger.info(
-            f"SafetyNet verification successful for device: {request.device_id} "
-            f"(CTS={response.cts_profile_match}, BasicIntegrity={response.basic_integrity})"
+            f"SafetyNet verification successful for device: "
+            f"{request.device_id} (CTS={response.cts_profile_match}, "
+            f"BasicIntegrity={response.basic_integrity})"
         )
 
         return response
@@ -109,7 +111,8 @@ class AttestationService:
             raise NotImplementedError(error_msg)
 
         if response.status == AttestationStatus.FAILED:
-            error_msg = f"DeviceCheck verification failed: {response.error_message or 'Unknown error'}"
+            err_msg = response.error_message or "Unknown error"
+            error_msg = f"DeviceCheck verification failed: {err_msg}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -147,12 +150,14 @@ class AttestationService:
         response = await self.domain_service.verify_desktop(request)
 
         if response.status == AttestationStatus.FAILED:
-            error_msg = f"Desktop verification failed: {response.error_message or 'Unknown error'}"
+            err_msg = response.error_message or "Unknown error"
+            error_msg = f"Desktop verification failed: {err_msg}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         if response.status == AttestationStatus.INVALID:
-            error_msg = f"Device verification failed: {response.error_message or 'Unknown reason'}"
+            err_msg = response.error_message or "Unknown reason"
+            error_msg = f"Device verification failed: {err_msg}"
             logger.warning(f"{error_msg} (device: {request.device_id})")
             raise ValueError(error_msg)
 

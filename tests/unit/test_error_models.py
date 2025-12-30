@@ -1,8 +1,7 @@
 """Tests for error models."""
 
-import pytest
 
-from apuntador.models.errors import ProblemDetail, get_rfc_section_url
+from apuntador.models.errors import get_rfc_section_url
 
 
 def test_get_rfc_section_url_with_unknown_status():
@@ -15,7 +14,6 @@ def test_get_rfc_section_url_with_unknown_status():
 def test_get_rfc_section_url_with_https_url():
     """Test RFC URL generation when status maps to full HTTPS URL."""
     # Add a custom mapping that returns an https URL
-    from apuntador.models.errors import status_to_section
 
     # This should return the section, but if it's a custom URL it returns as-is
     # Status 422 maps to a custom RFC URL

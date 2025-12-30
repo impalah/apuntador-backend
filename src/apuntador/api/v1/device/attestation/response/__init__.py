@@ -33,17 +33,23 @@ class SafetyNetAttestationResponse(BaseModel):
         description=VERIFICATION_TIMESTAMP_DESCRIPTION,
     )
     cts_profile_match: bool | None = Field(
-        None,
-        description="Whether device passes CTS (Compatibility Test Suite) profile match",
+        default=None,
+        description=(
+            "Whether device passes CTS "
+            "(Compatibility Test Suite) profile match"
+        ),
     )
     basic_integrity: bool | None = Field(
-        None, description="Whether device passes basic integrity check"
+        default=None, description="Whether device passes basic integrity check"
     )
     advice: str | None = Field(
-        None,
-        description="Additional advice if attestation failed (e.g., 'RESTORE_TO_FACTORY_ROM')",
+        default=None,
+        description=(
+            "Additional advice if attestation failed "
+            "(e.g., 'RESTORE_TO_FACTORY_ROM')"
+        ),
     )
-    error_message: str | None = Field(None, description=ERROR_MESSAGE_DESCRIPTION)
+    error_message: str | None = Field(default=None, description=ERROR_MESSAGE_DESCRIPTION)
 
 
 class DeviceCheckAttestationResponse(BaseModel):
@@ -56,9 +62,9 @@ class DeviceCheckAttestationResponse(BaseModel):
         description=VERIFICATION_TIMESTAMP_DESCRIPTION,
     )
     integrity_verified: bool | None = Field(
-        None, description="Whether device integrity was verified"
+        default=None, description="Whether device integrity was verified"
     )
-    error_message: str | None = Field(None, description=ERROR_MESSAGE_DESCRIPTION)
+    error_message: str | None = Field(default=None, description=ERROR_MESSAGE_DESCRIPTION)
 
 
 class DesktopAttestationResponse(BaseModel):
@@ -71,12 +77,12 @@ class DesktopAttestationResponse(BaseModel):
         description=VERIFICATION_TIMESTAMP_DESCRIPTION,
     )
     fingerprint_match: bool | None = Field(
-        None, description="Whether fingerprint matches previous enrollment"
+        default=None, description="Whether fingerprint matches previous enrollment"
     )
     rate_limit_ok: bool | None = Field(
-        None, description="Whether device is within rate limits"
+        default=None, description="Whether device is within rate limits"
     )
-    error_message: str | None = Field(None, description=ERROR_MESSAGE_DESCRIPTION)
+    error_message: str | None = Field(default=None, description=ERROR_MESSAGE_DESCRIPTION)
 
 
 class AttestationVerificationResponse(BaseModel):

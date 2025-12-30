@@ -157,7 +157,10 @@ class TestAWSCertificateRepository:
             platform="android",
             issued_at=datetime.now(UTC),
             expires_at=datetime.now(UTC) + timedelta(days=30),
-            certificate_pem="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\n...\n"
+                "-----END CERTIFICATE-----"
+            ),
             revoked=False,
         )
 
@@ -172,7 +175,9 @@ class TestAWSCertificateRepository:
         from apuntador.infrastructure.implementations.aws import (
             AWSCertificateRepository,
         )
-        from apuntador.infrastructure.implementations.aws.certificate_repository import (
+
+        # Import model to verify DynamoDB table configuration  # noqa: E501
+        from apuntador.infrastructure.implementations.aws.certificate_repository import (  # noqa: E501
             CertificateModel,
         )
 

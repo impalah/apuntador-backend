@@ -1,10 +1,11 @@
 """Tests for infrastructure factory."""
 
-import pytest
 from unittest.mock import patch
 
-from apuntador.infrastructure import InfrastructureFactory
+import pytest
+
 from apuntador.config import get_settings
+from apuntador.infrastructure import InfrastructureFactory
 
 
 def test_factory_creates_local_repositories():
@@ -68,8 +69,9 @@ async def test_local_secrets_repo_get_nonexistent():
 @pytest.mark.asyncio
 async def test_local_storage_repo_delete_nonexistent():
     """Test deleting nonexistent file returns False."""
-    from apuntador.infrastructure.implementations.local import LocalStorageRepository
     import tempfile
+
+    from apuntador.infrastructure.implementations.local import LocalStorageRepository
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalStorageRepository(base_dir=tmp_dir)
@@ -82,8 +84,9 @@ async def test_local_storage_repo_delete_nonexistent():
 @pytest.mark.asyncio
 async def test_local_storage_repo_file_exists():
     """Test file_exists method."""
-    from apuntador.infrastructure.implementations.local import LocalStorageRepository
     import tempfile
+
+    from apuntador.infrastructure.implementations.local import LocalStorageRepository
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalStorageRepository(base_dir=tmp_dir)

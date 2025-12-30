@@ -1,13 +1,14 @@
 """Simple tests to reach 80% coverage target."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 
 def test_di_get_oauth_service_googledrive():
     """Test getting OAuth service by provider name - Google Drive."""
-    from apuntador.di import get_oauth_service
     from apuntador.config import get_settings
+    from apuntador.di import get_oauth_service
 
     settings = get_settings()
 
@@ -19,8 +20,8 @@ def test_di_get_oauth_service_googledrive():
 
 def test_di_get_oauth_service_dropbox():
     """Test getting OAuth service by provider name - Dropbox."""
-    from apuntador.di import get_oauth_service
     from apuntador.config import get_settings
+    from apuntador.di import get_oauth_service
 
     settings = get_settings()
 
@@ -32,8 +33,8 @@ def test_di_get_oauth_service_dropbox():
 
 def test_di_get_oauth_service_invalid_provider():
     """Test getting OAuth service with invalid provider raises error."""
-    from apuntador.di import get_oauth_service
     from apuntador.config import get_settings
+    from apuntador.di import get_oauth_service
 
     settings = get_settings()
 
@@ -92,8 +93,8 @@ def test_settings_is_provider_enabled_case_handling():
 @pytest.mark.asyncio
 async def test_infrastructure_factory_creates_all_repos():
     """Test infrastructure factory creates all repository types."""
-    from apuntador.infrastructure import InfrastructureFactory
     from apuntador.config import get_settings
+    from apuntador.infrastructure import InfrastructureFactory
 
     settings = get_settings()
     factory = InfrastructureFactory.from_settings(settings)
@@ -112,6 +113,7 @@ async def test_infrastructure_factory_creates_all_repos():
 def test_json_sink_initialization():
     """Test JsonSink can be initialized."""
     import io
+
     from apuntador.core.logging import JsonSink
 
     stream = io.StringIO()

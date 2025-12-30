@@ -1,14 +1,15 @@
 """Tests for dependency injection container."""
 
 import pytest
+
+from apuntador.config import get_settings
 from apuntador.di import (
-    get_infrastructure_factory,
     get_certificate_authority,
     get_device_attestation_service,
-    get_google_drive_service,
     get_dropbox_service,
+    get_google_drive_service,
+    get_infrastructure_factory,
 )
-from apuntador.config import get_settings
 from apuntador.infrastructure import InfrastructureFactory
 from apuntador.services.certificate_authority import CertificateAuthority
 from apuntador.services.device_attestation import DeviceAttestationService

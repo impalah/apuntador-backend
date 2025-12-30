@@ -18,7 +18,7 @@ router = APIRouter()
 
 def verify_api_key(
     authorization: Annotated[str | None, Header()] = None,
-    settings: Settings = Depends(get_settings),
+    settings: Annotated[Settings, Depends(get_settings)] = Depends(get_settings),
 ) -> None:
     """
     Verify API key for configuration endpoints.
@@ -71,9 +71,9 @@ def verify_api_key(
     summary="Get cloud provider configuration",
     description="""
     Returns the list of enabled cloud providers and their configuration.
-    
+
     Requires authentication via Authorization: Bearer <token> header.
-    
+
     Clients should cache this response for the duration specified in cache_ttl.
     """,
     responses={
@@ -96,8 +96,8 @@ def verify_api_key(
     },
 )
 async def get_providers(
-    _: None = Depends(verify_api_key),  # Authentication
-    settings: Settings = Depends(get_settings),
+    _: Annotated[None, Depends(verify_api_key)],
+    settings: Annotated[Settings, Depends(get_settings)],
 ) -> CloudProviderConfig:
     """
     Get cloud provider configuration.

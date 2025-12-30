@@ -73,7 +73,10 @@ async def test_enroll_device_android_success(device_service, mock_ca):
     )
 
     mock_cert = MagicMock(
-        certificate_pem="-----BEGIN CERTIFICATE-----\nCERT_DATA\n-----END CERTIFICATE-----",
+        certificate_pem=(
+            "-----BEGIN CERTIFICATE-----\nCERT_DATA\n"
+            "-----END CERTIFICATE-----"
+        ),
         serial="1234567890abcdef",
         issued_at=datetime.now(UTC),
         expires_at=datetime.now(UTC) + timedelta(days=30),
@@ -108,7 +111,10 @@ async def test_enroll_device_desktop_success(device_service, mock_ca):
     )
 
     mock_cert = MagicMock(
-        certificate_pem="-----BEGIN CERTIFICATE-----\nDESKTOP_CERT\n-----END CERTIFICATE-----",
+        certificate_pem=(
+            "-----BEGIN CERTIFICATE-----\nDESKTOP_CERT\n"
+            "-----END CERTIFICATE-----"
+        ),
         serial="fedcba0987654321",
         issued_at=datetime.now(UTC),
         expires_at=datetime.now(UTC) + timedelta(days=7),
@@ -173,7 +179,10 @@ async def test_renew_certificate_success(
 
     # Mock new certificate
     new_cert = MagicMock(
-        certificate_pem="-----BEGIN CERTIFICATE-----\nNEW_CERT\n-----END CERTIFICATE-----",
+        certificate_pem=(
+            "-----BEGIN CERTIFICATE-----\nNEW_CERT\n"
+            "-----END CERTIFICATE-----"
+        ),
         serial="abcdef1234567890",
         issued_at=datetime.now(UTC),
         expires_at=datetime.now(UTC) + timedelta(days=30),

@@ -257,9 +257,7 @@ async def test_revoke_certificate(certificate_authority_with_ca: CertificateAuth
     csr_pem, _ = generate_test_csr(device_id)
 
     # Sign CSR
-    certificate = await ca.sign_csr(
-        csr_pem=csr_pem, device_id=device_id, platform="android"
-    )
+    await ca.sign_csr(csr_pem=csr_pem, device_id=device_id, platform="android")
 
     # Revoke certificate
     success = await ca.revoke_certificate(device_id)

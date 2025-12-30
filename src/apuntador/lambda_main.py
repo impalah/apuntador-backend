@@ -2,8 +2,8 @@
 
 from mangum import Mangum
 
-from apuntador.application import create_app
 from apuntador.app_setup import add_root_endpoint, setup_app
+from apuntador.application import create_app
 from apuntador.core.logging import intercept_standard_logging
 
 # Intercept logs from uvicorn and other libraries

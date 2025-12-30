@@ -79,7 +79,7 @@ async def enroll_device(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid enrollment request: {e}",
-        )
+        ) from e
     except HTTPException:
         raise
     except Exception as e:
@@ -87,7 +87,7 @@ async def enroll_device(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Certificate signing failed",
-        )
+        ) from e
 
 
 @router.post(
@@ -135,11 +135,11 @@ async def renew_certificate(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=str(e),
-            )
+            ) from e
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid renewal request: {e}",
-        )
+        ) from e
     except HTTPException:
         raise
     except Exception as e:
@@ -147,7 +147,7 @@ async def renew_certificate(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Certificate renewal failed",
-        )
+        ) from e
 
 
 @router.post(
@@ -190,7 +190,7 @@ async def revoke_certificate_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Certificate revocation failed",
-        )
+        ) from e
 
 
 @router.get(
@@ -235,7 +235,7 @@ async def get_certificate_status(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except HTTPException:
         raise
     except Exception as e:
@@ -243,7 +243,7 @@ async def get_certificate_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Status check failed",
-        )
+        ) from e
 
 
 @router.get(
@@ -281,7 +281,7 @@ async def get_ca_certificate(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve CA certificate",
-        )
+        ) from e
 
 
 @router.get(
@@ -354,4 +354,4 @@ async def get_ca_certificate_pin(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to calculate CA certificate pin",
-        )
+        ) from e

@@ -105,7 +105,10 @@ class AttestationVerificationRequest(BaseModel):
     )
     attestation_data: dict[str, Any] = Field(
         ...,
-        description="Platform-specific attestation data (JWS token, device token, or fingerprint)",
+        description=(
+            "Platform-specific attestation data "
+            "(JWS token, device token, or fingerprint)"
+        ),
     )
 
 

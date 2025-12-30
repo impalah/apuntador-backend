@@ -1,7 +1,7 @@
 """Tests for OAuth base service."""
 
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 
 from apuntador.services.oauth_base import OAuthServiceBase
 

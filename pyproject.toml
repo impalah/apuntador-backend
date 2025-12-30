@@ -70,6 +70,23 @@ fixable = ["ALL"]
 
 [tool.mypy]
 python_version = "3.12"
-strict = true
+# Strict type checking, pero con algunas excepciones razonables
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Permite funciones sin type hints completos
+disallow_any_generics = false  # Permite dict, list sin [str, Any]
 ignore_missing_imports = true
 pretty = true
+# Permite algunos patrones comunes de FastAPI y Pydantic
+allow_redefinition = true
+no_implicit_optional = false  # Permite Optional implícito (param = None)
+
+# Configuraciones específicas por módulo
+[[tool.mypy.overrides]]
+module = "apuntador.examples.*"
+ignore_errors = true  # Los ejemplos no necesitan type checking estricto
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false

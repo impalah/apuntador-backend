@@ -1,8 +1,5 @@
 """Additional tests for service modules."""
 
-import pytest
-from datetime import datetime, timedelta, UTC
-from unittest.mock import Mock, patch
 
 from apuntador.services.device_attestation import DeviceAttestationService
 
@@ -25,9 +22,9 @@ def test_device_attestation_ios_initialization():
 
 def test_certificate_authority_initialization():
     """Test certificate authority initialization."""
-    from apuntador.services.certificate_authority import CertificateAuthority
-    from apuntador.infrastructure import InfrastructureFactory
     from apuntador.config import get_settings
+    from apuntador.infrastructure import InfrastructureFactory
+    from apuntador.services.certificate_authority import CertificateAuthority
 
     settings = get_settings()
     factory = InfrastructureFactory.from_settings(settings)
@@ -38,9 +35,9 @@ def test_certificate_authority_initialization():
 
 def test_certificate_authority_with_custom_validity():
     """Test certificate authority with custom validity period."""
-    from apuntador.services.certificate_authority import CertificateAuthority
-    from apuntador.infrastructure import InfrastructureFactory
     from apuntador.config import get_settings
+    from apuntador.infrastructure import InfrastructureFactory
+    from apuntador.services.certificate_authority import CertificateAuthority
 
     settings = get_settings()
     factory = InfrastructureFactory.from_settings(settings)
@@ -52,8 +49,8 @@ def test_certificate_authority_with_custom_validity():
 
 def test_infrastructure_factory_provider_selection():
     """Test infrastructure factory selects correct provider."""
-    from apuntador.infrastructure import InfrastructureFactory
     from apuntador.config import get_settings
+    from apuntador.infrastructure import InfrastructureFactory
 
     settings = get_settings()
     factory = InfrastructureFactory.from_settings(settings)

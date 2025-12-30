@@ -41,7 +41,10 @@ class TestLocalCertificateRepository:
             platform="android",
             issued_at=now,
             expires_at=now + timedelta(days=30),
-            certificate_pem="-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\ntest\n"
+                "-----END CERTIFICATE-----"
+            ),
             revoked=False,
         )
 
@@ -66,7 +69,10 @@ class TestLocalCertificateRepository:
             platform="ios",
             issued_at=now,
             expires_at=now + timedelta(days=30),
-            certificate_pem="-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\ntest\n"
+                "-----END CERTIFICATE-----"
+            ),
             revoked=False,
         )
 
@@ -89,7 +95,10 @@ class TestLocalCertificateRepository:
             platform="desktop",
             issued_at=now,
             expires_at=now + timedelta(days=7),
-            certificate_pem="-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\ntest\n"
+                "-----END CERTIFICATE-----"
+            ),
             revoked=False,
         )
 
@@ -117,7 +126,10 @@ class TestLocalCertificateRepository:
             platform="android",
             issued_at=now,
             expires_at=now + timedelta(days=5),
-            certificate_pem="-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\ntest\n"
+                "-----END CERTIFICATE-----"
+            ),
             revoked=False,
         )
 
@@ -128,7 +140,10 @@ class TestLocalCertificateRepository:
             platform="ios",
             issued_at=now,
             expires_at=now + timedelta(days=20),
-            certificate_pem="-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\ntest\n"
+                "-----END CERTIFICATE-----"
+            ),
             revoked=False,
         )
 

@@ -186,7 +186,10 @@ class MTLSValidationMiddleware(BaseHTTPMiddleware):
 
                 # Ensure proper PEM format (only add headers if missing)
                 if not cert_pem.startswith("-----BEGIN CERTIFICATE-----"):
-                    cert_pem = f"-----BEGIN CERTIFICATE-----\n{cert_pem}\n-----END CERTIFICATE-----"
+                    cert_pem = (
+                        f"-----BEGIN CERTIFICATE-----\n{cert_pem}\n"
+                        "-----END CERTIFICATE-----"
+                    )
 
                 logger.debug(
                     f"Extracted certificate from {header}: {cert_pem[:100]}..."

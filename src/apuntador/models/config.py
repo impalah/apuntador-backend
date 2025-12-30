@@ -5,7 +5,7 @@ These models define the structure of configuration data
 returned to clients (web, mobile, desktop).
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProviderInfo(BaseModel):
@@ -21,7 +21,10 @@ class ProviderInfo(BaseModel):
     enabled: bool = Field(description="Whether this provider is enabled on the backend")
     requires_mtls: bool = Field(
         default=True,
-        description="Whether this provider requires mTLS authentication (True for mobile/desktop, False for web)",
+        description=(
+            "Whether this provider requires mTLS authentication "
+            "(True for mobile/desktop, False for web)"
+        ),
     )
 
 
@@ -56,8 +59,8 @@ class CloudProviderConfig(BaseModel):
         default=3600, description="Recommended cache TTL in seconds (1 hour)"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "providers": {
                     "googledrive": {"enabled": True, "requires_mtls": True},
@@ -68,3 +71,4 @@ class CloudProviderConfig(BaseModel):
                 "cache_ttl": 3600,
             }
         }
+    )

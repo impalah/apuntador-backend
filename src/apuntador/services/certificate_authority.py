@@ -118,7 +118,7 @@ class CertificateAuthority:
             csr = x509.load_pem_x509_csr(csr_pem.encode())
         except Exception as e:
             logger.error(f"Failed to parse CSR: {e}")
-            raise ValueError(f"Invalid CSR format: {e}")
+            raise ValueError(f"Invalid CSR format: {e}") from e
 
         # Verify CSR signature (ensures private key matches public key)
         if not csr.is_signature_valid:

@@ -45,14 +45,16 @@ class OAuthService:
         """
         logger.info(f"Starting OAuth authorization flow for provider: {provider}")
         logger.debug(
-            f"Request details: redirect_uri={redirect_uri}, code_verifier={code_verifier[:20]}..., state={client_state}"
+            f"Request details: redirect_uri={redirect_uri}, "
+            f"code_verifier={code_verifier[:20]}..., state={client_state}"
         )
 
         service = get_oauth_service(provider, self.settings, redirect_uri=redirect_uri)
 
         logger.debug(f"Service created: {service.__class__.__name__}")
         logger.debug(
-            f"Service config: client_id={service.client_id}, redirect_uri={service.redirect_uri}"
+            f"Service config: client_id={service.client_id}, "
+            f"redirect_uri={service.redirect_uri}"
         )
 
         # Generate code challenge from code verifier
@@ -104,7 +106,8 @@ class OAuthService:
             state: Optional signed state for validation
 
         Returns:
-            Token data dictionary with access_token, refresh_token, expires_in, token_type
+            Token data dictionary with access_token, refresh_token,
+            expires_in, token_type
 
         Raises:
             ValueError: If state validation fails

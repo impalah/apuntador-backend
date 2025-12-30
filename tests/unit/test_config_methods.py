@@ -1,7 +1,7 @@
 """Tests for Settings methods (CORS and provider helpers)."""
 
-import pytest
 from unittest.mock import patch
+
 from apuntador.config import Settings
 
 

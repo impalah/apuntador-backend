@@ -4,6 +4,7 @@ OAuth service for Google Drive.
 Implementation of OAuth 2.0 flow for Google Drive API access.
 """
 
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
@@ -87,7 +88,7 @@ class GoogleDriveOAuthService(OAuthServiceBase):
         self,
         code: str,
         code_verifier: str,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Exchanges authorization code for access and refresh tokens.
 
@@ -122,7 +123,7 @@ class GoogleDriveOAuthService(OAuthServiceBase):
     async def refresh_access_token(
         self,
         refresh_token: str,
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Refreshes expired access token.
 

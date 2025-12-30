@@ -1,18 +1,20 @@
 """Targeted tests for specific uncovered lines."""
 
-import pytest
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
+
+import pytest
 
 
 @pytest.mark.asyncio
 async def test_certificate_validity_check_expired_with_warning(caplog):
     """Test is_serial_whitelisted logs warning for expired certificate."""
+    import tempfile
+
     from apuntador.infrastructure.implementations.local import (
         LocalCertificateRepository,
     )
     from apuntador.infrastructure.repositories.certificate_repository import Certificate
-    import tempfile
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalCertificateRepository(base_dir=tmp_dir)
@@ -21,7 +23,10 @@ async def test_certificate_validity_check_expired_with_warning(caplog):
         expired_cert = Certificate(
             device_id="expired-device",
             serial="EXPIRED-SERIAL",
-            certificate_pem="-----BEGIN CERTIFICATE-----\nexpired\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\nexpired\n"
+                "-----END CERTIFICATE-----"
+            ),
             issued_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(days=60),
             expires_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(days=5),
             revoked=False,
@@ -56,8 +61,8 @@ def test_problem_detail_set_default_type():
 
 def test_di_get_oauth_service_with_redirect_uri_override():
     """Test get_oauth_service with redirect_uri parameter."""
-    from apuntador.di import get_oauth_service
     from apuntador.config import get_settings
+    from apuntador.di import get_oauth_service
 
     settings = get_settings()
 
@@ -102,8 +107,9 @@ def test_settings_cors_default():
 @pytest.mark.asyncio
 async def test_local_secrets_update_existing():
     """Test updating an existing secret."""
-    from apuntador.infrastructure.implementations.local import LocalSecretsRepository
     import tempfile
+
+    from apuntador.infrastructure.implementations.local import LocalSecretsRepository
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalSecretsRepository(base_dir=tmp_dir)
@@ -122,8 +128,9 @@ async def test_local_secrets_update_existing():
 @pytest.mark.asyncio
 async def test_local_storage_upload_with_content_type():
     """Test uploading file with explicit content type."""
-    from apuntador.infrastructure.implementations.local import LocalStorageRepository
     import tempfile
+
+    from apuntador.infrastructure.implementations.local import LocalStorageRepository
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalStorageRepository(base_dir=tmp_dir)
@@ -166,11 +173,12 @@ def test_config_debug_string_to_bool():
 @pytest.mark.asyncio
 async def test_local_certificate_save_overwrites_existing():
     """Test saving certificate with same device_id overwrites."""
+    import tempfile
+
     from apuntador.infrastructure.implementations.local import (
         LocalCertificateRepository,
     )
     from apuntador.infrastructure.repositories.certificate_repository import Certificate
-    import tempfile
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalCertificateRepository(base_dir=tmp_dir)
@@ -179,7 +187,10 @@ async def test_local_certificate_save_overwrites_existing():
         cert1 = Certificate(
             device_id="overwrite-test",
             serial="SERIAL1",
-            certificate_pem="-----BEGIN CERTIFICATE-----\nfirst\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\nfirst\n"
+                "-----END CERTIFICATE-----"
+            ),
             issued_at=datetime.now(UTC).replace(tzinfo=None),
             expires_at=(datetime.now(UTC) + timedelta(days=30)).replace(tzinfo=None),
             revoked=False,
@@ -192,7 +203,10 @@ async def test_local_certificate_save_overwrites_existing():
         cert2 = Certificate(
             device_id="overwrite-test",
             serial="SERIAL2",
-            certificate_pem="-----BEGIN CERTIFICATE-----\nsecond\n-----END CERTIFICATE-----",
+            certificate_pem=(
+                "-----BEGIN CERTIFICATE-----\nsecond\n"
+                "-----END CERTIFICATE-----"
+            ),
             issued_at=datetime.now(UTC).replace(tzinfo=None),
             expires_at=(datetime.now(UTC) + timedelta(days=30)).replace(tzinfo=None),
             revoked=False,

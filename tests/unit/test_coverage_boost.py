@@ -1,14 +1,14 @@
 """Additional simple tests to increase coverage."""
 
+
 import pytest
-from unittest.mock import Mock, patch
 
 
 def test_pkce_utilities():
     """Test PKCE utility functions."""
     from apuntador.utils.pkce import (
-        generate_code_verifier,
         generate_code_challenge,
+        generate_code_verifier,
         verify_code_challenge,
     )
 
@@ -54,7 +54,7 @@ def test_security_verification_invalid():
 
     try:
         verify_signed_data("invalid_signature")
-        assert False, "Should have raised an exception"
+        raise AssertionError("Should have raised an exception")
     except Exception:
         pass  # Expected
 
@@ -62,8 +62,9 @@ def test_security_verification_invalid():
 @pytest.mark.asyncio
 async def test_local_secrets_empty_value():
     """Test storing empty secret value."""
-    from apuntador.infrastructure.implementations.local import LocalSecretsRepository
     import tempfile
+
+    from apuntador.infrastructure.implementations.local import LocalSecretsRepository
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalSecretsRepository(base_dir=tmp_dir)
@@ -79,8 +80,9 @@ async def test_local_secrets_empty_value():
 @pytest.mark.asyncio
 async def test_local_storage_download_nonexistent():
     """Test downloading nonexistent file."""
-    from apuntador.infrastructure.implementations.local import LocalStorageRepository
     import tempfile
+
+    from apuntador.infrastructure.implementations.local import LocalStorageRepository
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = LocalStorageRepository(base_dir=tmp_dir)

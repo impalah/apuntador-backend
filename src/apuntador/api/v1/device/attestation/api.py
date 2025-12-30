@@ -58,13 +58,13 @@ async def verify_android_safetynet(
         raise
     except ValueError as e:
         logger.warning(f"SafetyNet verification validation error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         logger.exception(f"Unexpected error during SafetyNet verification: {e}")
         raise HTTPException(
             status_code=500,
             detail=INTERNAL_SERVER_ERROR_ATTESTATION,
-        )
+        ) from e
 
 
 @router.post("/ios", response_model=DeviceCheckAttestationResponse)
@@ -94,10 +94,10 @@ async def verify_ios_devicecheck(
         return response
     except NotImplementedError as e:
         logger.warning(f"DeviceCheck not configured: {e}")
-        raise HTTPException(status_code=501, detail=str(e))
+        raise HTTPException(status_code=501, detail=str(e)) from e
     except ValueError as e:
         logger.warning(f"DeviceCheck verification validation error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except HTTPException:
         raise
     except Exception as e:
@@ -105,7 +105,7 @@ async def verify_ios_devicecheck(
         raise HTTPException(
             status_code=500,
             detail=INTERNAL_SERVER_ERROR_ATTESTATION,
-        )
+        ) from e
 
 
 @router.post("/desktop", response_model=DesktopAttestationResponse)
@@ -136,7 +136,7 @@ async def verify_desktop_fingerprint(
         return response
     except ValueError as e:
         logger.warning(f"Desktop verification validation error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except HTTPException:
         raise
     except Exception as e:
@@ -144,7 +144,7 @@ async def verify_desktop_fingerprint(
         raise HTTPException(
             status_code=500,
             detail=INTERNAL_SERVER_ERROR_ATTESTATION,
-        )
+        ) from e
 
 
 @router.post("/clear-cache", status_code=204)
@@ -165,4 +165,6 @@ async def clear_attestation_cache(
         service.clear_cache()
     except Exception as e:
         logger.exception(f"Error clearing attestation cache: {e}")
-        raise HTTPException(status_code=500, detail="Failed to clear attestation cache")
+        raise HTTPException(
+            status_code=500, detail="Failed to clear attestation cache"
+        ) from e
