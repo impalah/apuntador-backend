@@ -17,8 +17,8 @@ router = APIRouter()
 
 
 def verify_api_key(
+    settings: Annotated[Settings, Depends(get_settings)],
     authorization: Annotated[str | None, Header()] = None,
-    settings: Annotated[Settings, Depends(get_settings)] = Depends(get_settings),
 ) -> None:
     """
     Verify API key for configuration endpoints.

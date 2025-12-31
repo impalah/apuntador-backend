@@ -29,6 +29,8 @@ _TEST_ENV_VARS = {
     "SECRETS_PROVIDER": "local",
     "CERTIFICATE_DB_PROVIDER": "local",
     "STORAGE_PROVIDER": "local",
+    # OpenTelemetry (disable for tests)
+    "OTEL_ENABLED": "false",
 }
 
 # Set environment variables NOW (at module import time)

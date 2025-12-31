@@ -5,40 +5,44 @@ This module creates the FastAPI application using the application factory
 pattern for clean separation of concerns.
 """
 
+import os
+
 from apuntador.app_setup import add_root_endpoint, setup_app
 from apuntador.application import create_app
 from apuntador.config import get_settings
 from apuntador.core.logging import intercept_standard_logging
 
 # Configure OpenTelemetry BEFORE anything else
-# (optional, only if dependencies installed)
-try:
-    from apuntador.core.telemetry import (
-        configure_opentelemetry,
-        instrument_fastapi,
-        instrument_httpx,
-        instrument_logging,
-    )
+# (optional, only if dependencies installed and OTEL_ENABLED is true)
+OTEL_ENABLED = False
+if os.getenv("OTEL_ENABLED", "false").lower() in ("true", "1", "yes"):
+    try:
+        from apuntador.core.telemetry import (
+            configure_opentelemetry,
+            instrument_fastapi,
+            instrument_httpx,
+            instrument_logging,
+        )
 
-    # Initialize OpenTelemetry with AWS X-Ray integration
-    configure_opentelemetry(
-        service_name="apuntador-backend",
-        service_version="1.0.0",  # Update from settings if available
-        environment=get_settings().environment
-        if hasattr(get_settings(), "environment")
-        else "development",
-    )
+        # Initialize OpenTelemetry with AWS X-Ray integration
+        configure_opentelemetry(
+            service_name="apuntador-backend",
+            service_version="1.0.0",  # Update from settings if available
+            environment=get_settings().environment
+            if hasattr(get_settings(), "environment")
+            else "development",
+        )
 
-    # Instrument logging BEFORE configuring loguru
-    instrument_logging()
+        # Instrument logging BEFORE configuring loguru
+        instrument_logging()
 
-    # Instrument HTTPX client for outgoing requests
-    instrument_httpx()
+        # Instrument HTTPX client for outgoing requests
+        instrument_httpx()
 
-    OTEL_ENABLED = True
-except ImportError:
-    # OpenTelemetry not installed, continue without it
-    OTEL_ENABLED = False
+        OTEL_ENABLED = True
+    except ImportError:
+        # OpenTelemetry not installed, continue without it
+        OTEL_ENABLED = False
 
 # Intercept logs from uvicorn and other libraries
 intercept_standard_logging()
