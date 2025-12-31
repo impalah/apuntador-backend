@@ -28,6 +28,9 @@ dev: ## Run development server
 test: ## Run tests
 	uv run pytest -v
 
+test-cov: ## Run tests with coverage report
+	uv run pytest --cov --cov-report=xml --cov-report=term --cov-report=html
+
 lint: ## Check code with ruff
 	uv run ruff check .
 
