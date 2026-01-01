@@ -2,7 +2,7 @@
 name = "apuntador-backend"
 version = "1.0.29"
 description = "OAuth proxy backend for Apuntador"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.121.1",
     "pydantic>=2.12.4",
@@ -55,7 +55,7 @@ packages = ["src/apuntador"]
 [tool.ruff]
 line-length = 88
 src = ["src"]  # First, add the source code folder
-target-version = "py312"  # We are using Python 3.12
+target-version = "py314"  # We are using Python 3.14
 
 [tool.ruff.lint]
 # Activate additional rules to imitate flake8 and isort
@@ -69,7 +69,7 @@ exclude = ["tests/data", ".venv"]
 fixable = ["ALL"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.14"
 # Strict type checking, pero con algunas excepciones razonables
 warn_return_any = true
 warn_unused_configs = true

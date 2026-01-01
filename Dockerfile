@@ -1,4 +1,4 @@
-FROM python:3.12 AS requirements-stage
+FROM python:3.14 AS requirements-stage
 
 ARG package_name=strata
 ARG module_name=strata
@@ -15,7 +15,7 @@ RUN cd projects/${package_name} && poetry export -f requirements.txt --output re
 # ---------------------------------
 
 # Build execution container
-FROM python:3.12-alpine
+FROM python:3.14-alpine
 
 # ARGs are needed in all the stages
 ARG package_name=strata

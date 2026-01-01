@@ -1,5 +1,5 @@
 {
-  "name": "Apuntador Backend (Python 3.12 + uv)",
+  "name": "Apuntador Backend (Python 3.14 + uv)",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
