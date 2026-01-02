@@ -1,16 +1,20 @@
 FROM python:3.14 AS requirements-stage
 
-ARG package_name=strata
-ARG module_name=strata
+ARG package_name=apuntador
+ARG module_name=apuntador
 
-# Create structure and install poetry
+# Create structure
 WORKDIR /tmp
 RUN mkdir projects
-RUN pip install poetry==1.8.5
 
-# Build requirements
-COPY ./pyproject.toml ./poetry.lock* ./projects/${package_name}/
-RUN cd projects/${package_name} && poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv ~/.local/bin/uv /usr/local/bin/
+RUN uv --version
+
+# Generate requirements txt
+COPY pyproject.toml uv.lock README.md ./projects/${package_name}/
+RUN cd projects/${package_name} && uv export --no-emit-project --no-hashes --frozen --no-dev --no-editable -o requirements.txt
 
 # ---------------------------------
 
@@ -18,8 +22,8 @@ RUN cd projects/${package_name} && poetry export -f requirements.txt --output re
 FROM python:3.14-alpine
 
 # ARGs are needed in all the stages
-ARG package_name=strata
-ARG module_name=strata
+ARG package_name=apuntador
+ARG module_name=apuntador
 
 # Install additional libraries
 RUN apk add --no-cache gcc musl-dev curl-dev
@@ -48,4 +52,4 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 
-CMD ["sh", "-c", "uvicorn strata.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["sh", "-c", "uvicorn apuntador.main:app --host 0.0.0.0 --port $PORT"]

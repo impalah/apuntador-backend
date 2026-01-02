@@ -1,25 +1,17 @@
-version: '3.8'
 
 services:
   # Your FastAPI backend
   apuntador-backend:
     build:
       context: .
-      dockerfile: Dockerfile.lambda
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    env_file:
+      - .env.otel
     environment:
-      # OpenTelemetry configuration
-      - OTEL_SERVICE_NAME=apuntador-backend
+      # Override specific variables for docker-compose
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://adot-collector:4317
-      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
-      - OTEL_TRACES_ENABLED=true
-      - OTEL_PROPAGATORS=xray
-      - AWS_REGION=eu-west-1
-      # Your app configuration
-      - DEBUG=true
-      - LOG_LEVEL=INFO
-      - LOG_FORMAT=human
     depends_on:
       - adot-collector
     networks:

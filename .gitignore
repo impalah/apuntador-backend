@@ -39,6 +39,7 @@ env/
 # Environment variables
 .env
 .env.local
+.env.otel
 
 # Local infrastructure storage (development)
 .local_infrastructure/

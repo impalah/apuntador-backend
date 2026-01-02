@@ -25,7 +25,6 @@ processors:
       - ec2
       - ecs
       - lambda
-      - elasticbeanstalk
     timeout: 2s
     override: false
 
@@ -52,9 +51,9 @@ exporters:
     log_group_name: /aws/apuntador-backend/traces
     log_stream_name: ${HOSTNAME}
     
-  # Logging exporter for debugging (remove in production)
-  logging:
-    loglevel: info
+  # Debug exporter for development (remove in production)
+  debug:
+    verbosity: detailed
 
 service:
   pipelines:
@@ -62,7 +61,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch, resourcedetection/aws, attributes/xray]
-      exporters: [awsxray, logging]  # Remove logging in production
+      exporters: [awsxray, debug]  # Remove debug in production
     
     # Optional: Metrics pipeline
     # metrics:
