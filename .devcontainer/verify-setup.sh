@@ -30,10 +30,10 @@ check_python_version() {
     MAJOR=$(echo $PYTHON_VERSION | cut -d'.' -f1)
     MINOR=$(echo $PYTHON_VERSION | cut -d'.' -f2)
     
-    if [ "$MAJOR" -eq 3 ] && [ "$MINOR" -ge 12 ]; then
-        echo -e "${GREEN}✓${NC} Python $PYTHON_VERSION (>= 3.12 requerido)"
+    if [ "$MAJOR" -eq 3 ] && [ "$MINOR" -ge 14 ]; then
+        echo -e "${GREEN}✓${NC} Python $PYTHON_VERSION (>= 3.14 requerido)"
     else
-        echo -e "${RED}✗${NC} Python $PYTHON_VERSION (3.12+ requerido)"
+        echo -e "${RED}✗${NC} Python $PYTHON_VERSION (3.14+ requerido)"
         return 1
     fi
 }
@@ -86,6 +86,7 @@ check_python_version
 check_command "uv" "version"
 check_command "git" "version"
 check_command "aws" "version"
+check_command "terraform" "version"
 check_command "jq" "version"
 echo ""
 

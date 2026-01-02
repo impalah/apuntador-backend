@@ -25,6 +25,22 @@ RUN ARCH=$(uname -m) && \
     ./aws/install && \
     rm -rf awscliv2.zip aws
 
+# Install Terraform with automatic architecture detection
+RUN ARCH=$(uname -m) && \
+    TERRAFORM_VERSION="1.10.4" && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        TERRAFORM_ARCH="amd64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        TERRAFORM_ARCH="arm64"; \
+    else \
+        echo "❌ Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${TERRAFORM_ARCH}.zip" && \
+    unzip "terraform_${TERRAFORM_VERSION}_linux_${TERRAFORM_ARCH}.zip" && \
+    mv terraform /usr/local/bin/ && \
+    chmod +x /usr/local/bin/terraform && \
+    rm -f "terraform_${TERRAFORM_VERSION}_linux_${TERRAFORM_ARCH}.zip"
+
 # Ensure vscode user has proper permissions
 USER vscode
 
@@ -32,4 +48,4 @@ USER vscode
 WORKDIR /workspace
 
 # Verify installations
-RUN python --version && uv --version && aws --version
+RUN python --version && uv --version && aws --version && terraform --version

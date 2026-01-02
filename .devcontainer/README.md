@@ -4,9 +4,10 @@ This directory contains the configuration for VS Code Dev Containers, allowing y
 
 ## What's Included
 
-- **Python 3.12**: Latest Python version
+- **Python 3.14**: Latest Python version
 - **uv**: Fast Python package installer and resolver
 - **AWS CLI v2**: For managing AWS resources (Secrets Manager, DynamoDB, etc.)
+- **Terraform 1.10.4**: Infrastructure as Code for AWS deployments
 - **jq**: JSON processor for testing API responses
 - **VS Code Extensions**:
   - Python (with Pylance)
