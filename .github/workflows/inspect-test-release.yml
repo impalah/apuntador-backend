@@ -69,7 +69,7 @@ jobs:
         run: |
           VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version)
           echo "IMAGE_TAG=${VERSION}" >> $GITHUB_ENV
-          echo "IMAGE_LAMBDA_TAG=${VERSION}" >> $GITHUB_ENV
+          echo "IMAGE_LAMBDA_TAG=${VERSION}-lambda" >> $GITHUB_ENV
           echo "IMAGE_BUILD_TAG=${VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
       # - name: Build documentation
@@ -109,6 +109,18 @@ jobs:
           registry: ${{ vars.AWS_ECR_REGISTRY }}
           region: ${{ vars.AWS_REGION }}
 
+      # Build and push standard image to AWS ECR
+      - name: Build and push standard image
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Dockerfile
+          push: true
+          provenance: false
+          platforms: linux/amd64
+          tags: |
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:latest
+
       # Build and push Lambda image to AWS ECR
       - name: Build and push lambda image
         uses: docker/build-push-action@v6
@@ -119,7 +131,6 @@ jobs:
           platforms: linux/amd64
           tags: |
             ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_LAMBDA_TAG }}
-            ${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:latest
 
       - name: Set IMAGE output
         env:
@@ -128,7 +139,7 @@ jobs:
           IMAGE_BUILD_TAG: ${{ env.IMAGE_BUILD_TAG }}
         id: set_output
         run: |
-          IMAGE="${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${IMAGE_LAMBDA_TAG}"
+          IMAGE="${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${IMAGE_LAMBDA}"
           echo "${IMAGE_TAG}" > ${{ github.workspace }}/image_tag.txt
           echo "image=${IMAGE}" >> $GITHUB_OUTPUT
 
@@ -142,8 +153,9 @@ jobs:
           files: |
             ${{ github.workspace }}/image_tag.txt
           body: |
-            ## Docker Image
-            - **Lambda Image**: `${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}`
+            ## Docker Images
+            - **Standard Image**: `${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_TAG }}`
+            - **Lambda Image**: `${{ vars.AWS_ECR_REGISTRY }}/${{ vars.REPOSITORY }}:${{ env.IMAGE_LAMBDA_TAG }}`
             - **Build Number**: ${{ github.run_number }}
             
             ### Deployment
