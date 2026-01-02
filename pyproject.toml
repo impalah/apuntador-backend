@@ -1,6 +1,6 @@
 [project]
 name = "apuntador-backend"
-version = "1.0.32"
+version = "1.0.33"
 description = "OAuth proxy backend for Apuntador"
 requires-python = ">=3.14"
 dependencies = [
