@@ -436,3 +436,32 @@ variable "autoscaling_request_count_target" {
   type        = number
   default     = 1000
 }
+
+####################################################################
+# Fargate Spot Configuration
+####################################################################
+
+variable "enable_fargate_spot" {
+  description = "Enable Fargate Spot capacity provider for cost savings (60-70% cheaper). WARNING: Tasks can be interrupted with 2 min notice."
+  type        = bool
+  default     = false
+}
+
+variable "fargate_spot_min_fargate_tasks" {
+  description = "Minimum number of tasks that MUST run on regular Fargate (base capacity for reliability). Remaining tasks can use Spot."
+  type        = number
+  default     = 2
+}
+
+variable "fargate_spot_base_capacity" {
+  description = "Weight for FARGATE capacity provider (higher = prefer regular Fargate). Recommended: 1 for normal, 2 for critical workloads."
+  type        = number
+  default     = 1
+}
+
+variable "fargate_spot_weight" {
+  description = "Weight for FARGATE_SPOT capacity provider (higher = prefer Spot). Recommended: 3-4 for maximum cost savings."
+  type        = number
+  default     = 3
+}
+

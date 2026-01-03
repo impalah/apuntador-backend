@@ -51,9 +51,12 @@ exporters:
     log_group_name: /aws/apuntador-backend/traces
     log_stream_name: ${HOSTNAME}
     
-  # Debug exporter for development (remove in production)
-  debug:
-    verbosity: detailed
+  # Logging exporter for development (compact JSON format for CloudWatch compatibility)
+  # Uses compact JSON output instead of pretty-printed to avoid breaking CloudWatch log parsing
+  logging:
+    loglevel: info  # info, debug, warn, error
+    sampling_initial: 5
+    sampling_thereafter: 200  # Only log every 200th trace after first 5
 
 service:
   pipelines:
@@ -61,7 +64,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch, resourcedetection/aws, attributes/xray]
-      exporters: [awsxray, debug]  # Remove debug in production
+      exporters: [awsxray]  # Removed debug/logging in production to reduce noise
     
     # Optional: Metrics pipeline
     # metrics:

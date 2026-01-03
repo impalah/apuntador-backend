@@ -9,7 +9,9 @@ This module configures OpenTelemetry with:
 - AWS CloudWatch exporter via X-Ray
 """
 
+import json
 import logging
+from collections.abc import Sequence
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -20,12 +22,85 @@ from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.aws import AwsXRayPropagator
 from opentelemetry.sdk.extension.aws.trace import AwsXRayIdGenerator
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    SpanExporter,
+    SpanExportResult,
+)
 
 from apuntador.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+class CompactJSONSpanExporter(SpanExporter):
+    """
+    Custom span exporter that outputs spans as compact JSON (single line).
+    
+    Unlike ConsoleSpanExporter which outputs pretty-printed JSON with newlines,
+    this exporter outputs each span as a single line of compact JSON, which is
+    CloudWatch-friendly and doesn't break log parsing.
+    """
+
+    def export(self, spans: Sequence[ReadableSpan]) -> SpanExportResult:
+        """
+        Exports spans as compact single-line JSON to stdout.
+        
+        Args:
+            spans: Sequence of spans to export
+            
+        Returns:
+            SpanExportResult indicating success or failure
+        """
+        for span in spans:
+            span_dict = {
+                "name": span.name,
+                "context": {
+                    "trace_id": format(span.context.trace_id, "032x") if span.context else None,
+                    "span_id": format(span.context.span_id, "016x") if span.context else None,
+                    "trace_state": str(span.context.trace_state) if span.context else None,
+                },
+                "kind": str(span.kind),
+                "parent_id": format(span.parent.span_id, "016x") if span.parent else None,
+                "start_time": str(span.start_time),
+                "end_time": str(span.end_time),
+                "status": {
+                    "status_code": str(span.status.status_code),
+                },
+                "attributes": dict(span.attributes) if span.attributes else {},
+                "events": [
+                    {
+                        "name": event.name,
+                        "timestamp": str(event.timestamp),
+                        "attributes": dict(event.attributes) if event.attributes else {},
+                    }
+                    for event in span.events
+                ],
+                "links": [
+                    {
+                        "context": {
+                            "trace_id": format(link.context.trace_id, "032x"),
+                            "span_id": format(link.context.span_id, "016x"),
+                        },
+                        "attributes": dict(link.attributes) if link.attributes else {},
+                    }
+                    for link in span.links
+                ],
+                "resource": {
+                    "attributes": dict(span.resource.attributes) if span.resource else {},
+                },
+            }
+
+            # Output as compact JSON (no indentation, single line)
+            compact_json = json.dumps(span_dict, separators=(",", ":"))
+            print(compact_json, flush=True)
+
+        return SpanExportResult.SUCCESS
+
+    def shutdown(self) -> None:
+        """Shutdown the exporter."""
+        pass
 
 
 def configure_opentelemetry(
@@ -111,9 +186,11 @@ def _configure_span_exporters(
     """
     # Development: Console exporter for debugging
     if environment in ["development", "dev", "local"]:
-        console_exporter = ConsoleSpanExporter()
+        # Use compact JSON exporter instead of ConsoleSpanExporter
+        # to avoid multi-line JSON that breaks CloudWatch log parsing
+        console_exporter = CompactJSONSpanExporter()
         tracer_provider.add_span_processor(BatchSpanProcessor(console_exporter))
-        logger.info("📊 Console span exporter configured (development mode)")
+        logger.info("📊 Compact JSON span exporter configured (development mode)")
 
     # Production: OTLP exporter to AWS X-Ray via ADOT Collector
     else:

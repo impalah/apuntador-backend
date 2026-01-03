@@ -22,6 +22,33 @@ resource "aws_ecs_cluster" "apuntador" {
 }
 
 ####################################################################
+# ECS Cluster Capacity Providers
+####################################################################
+
+resource "aws_ecs_cluster_capacity_providers" "apuntador" {
+  cluster_name = aws_ecs_cluster.apuntador.name
+
+  capacity_providers = var.enable_fargate_spot ? ["FARGATE", "FARGATE_SPOT"] : ["FARGATE"]
+
+  dynamic "default_capacity_provider_strategy" {
+    for_each = var.enable_fargate_spot ? [1] : []
+    content {
+      capacity_provider = "FARGATE"
+      weight            = var.fargate_spot_base_capacity
+      base              = var.fargate_spot_min_fargate_tasks
+    }
+  }
+
+  dynamic "default_capacity_provider_strategy" {
+    for_each = var.enable_fargate_spot ? [1] : []
+    content {
+      capacity_provider = "FARGATE_SPOT"
+      weight            = var.fargate_spot_weight
+    }
+  }
+}
+
+####################################################################
 # IAM Roles and Policies
 ####################################################################
 
@@ -434,7 +461,30 @@ resource "aws_ecs_service" "apuntador" {
   cluster         = aws_ecs_cluster.apuntador.id
   task_definition = aws_ecs_task_definition.apuntador.arn
   desired_count   = var.desired_count
-  launch_type     = "FARGATE"
+  
+  # Remove launch_type when using capacity provider strategy
+  # launch_type is mutually exclusive with capacity_provider_strategy
+  
+  # Capacity Provider Strategy (FARGATE + FARGATE_SPOT mix)
+  dynamic "capacity_provider_strategy" {
+    for_each = var.enable_fargate_spot ? [1] : []
+    content {
+      capacity_provider = "FARGATE"
+      weight            = var.fargate_spot_base_capacity
+      base              = var.fargate_spot_min_fargate_tasks
+    }
+  }
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.enable_fargate_spot ? [1] : []
+    content {
+      capacity_provider = "FARGATE_SPOT"
+      weight            = var.fargate_spot_weight
+    }
+  }
+
+  # Fallback to FARGATE when Spot is disabled
+  launch_type = var.enable_fargate_spot ? null : "FARGATE"
   
   network_configuration {
     subnets          = [for key, subnet_id in module.vpc.private_subnet_ids : subnet_id]
@@ -455,7 +505,8 @@ resource "aws_ecs_service" "apuntador" {
     aws_lb_listener.http,
     aws_iam_role_policy.ecs_task_dynamodb,
     aws_iam_role_policy.ecs_task_s3,
-    aws_iam_role_policy.ecs_task_secrets
+    aws_iam_role_policy.ecs_task_secrets,
+    aws_ecs_cluster_capacity_providers.apuntador
   ]
 
   tags = {
