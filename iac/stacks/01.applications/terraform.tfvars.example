@@ -36,3 +36,64 @@ google_redirect_uri    = "https://api.apuntador.app/oauth/callback/googledrive"
 dropbox_client_id      = "your-dropbox-app-key"
 dropbox_client_secret  = "your-dropbox-app-secret"
 dropbox_redirect_uri   = "https://api.apuntador.app/oauth/callback/dropbox"
+
+# ========================================
+# Domain & SSL Configuration
+# ========================================
+domain_name            = "api.apuntador.app"
+route53_zone_id        = "Z1234567890ABC"
+
+# ========================================
+# ECS Configuration
+# ========================================
+desired_count = 2
+task_cpu      = "256"
+task_memory   = "512"
+
+# ========================================
+# ECS Auto Scaling Configuration
+# ========================================
+
+# Enable/disable auto scaling for ECS tasks
+enable_autoscaling = true
+
+# Capacity configuration
+autoscaling_min_capacity = 2    # Minimum number of tasks (default: 2)
+autoscaling_max_capacity = 10   # Maximum number of tasks (default: 10)
+
+# Target metrics for scaling
+# Tasks will scale out when metrics exceed these targets
+# and scale in when metrics are below these targets
+autoscaling_cpu_target    = 70   # Target CPU utilization % (default: 70)
+autoscaling_memory_target = 80   # Target memory utilization % (default: 80)
+autoscaling_request_count_target = 1000  # Target requests per task (default: 1000)
+
+# Cooldown periods (in seconds)
+# These prevent rapid scaling and allow metrics to stabilize
+autoscaling_scale_in_cooldown  = 300  # Wait 5 minutes before scaling in (default: 300)
+autoscaling_scale_out_cooldown = 60   # Wait 1 minute before scaling out (default: 60)
+
+# ========================================
+# Logging Configuration
+# ========================================
+lambda_log_retention_days      = 7
+api_gateway_log_retention_days = 7
+enable_docs = true
+
+# ========================================
+# CORS Configuration
+# ========================================
+cors_allowed_origins = [
+  "https://apuntador.app",
+  "https://app.apuntador.app",
+  "http://localhost:3000",
+  "capacitor://localhost",
+  "tauri://localhost"
+]
+
+cors_allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+cors_allowed_headers = ["content-type", "authorization", "x-backend-key"]
+cors_expose_headers  = ["content-type", "x-amz-date"]
+cors_max_age         = 86400  # 24 hours
+cors_allow_credentials = false
+

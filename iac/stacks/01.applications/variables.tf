@@ -384,3 +384,55 @@ variable "adot_image" {
   type        = string
   default     = "670089840758.dkr.ecr.eu-west-1.amazonaws.com/aws-otel-collector:latest"
 }
+
+####################################################################
+# ECS Auto Scaling Configuration
+####################################################################
+
+variable "enable_autoscaling" {
+  description = "Enable ECS service auto scaling"
+  type        = bool
+  default     = false
+}
+
+variable "autoscaling_min_capacity" {
+  description = "Minimum number of ECS tasks"
+  type        = number
+  default     = 2
+}
+
+variable "autoscaling_max_capacity" {
+  description = "Maximum number of ECS tasks"
+  type        = number
+  default     = 10
+}
+
+variable "autoscaling_cpu_target" {
+  description = "Target CPU utilization percentage for auto scaling"
+  type        = number
+  default     = 70
+}
+
+variable "autoscaling_memory_target" {
+  description = "Target memory utilization percentage for auto scaling"
+  type        = number
+  default     = 80
+}
+
+variable "autoscaling_scale_in_cooldown" {
+  description = "Cooldown period (in seconds) before allowing another scale-in activity"
+  type        = number
+  default     = 300
+}
+
+variable "autoscaling_scale_out_cooldown" {
+  description = "Cooldown period (in seconds) before allowing another scale-out activity"
+  type        = number
+  default     = 60
+}
+
+variable "autoscaling_request_count_target" {
+  description = "Target number of requests per target (ALB RequestCountPerTarget metric)"
+  type        = number
+  default     = 1000
+}
