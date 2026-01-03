@@ -251,6 +251,8 @@ def intercept_standard_logging() -> None:
         "uvicorn",
         "uvicorn.access",
         "uvicorn.error",
+        "uvicorn.protocols.http.h11_impl",
+        "uvicorn.protocols.http.httptools_impl",
         "httpx",
         "fastapi",
     ]:
@@ -258,8 +260,8 @@ def intercept_standard_logging() -> None:
         logging_logger.handlers = [InterceptHandler()]
         logging_logger.propagate = False
 
-        # Add health check filter specifically to uvicorn.access
-        if logger_name == "uvicorn.access":
+        # Add health check filter to uvicorn loggers
+        if logger_name in ["uvicorn.access", "uvicorn.protocols.http.h11_impl", "uvicorn.protocols.http.httptools_impl"]:
             logging_logger.addFilter(HealthCheckFilter())
 
 
