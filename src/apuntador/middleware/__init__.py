@@ -27,7 +27,13 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
     2. Stores trace_id in contextvars
     3. All logs automatically include the trace_id
     4. Response includes X-Trace-ID header
+    
+    Note: Health check endpoints (/health, /healthz) are excluded from
+    request logging to reduce noise.
     """
+
+    # Endpoints to exclude from request/response logging
+    SILENT_PATHS = {"/health", "/healthz", "/metrics", "/favicon.ico"}
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """
@@ -46,11 +52,15 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
         # Store in contextvars (available throughout the request)
         trace_id_context.set(trace_id)
 
-        # Log request start
-        logger.info(
-            f"Request started: {request.method} {request.url.path}",
-            extra={"trace_id": trace_id},
-        )
+        # Check if this is a silent endpoint (health checks, etc.)
+        is_silent = request.url.path in self.SILENT_PATHS
+
+        # Log request start (skip for health checks)
+        if not is_silent:
+            logger.info(
+                f"Request started: {request.method} {request.url.path}",
+                extra={"trace_id": trace_id},
+            )
 
         try:
             # Process request
@@ -59,16 +69,17 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
             # Add trace_id to response headers
             response.headers["X-Trace-ID"] = trace_id
 
-            # Log request completion
-            logger.info(
-                f"Request completed: {request.method} {request.url.path} - Status: {response.status_code}",  # noqa: E501
-                extra={"trace_id": trace_id},
-            )
+            # Log request completion (skip for health checks)
+            if not is_silent:
+                logger.info(
+                    f"Request completed: {request.method} {request.url.path} - Status: {response.status_code}",  # noqa: E501
+                    extra={"trace_id": trace_id},
+                )
 
             return response
 
         except Exception:
-            # Log error with trace_id
+            # Log error with trace_id (always log errors, even for health checks)
             logger.exception(
                 f"Request failed: {request.method} {request.url.path}",
                 extra={"trace_id": trace_id},

@@ -7,92 +7,106 @@ This directory contains Terraform configurations for deploying the Apuntador bac
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         AWS Cloud                                    │
-│                                                                      │
-│  Internet                                                           │
-│     │                                                               │
-│     ▼                                                               │
-│  ┌──────────────────┐                                              │
-│  │    Route 53      │  DNS: api.apuntador.io                       │
-│  └────────┬─────────┘                                              │
-│           │                                                         │
-│           ▼                                                         │
-│  ┌──────────────────┐                                              │
-│  │  API Gateway     │  HTTPS, Regional, Custom Domain              │
-│  │  (HTTP API)      │  - ACM Certificate (*.apuntador.io)         │
-│  └────────┬─────────┘  - CORS handled by FastAPI                  │
-│           │                                                         │
-│           ▼                                                         │
-│  ┌──────────────────┐                                              │
-│  │   VPC Link       │  Private connection to VPC                   │
-│  └────────┬─────────┘  (~$7/month)                                │
-│           │                                                         │
-│  ┌────────▼─────────────────────────────────────────────────┐     │
-│  │                    VPC (10.0.0.0/16)                      │     │
-│  │                                                            │     │
-│  │  ┌──────────────────────────────────────────────────┐    │     │
-│  │  │ Public Subnets (10.0.1-3.0/24, 3 AZs)           │    │     │
-│  │  │ - Internet Gateway                                │    │     │
-│  │  │ - Route to 0.0.0.0/0                             │    │     │
-│  │  └──────────────────────────────────────────────────┘    │     │
-│  │                                                            │     │
-│  │  ┌──────────────────────────────────────────────────┐    │     │
-│  │  │ Private Subnets (10.0.11-13.0/24, 3 AZs)        │    │     │
-│  │  │                                                   │    │     │
-│  │  │  ┌─────────────────────────────────────┐        │    │     │
-│  │  │  │  Application Load Balancer          │        │    │     │
-│  │  │  │  - Internal (private)                │        │    │     │
-│  │  │  │  - HTTP listener (port 80)           │        │    │     │
-│  │  │  │  - Security Group: VPC traffic only  │        │    │     │
-│  │  │  └────────────┬────────────────────────┘        │    │     │
-│  │  │               │                                  │    │     │
-│  │  │               ▼                                  │    │     │
-│  │  │  ┌─────────────────────────────────────┐        │    │     │
-│  │  │  │  ECS Fargate Tasks                   │        │    │     │
-│  │  │  │  ┌────────────────┐  ┌────────────┐ │        │    │     │
-│  │  │  │  │ apuntador-api  │  │ ADOT       │ │        │    │     │
-│  │  │  │  │ (FastAPI)      │  │ Collector  │ │        │    │     │
-│  │  │  │  │ Port: 8000     │  │ Sidecar    │ │        │    │     │
-│  │  │  │  └────────────────┘  └────────────┘ │        │    │     │
-│  │  │  │  - CPU: 256, Memory: 512 MB          │        │    │     │
-│  │  │  │  - Auto-scaling (1-10 tasks)         │        │    │     │
-│  │  │  └────────────┬────────────────────────┘        │    │     │
-│  │  │               │                                  │    │     │
-│  │  └───────────────┼──────────────────────────────────┘    │     │
-│  │                  │                                        │     │
-│  │                  ├────────▶ DynamoDB (via Gateway EP)    │     │
-│  │                  │          - Certificate storage        │     │
-│  │                  │          - On-demand billing          │     │
-│  │                  │                                        │     │
-│  │                  ├────────▶ S3 (via Gateway EP)          │     │
-│  │                  │          - File storage               │     │
-│  │                  │          - Free data transfer         │     │
-│  │                  │                                        │     │
-│  │                  ├────────▶ Secrets Manager (via IF EP)  │     │
-│  │                  │          - OAuth credentials          │     │
-│  │                  │          - $0.40/secret/month         │     │
-│  │                  │                                        │     │
-│  │                  ├────────▶ ECR (via Interface EP)       │     │
-│  │                  │          - Container images           │     │
-│  │                  │          - $14/month for 2 endpoints  │     │
-│  │                  │                                        │     │
-│  │                  └────────▶ CloudWatch (via IF EP)       │     │
-│  │                             - Logs and metrics           │     │
-│  │                             - X-Ray tracing              │     │
-│  │                                                            │     │
-│  │  ┌──────────────────────────────────────────────────┐    │     │
-│  │  │ VPC Endpoints (Interface: $7/mo each)            │    │     │
-│  │  │ - ecr.api (required for Fargate)                 │    │     │
-│  │  │ - ecr.dkr (required for Fargate)                 │    │     │
-│  │  │ - logs (CloudWatch Logs)                         │    │     │
-│  │  │                                                   │    │     │
-│  │  │ VPC Endpoints (Gateway: FREE)                    │    │     │
-│  │  │ - DynamoDB                                        │    │     │
-│  │  │ - S3                                              │    │     │
-│  │  └──────────────────────────────────────────────────┘    │     │
-│  └────────────────────────────────────────────────────────────┘     │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         AWS Cloud                                            │
+│                                                                              │
+│  Internet                                                                   │
+│     │                                                                       │
+│     ▼                                                                       │
+│  ┌──────────────────┐                                                      │
+│  │    Route 53      │  DNS: api.apuntador.io                               │
+│  └────────┬─────────┘                                                      │
+│           │                                                                 │
+│           ▼                                                                 │
+│  ┌──────────────────┐                                                      │
+│  │  API Gateway     │  HTTPS, Regional, Custom Domain                      │
+│  │  (HTTP API)      │  - ACM Certificate (*.apuntador.io)                 │
+│  └────────┬─────────┘  - CORS handled by FastAPI                          │
+│           │                                                                 │
+│           ▼                                                                 │
+│  ┌──────────────────┐                                                      │
+│  │   VPC Link       │  Private connection to VPC                           │
+│  └────────┬─────────┘  (~$7/month)                                        │
+│           │                                                                 │
+│  ┌────────▼─────────────────────────────────────────────────────────┐     │
+│  │                    VPC (10.0.0.0/16)                              │     │
+│  │                                                                    │     │
+│  │  ┌──────────────────────────────────────────────────────────┐    │     │
+│  │  │ Public Subnets (10.0.1-3.0/24, 3 AZs)                   │    │     │
+│  │  │ - Internet Gateway                                        │    │     │
+│  │  │ - Route to 0.0.0.0/0                                     │    │     │
+│  │  │                                                           │    │     │
+│  │  │  ┌──────────────────────────────────┐                   │    │     │
+│  │  │  │  NAT Instance (t4g.nano)         │                   │    │     │
+│  │  │  │  - EC2 with iptables NAT         │                   │    │     │
+│  │  │  │  - Auto Scaling Group (HA)       │                   │    │     │
+│  │  │  │  - SSM Session Manager access    │                   │    │     │
+│  │  │  │  - Cost: ~$3.50/month            │ ◄─────────┐       │    │     │
+│  │  │  └────────────┬─────────────────────┘           │       │    │     │
+│  │  └───────────────┼─────────────────────────────────┼───────┘    │     │
+│  │                  │                                  │            │     │
+│  │                  │ Internet access for private subnets          │     │
+│  │                  │ (OAuth APIs: Dropbox, Google, etc.)          │     │
+│  │                  │                                  │            │     │
+│  │  ┌───────────────▼──────────────────────────────────┼───────┐   │     │
+│  │  │ Private Subnets (10.0.11-13.0/24, 3 AZs)        │       │   │     │
+│  │  │                                                   │       │   │     │
+│  │  │  ┌─────────────────────────────────────┐        │       │   │     │
+│  │  │  │  Application Load Balancer          │        │       │   │     │
+│  │  │  │  - Internal (private)                │        │       │   │     │
+│  │  │  │  - HTTP listener (port 80)           │        │       │   │     │
+│  │  │  │  - Security Group: VPC traffic only  │        │       │   │     │
+│  │  │  └────────────┬────────────────────────┘        │       │   │     │
+│  │  │               │                                  │       │   │     │
+│  │  │               ▼                                  │       │   │     │
+│  │  │  ┌─────────────────────────────────────┐        │       │   │     │
+│  │  │  │  ECS Fargate Tasks                   │        │       │   │     │
+│  │  │  │  ┌────────────────┐  ┌────────────┐ │        │       │   │     │
+│  │  │  │  │ apuntador-api  │  │ ADOT       │ │        │       │   │     │
+│  │  │  │  │ (FastAPI)      │  │ Collector  │ │        │       │   │     │
+│  │  │  │  │ Port: 8000     │  │ Sidecar    │ │        │       │   │     │
+│  │  │  │  └────────────────┘  └────────────┘ │        │       │   │     │
+│  │  │  │  - CPU: 256, Memory: 512 MB          │        │       │   │     │
+│  │  │  │  - Auto-scaling (1-10 tasks)         │        │       │   │     │
+│  │  │  └────────────┬────────────────────────┘        │       │   │     │
+│  │  │               │                                  │       │   │     │
+│  │  │               ├─────────────────────────────────►└───────┘   │     │
+│  │  │               │        (OAuth: Dropbox, Google via NAT)      │     │
+│  │  │               │                                              │     │
+│  │  └───────────────┼──────────────────────────────────────────────┘     │
+│  │                  │                                                     │
+│  │                  ├────────▶ DynamoDB (via Gateway EP)                 │
+│  │                  │          - Certificate storage                     │
+│  │                  │          - On-demand billing                       │
+│  │                  │                                                     │
+│  │                  ├────────▶ S3 (via Gateway EP)                       │
+│  │                  │          - File storage                            │
+│  │                  │          - Free data transfer                      │
+│  │                  │                                                     │
+│  │                  ├────────▶ Secrets Manager (via IF EP)               │
+│  │                  │          - OAuth credentials                       │
+│  │                  │          - $0.40/secret/month                      │
+│  │                  │                                                     │
+│  │                  ├────────▶ ECR (via Interface EP)                    │
+│  │                  │          - Container images                        │
+│  │                  │          - $14/month for 2 endpoints               │
+│  │                  │                                                     │
+│  │                  └────────▶ CloudWatch (via IF EP)                    │
+│  │                             - Logs and metrics                        │
+│  │                             - X-Ray tracing                           │
+│  │                                                                        │
+│  │  ┌──────────────────────────────────────────────────────────┐        │
+│  │  │ VPC Endpoints (Interface: $7/mo each)                    │        │
+│  │  │ - ecr.api (required for Fargate)                         │        │
+│  │  │ - ecr.dkr (required for Fargate)                         │        │
+│  │  │ - logs (CloudWatch Logs)                                 │        │
+│  │  │                                                           │        │
+│  │  │ VPC Endpoints (Gateway: FREE)                            │        │
+│  │  │ - DynamoDB                                                │        │
+│  │  │ - S3                                                      │        │
+│  │  └──────────────────────────────────────────────────────────┘        │
+│  └────────────────────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Architecture Decisions
@@ -106,7 +120,11 @@ This directory contains Terraform configurations for deploying the Apuntador bac
 
 ### 💰 Cost Optimization
 
-- **No NAT Gateway**: Saved ~$96/month by using VPC Endpoints instead ($21/month)
+- **NAT Instance instead of NAT Gateway**: Saved ~$73/month by using t4g.nano EC2 instance
+  - NAT Gateway: $32.40/month + $0.045/GB = ~$77/month for 1TB
+  - NAT Instance: $3.50/month + $0.01/GB = ~$13.50/month for 1TB
+  - **Savings: 82% ($63.50/month)**
+- **VPC Endpoints**: AWS service access without NAT for most traffic (~$21/month)
 - **Gateway Endpoints**: DynamoDB and S3 access is **FREE** (no data transfer charges)
 - **Interface Endpoints**: Only for services that require them (ECR, CloudWatch)
 - **Fargate Spot**: Option to use Spot instances for 70% cost reduction (future)
@@ -554,6 +572,70 @@ aws ecs describe-services \
 3. Verify `ALLOWED_ORIGINS` includes client origin
 4. Check FastAPI logs for OAuth errors
 
+### ECS tasks can't reach external APIs (Dropbox, Google, etc.)
+
+**Symptom**: Timeout errors when calling `www.dropbox.com`, `accounts.google.com`, etc.
+
+**Cause**: Private subnets need internet access via NAT Instance.
+
+**Debug**:
+```bash
+# 1. Verify NAT instance is running
+aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names prod-apuntador-nat-instance-* \
+  --region eu-west-1
+
+# 2. Check NAT instance health
+INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names prod-apuntador-nat-instance-* \
+  --query 'AutoScalingGroups[0].Instances[0].InstanceId' \
+  --output text)
+
+aws ec2 describe-instance-status \
+  --instance-ids $INSTANCE_ID \
+  --region eu-west-1
+
+# 3. Verify source/dest check is disabled
+aws ec2 describe-instance-attribute \
+  --instance-id $INSTANCE_ID \
+  --attribute sourceDestCheck \
+  --region eu-west-1
+# Should return: "SourceDestCheck": {"Value": false}
+
+# 4. Check private subnet route tables have route to NAT
+aws ec2 describe-route-tables \
+  --filters "Name=tag:Name,Values=*private*" \
+  --region eu-west-1 \
+  --query 'RouteTables[*].Routes'
+# Should show route: 0.0.0.0/0 → eni-xxxxx (NAT instance ENI)
+
+# 5. Test from ECS task (via SSM Session Manager to NAT instance)
+aws ssm start-session --target $INSTANCE_ID
+# Inside instance:
+curl -I https://www.dropbox.com  # Should return 200
+```
+
+**Fix** if routes are missing:
+```bash
+# Get NAT instance ENI
+NAT_ENI=$(aws ec2 describe-instances \
+  --instance-ids $INSTANCE_ID \
+  --query 'Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId' \
+  --output text)
+
+# Add route to each private route table
+for RT_ID in $(aws ec2 describe-route-tables \
+  --filters "Name=tag:Name,Values=*private*" \
+  --query 'RouteTables[*].RouteTableId' \
+  --output text); do
+  aws ec2 create-route \
+    --route-table-id $RT_ID \
+    --destination-cidr-block 0.0.0.0/0 \
+    --network-interface-id $NAT_ENI \
+    --region eu-west-1
+done
+```
+
 ### Config endpoint returns empty providers
 
 Check ECS task logs for:
@@ -721,6 +803,8 @@ aws cloudwatch put-metric-alarm \
 | **ECS Fargate** | 2 tasks × 0.25 vCPU, 512 MB | 24/7 | ~$14.00 |
 | **Application Load Balancer** | 1 internal ALB | 1M requests, 1 GB/hour data | ~$18.00 |
 | **VPC Link** | 1 VPC Link | Always on | ~$7.20 |
+| **NAT Instance** | t4g.nano EC2 | 24/7 | ~$3.50 |
+| **NAT Data Transfer** | Outbound internet | 10 GB (OAuth APIs) | ~$0.10 |
 | **API Gateway HTTP** | Regional API | 1M requests | ~$1.00 |
 | **VPC Endpoints (Interface)** | 3 endpoints (ECR API, ECR DKR, Logs) | 24/7, 1 GB transfer | ~$21.00 |
 | **VPC Endpoints (Gateway)** | 2 endpoints (DynamoDB, S3) | Unlimited | **FREE** |
@@ -734,17 +818,18 @@ aws cloudwatch put-metric-alarm \
 | **ACM Certificate** | Regional cert | *.apuntador.io | **FREE** |
 | **X-Ray** | Distributed tracing | 100K traces/month | **FREE** (within free tier) |
 | | | | |
-| **Total (Development)** | 1 task, minimal traffic | ~100K requests/month | **~$35/month** |
-| **Total (Production)** | 2 tasks, moderate traffic | ~1M requests/month | **~$70/month** |
-| **Total (High Traffic)** | 5 tasks, high traffic | ~10M requests/month | **~$150/month** |
+| **Total (Development)** | 1 task, minimal traffic | ~100K requests/month | **~$36/month** |
+| **Total (Production)** | 2 tasks, moderate traffic | ~1M requests/month | **~$73/month** |
+| **Total (High Traffic)** | 5 tasks, high traffic | ~10M requests/month | **~$155/month** |
 
 ### Cost Breakdown by Category
 
 ```
-Infrastructure (always-on): ~$60/month
+Infrastructure (always-on): ~$63/month
 ├── ECS Fargate (2 tasks):        $14
 ├── ALB:                           $18
 ├── VPC Link:                      $7
+├── NAT Instance (t4g.nano):       $3.50
 └── VPC Endpoints (3 × $7):       $21
 
 Variable costs: ~$10/month (1M requests)
@@ -752,7 +837,7 @@ Variable costs: ~$10/month (1M requests)
 ├── DynamoDB:                      $1.50
 ├── CloudWatch Logs:               $2.50
 ├── CloudWatch Metrics:            $3
-├── Data Transfer:                 $0.90
+├── Data Transfer:                 $1.00
 ├── S3:                            $0.25
 ├── ECR:                           $0.50
 └── Route 53:                      $0.50

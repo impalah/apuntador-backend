@@ -207,6 +207,97 @@ resource "aws_vpc_endpoint" "logs" {
 }
 
 #################################################################
+# NAT Instance (para acceso a internet desde subnets privadas)
+# Coste estimado: ~$3.50/mes (t4g.nano)
+# Alternativa económica a NAT Gateway ($75/mes)
+#################################################################
+
+module "nat_instance" {
+  source = "../../modules/nat-instance"
+  
+  name_prefix = "${var.environment}-${var.project}"
+  vpc_id      = module.vpc.vpc_id
+  
+  # Deploy NAT instance in first public subnet
+  public_subnet_ids = [
+    for key, subnet_id in module.vpc.public_subnet_ids : subnet_id
+  ]
+  
+  # Allow traffic from all private subnets
+  private_subnet_cidrs = [
+    "10.0.11.0/24", # private-subnet-az1
+    "10.0.12.0/24", # private-subnet-az2
+    "10.0.13.0/24"  # private-subnet-az3
+  ]
+  
+  # Cost optimization: single t4g.nano instance
+  instance_type            = "t4g.nano"
+  enable_high_availability = false # Single instance to save cost
+  
+  # Monitoring
+  enable_cloudwatch_metrics  = true
+  enable_detailed_monitoring = false # 5-min intervals (free tier)
+  
+  # Security: no SSH, use SSM Session Manager instead
+  ssh_allowed_cidr = ""
+  
+  tags = {
+    Environment = var.environment
+    CostCenter  = var.cost_center
+    Project     = var.project
+    Owner       = var.owner
+    Deployment  = "Terraform"
+  }
+}
+
+# Route from private subnets to NAT instance
+# Note: We can't route to specific instance, so we route to ENI
+# The NAT instance must be discovered after creation
+resource "null_resource" "add_nat_routes" {
+  depends_on = [module.nat_instance]
+  
+  provisioner "local-exec" {
+    command = <<-EOT
+      # Wait for NAT instance to be running
+      sleep 60
+      
+      # Get NAT instance ID from Auto Scaling Group
+      NAT_INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
+        --auto-scaling-group-names ${module.nat_instance.autoscaling_group_name} \
+        --region ${var.region} \
+        --query 'AutoScalingGroups[0].Instances[0].InstanceId' \
+        --output text)
+      
+      echo "NAT Instance ID: $NAT_INSTANCE_ID"
+      
+      # Get primary network interface ID
+      NAT_ENI_ID=$(aws ec2 describe-instances \
+        --instance-ids $NAT_INSTANCE_ID \
+        --region ${var.region} \
+        --query 'Reservations[0].Instances[0].NetworkInterfaces[0].NetworkInterfaceId' \
+        --output text)
+      
+      echo "NAT ENI ID: $NAT_ENI_ID"
+      
+      # Add route to each private route table
+      %{ for idx, rt_id in module.vpc.private_route_table_ids ~}
+      aws ec2 create-route \
+        --route-table-id ${rt_id} \
+        --destination-cidr-block 0.0.0.0/0 \
+        --network-interface-id $NAT_ENI_ID \
+        --region ${var.region} || echo "Route already exists in ${rt_id}"
+      %{ endfor ~}
+      
+      echo "✅ NAT routes configured successfully"
+    EOT
+  }
+  
+  triggers = {
+    asg_name = module.nat_instance.autoscaling_group_name
+  }
+}
+
+#################################################################
 # Log group
 #################################################################
 

@@ -18,5 +18,11 @@ provider "aws" {
   # }
 }
 
+# Null provider for provisioners
+provider "null" {
+  # No configuration needed
+}
+
+
 
 

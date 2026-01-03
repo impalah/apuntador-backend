@@ -156,7 +156,7 @@ def instrument_fastapi(app) -> None:
     FastAPIInstrumentor.instrument_app(
         app,
         tracer_provider=trace.get_tracer_provider(),
-        excluded_urls="/health,/metrics",  # Don't trace health checks
+        excluded_urls="/health,/healthz,/metrics,/favicon.ico",  # Don't trace health checks and metrics
     )
     logger.info("✅ FastAPI instrumented with OpenTelemetry")
 
