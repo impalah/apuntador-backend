@@ -2,9 +2,17 @@
 # ACM Certificate for API Domain
 ####################################################################
 
-# Create ACM certificate for *.apuntador.io
+# Check if certificate already exists
+data "aws_acm_certificate" "existing_certificate" {
+  count       = var.domain_name != null && var.certificate_arn == null ? 1 : 0
+  domain      = "*.apuntador.io"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}
+
+# Create ACM certificate for *.apuntador.io only if it doesn't exist
 resource "aws_acm_certificate" "api_certificate" {
-  count             = var.domain_name != null && var.certificate_arn == null ? 1 : 0
+  count             = var.domain_name != null && var.certificate_arn == null && try(data.aws_acm_certificate.existing_certificate[0].arn, null) == null ? 1 : 0
   domain_name       = "*.apuntador.io"
   validation_method = "DNS"
 
@@ -27,8 +35,9 @@ resource "aws_acm_certificate" "api_certificate" {
 }
 
 # DNS validation records for ACM certificate
+# Solo crear si el certificado fue creado (no si ya existía)
 resource "aws_route53_record" "certificate_validation" {
-  for_each = var.domain_name != null && var.certificate_arn == null ? {
+  for_each = var.domain_name != null && var.certificate_arn == null && try(data.aws_acm_certificate.existing_certificate[0].arn, null) == null && length(aws_acm_certificate.api_certificate) > 0 ? {
     for dvo in aws_acm_certificate.api_certificate[0].domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
@@ -46,13 +55,105 @@ resource "aws_route53_record" "certificate_validation" {
 
 # Wait for certificate validation to complete
 resource "aws_acm_certificate_validation" "api_certificate" {
-  count                   = var.domain_name != null && var.certificate_arn == null ? 1 : 0
-  certificate_arn         = aws_acm_certificate.api_certificate[0].arn
+  count                   = var.domain_name != null && var.certificate_arn == null && try(data.aws_acm_certificate.existing_certificate[0].arn, null) == null ? 1 : 0
+  certificate_arn         = try(aws_acm_certificate.api_certificate[0].arn, "")
   validation_record_fqdns = [for record in aws_route53_record.certificate_validation : record.fqdn]
 
   timeouts {
     create = "10m"
   }
+}
+
+####################################################################
+# VPC Link and API Gateway HTTP API
+####################################################################
+
+# VPC Link to connect API Gateway to private ALB
+resource "aws_apigatewayv2_vpc_link" "apuntador" {
+  name               = "${var.environment}-${var.project}-vpc-link"
+  security_group_ids = []
+  subnet_ids         = [for key, subnet_id in module.vpc.private_subnet_ids : subnet_id]
+
+  tags = merge(
+    {
+      Name        = "${var.environment}-${var.project}-vpc-link"
+      Environment = var.environment
+      Project     = var.project
+    },
+    var.tags
+  )
+}
+
+# API Gateway HTTP API
+resource "aws_apigatewayv2_api" "apuntador" {
+  name          = "${var.environment}-${var.project}-api"
+  protocol_type = "HTTP"
+  description   = "API Gateway for Apuntador OAuth Backend via VPC Link"
+
+  # CORS Configuration - DISABLED
+  # API Gateway no soporta esquemas personalizados (capacitor://, tauri://, ionic://)
+  # FastAPI CORSMiddleware maneja todo el CORS incluyendo OPTIONS
+  # cors_configuration {
+  #   allow_origins     = var.cors_allowed_origins
+  #   allow_methods     = var.cors_allowed_methods
+  #   allow_headers     = var.cors_allowed_headers
+  #   expose_headers    = var.cors_expose_headers
+  #   max_age           = var.cors_max_age
+  #   allow_credentials = var.cors_allow_credentials
+  # }
+
+  tags = merge(
+    {
+      Name        = "${var.environment}-${var.project}-api"
+      Environment = var.environment
+      Project     = var.project
+    },
+    var.tags
+  )
+}
+
+# API Gateway Integration with private ALB via VPC Link
+resource "aws_apigatewayv2_integration" "alb_integration" {
+  api_id             = aws_apigatewayv2_api.apuntador.id
+  integration_type   = "HTTP_PROXY"
+  integration_method = "ANY"
+  integration_uri    = aws_lb_listener.http.arn
+  connection_type    = "VPC_LINK"
+  connection_id      = aws_apigatewayv2_vpc_link.apuntador.id
+  
+  payload_format_version = "1.0"
+  timeout_milliseconds   = 30000
+
+  request_parameters = {
+    "overwrite:path" = "$request.path"
+  }
+
+  depends_on = [
+    aws_apigatewayv2_vpc_link.apuntador,
+    aws_lb_listener.http
+  ]
+}
+
+# Default route - forward all traffic to ALB
+resource "aws_apigatewayv2_route" "default_route" {
+  api_id    = aws_apigatewayv2_api.apuntador.id
+  route_key = "ANY /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  depends_on = [
+    aws_apigatewayv2_integration.alb_integration
+  ]
+}
+
+# Health check route (optional, for direct health checks)
+resource "aws_apigatewayv2_route" "health_route" {
+  api_id    = aws_apigatewayv2_api.apuntador.id
+  route_key = "GET /health"
+  target    = "integrations/${aws_apigatewayv2_integration.alb_integration.id}"
+
+  depends_on = [
+    aws_apigatewayv2_integration.alb_integration
+  ]
 }
 
 ####################################################################
@@ -65,7 +166,7 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
   domain_name = var.domain_name
 
   domain_name_configuration {
-    certificate_arn = var.certificate_arn != null ? var.certificate_arn : aws_acm_certificate.api_certificate[0].arn
+    certificate_arn = var.certificate_arn != null ? var.certificate_arn : try(data.aws_acm_certificate.existing_certificate[0].arn, aws_acm_certificate.api_certificate[0].arn)
     endpoint_type   = "REGIONAL"
     security_policy = "TLS_1_2"
   }
@@ -87,7 +188,7 @@ resource "aws_apigatewayv2_domain_name" "api_domain" {
 # API Gateway stage (required for custom domain mapping)
 resource "aws_apigatewayv2_stage" "default" {
   count       = var.domain_name != null ? 1 : 0
-  api_id      = module.api_gateway.api_gateway_id
+  api_id      = aws_apigatewayv2_api.apuntador.id
   name        = "$default"
   auto_deploy = true
 
@@ -129,7 +230,7 @@ resource "aws_apigatewayv2_stage" "default" {
 # Map custom domain to API Gateway stage
 resource "aws_apigatewayv2_api_mapping" "api_mapping" {
   count       = var.domain_name != null ? 1 : 0
-  api_id      = module.api_gateway.api_gateway_id
+  api_id      = aws_apigatewayv2_api.apuntador.id
   domain_name = aws_apigatewayv2_domain_name.api_domain[0].id
   stage       = aws_apigatewayv2_stage.default[0].id
 
@@ -208,7 +309,7 @@ resource "aws_cloudwatch_log_group" "api_gateway_logs" {
 
 output "certificate_arn" {
   description = "ARN of the ACM certificate"
-  value       = var.certificate_arn != null ? var.certificate_arn : (var.domain_name != null ? aws_acm_certificate.api_certificate[0].arn : null)
+  value       = var.certificate_arn != null ? var.certificate_arn : (var.domain_name != null ? try(data.aws_acm_certificate.existing_certificate[0].arn, aws_acm_certificate.api_certificate[0].arn) : null)
 }
 
 output "api_domain_name" {
@@ -218,12 +319,17 @@ output "api_domain_name" {
 
 output "api_endpoint" {
   description = "API Gateway endpoint URL"
-  value       = var.domain_name != null ? "https://${var.domain_name}" : module.api_gateway.api_gateway_endpoint
+  value       = var.domain_name != null ? "https://${var.domain_name}" : aws_apigatewayv2_api.apuntador.api_endpoint
 }
 
-output "cloudwatch_log_group_lambda" {
-  description = "CloudWatch log group for Lambda"
-  value       = module.apuntador-api.lambda_log_group_name
+output "api_gateway_id" {
+  description = "API Gateway ID"
+  value       = aws_apigatewayv2_api.apuntador.id
+}
+
+output "vpc_link_id" {
+  description = "VPC Link ID for API Gateway to ALB connection"
+  value       = aws_apigatewayv2_vpc_link.apuntador.id
 }
 
 output "cloudwatch_log_group_api_gateway" {

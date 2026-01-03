@@ -71,7 +71,7 @@ def configure_opentelemetry(
             "service.version": service_version,
             "deployment.environment": environment,
             "cloud.provider": "aws",
-            "cloud.platform": "aws_lambda",  # or "aws_ecs" depending on deployment
+            "cloud.platform": "aws_ecs",  # "aws_lambda" or "aws_ecs" depending on deployment
         }
     )
 

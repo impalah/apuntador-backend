@@ -118,7 +118,7 @@ format:
         routes=app.routes,
         contact={
             "name": "Apuntador Team",
-            "url": "https://github.com/yourusername/apuntador",
+            "url": "https://github.com/impalah/apuntador",
         },
         license_info={
             "name": "MIT License",

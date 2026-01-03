@@ -76,13 +76,20 @@ class JsonSink:
 
         # Add exception info if present
         if record["exception"] is not None:
-            exc_type, exc_value, _ = record["exception"]
+            exc_type, exc_value, exc_traceback = record["exception"]
+
+            # Get full traceback as string (includes newlines)
+            import traceback
+            tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            full_traceback = "".join(tb_lines)
+
             log_data["exception"] = {
                 "type": exc_type.__name__ if exc_type else "Unknown",
                 "value": str(exc_value) if exc_value else "",
+                "traceback": full_traceback,  # json.dumps will escape newlines automatically
             }
 
-        # Write JSON to stream
+        # Write JSON to stream (json.dumps automatically escapes \n as \\n)
         json_str = json.dumps(log_data, ensure_ascii=False)
         self.stream.write(json_str + "\n")
         self.stream.flush()

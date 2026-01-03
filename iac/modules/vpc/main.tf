@@ -82,20 +82,16 @@ resource "aws_route_table_association" "public-subnet-route-table-association" {
 
 }
 
-resource "aws_eip" "nat" {
-  count = length(aws_subnet.private-subnet)
-  # vpc   = true
-
-  # TODO: Allow to specify the domain (variables.tf)
-  domain = "vpc"
-
-  tags = merge(
-    { "Name" = format("%s/NAT-EIP%s", var.vpc_name, count.index + 1) },
-    var.tags,
-    var.vpc_tags,
-  )
-
-}
+# NAT Gateway EIPs - No se utilizan (sin NAT Gateway)
+# resource "aws_eip" "nat" {
+#   count = length(aws_subnet.private-subnet)
+#
+#   tags = merge(
+#     { "Name" = format("%s/NAT-EIP%s", var.vpc_name, count.index + 1) },
+#     var.tags,
+#     var.vpc_tags,
+#   )
+# }
 
 
 
@@ -154,24 +150,15 @@ resource "aws_route" "public-subnet" {
   route_table_id         = aws_route_table.public-subnet-route-table[each.key].id
 }
 
-resource "aws_route" "private-subnet" {
-  for_each = aws_subnet.private-subnet
-  # Everything to NAT Gateway
-  destination_cidr_block = "0.0.0.0/0"
-
-  # TODO: delete on production
-  nat_gateway_id = "nat-038adcbcba9cceb64"
-  # nat_gateway_id         = aws_nat_gateway.nat_gateway[each.key].id
-
-  route_table_id = aws_route_table.private-subnet-route-table[each.key].id
-
-  lifecycle {
-    ignore_changes = [
-      nat_gateway_id
-    ]
-  }
-
-
-}
+# Rutas privadas - No se crean porque no usamos NAT Gateway
+# Las subnets privadas solo usan VPC Endpoints (Gateway y Interface)
+# para comunicarse con servicios AWS sin salir a Internet
+#
+# resource "aws_route" "private-subnet" {
+#   for_each = aws_subnet.private-subnet
+#   destination_cidr_block = "0.0.0.0/0"
+#   nat_gateway_id = aws_nat_gateway.nat_gateway[each.key].id
+#   route_table_id = aws_route_table.private-subnet-route-table[each.key].id
+# }
 
 

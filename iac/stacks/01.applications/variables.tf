@@ -356,3 +356,31 @@ variable "log_format" {
   type        = string
   default     = "human"
 }
+
+####################################################################
+# ECS Configuration
+####################################################################
+
+variable "desired_count" {
+  description = "Number of ECS tasks to run"
+  type        = number
+  default     = 2
+}
+
+variable "task_cpu" {
+  description = "ECS task CPU units (256, 512, 1024, 2048, 4096)"
+  type        = string
+  default     = "256"
+}
+
+variable "task_memory" {
+  description = "ECS task memory in MB"
+  type        = string
+  default     = "512"
+}
+
+variable "adot_image" {
+  description = "Docker image URI for AWS ADOT Collector (ECR private)"
+  type        = string
+  default     = "670089840758.dkr.ecr.eu-west-1.amazonaws.com/aws-otel-collector:latest"
+}
