@@ -1,7 +1,7 @@
 # Deployment de apuntador-backend en AWS Lambda con OpenTelemetry
 # SIN necesidad de containers adicionales
 
-## 📦 Stack de Terraform para Lambda + ADOT Layer
+##  Stack de Terraform para Lambda + ADOT Layer
 
 resource "aws_lambda_function" "apuntador_backend" {
   function_name = "apuntador-backend"

@@ -149,9 +149,9 @@ def test_sign_data_with_special_characters():
     """Test signing data with special characters."""
     # Arrange
     data_with_special = {
-        "message": "Hello! @#$%^&*() 你好 🎉",
+        "message": "Hello! @#$%^&*() 你好 ",
         "url": "https://example.com/path?param=value&other=123",
-        "emoji": "😀😃😄",
+        "emoji": "",
     }
 
     # Act
@@ -160,7 +160,7 @@ def test_sign_data_with_special_characters():
 
     # Assert
     assert verified == data_with_special
-    assert verified["message"] == "Hello! @#$%^&*() 你好 🎉"
+    assert verified["message"] == "Hello! @#$%^&*() 你好 "
 
 
 def test_multiple_sign_verify_cycles():

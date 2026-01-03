@@ -43,18 +43,18 @@ jobs:
         run: |
           # Get current version using toml-cli
           CURRENT_VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version)
-          echo "🔧 Current version: $CURRENT_VERSION"
+          echo " Current version: $CURRENT_VERSION"
           
           # Bump patch version using bump2version
           uvx --from=bump2version bumpversion --allow-dirty --current-version "$CURRENT_VERSION" patch pyproject.toml
           
           # Get new version
           NEW_VERSION=$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version)
-          echo "✅ Version bumped from $CURRENT_VERSION to $NEW_VERSION"
+          echo " Version bumped from $CURRENT_VERSION to $NEW_VERSION"
           
           # Update __version__ in __init__.py
           sed -i "s/__version__ = \".*\"/__version__ = \"$NEW_VERSION\"/" src/apuntador/__init__.py
-          echo "✅ Updated __version__ in src/apuntador/__init__.py to $NEW_VERSION"
+          echo " Updated __version__ in src/apuntador/__init__.py to $NEW_VERSION"
 
       - name: Commit and push version update
         run: |

@@ -71,7 +71,7 @@ class GoogleDriveOAuthService(OAuthServiceBase):
             "prompt": "consent",  # Force consent screen to get refresh token
         }
 
-        logger.debug("📋 Google OAuth Parameters:")
+        logger.debug(" Google OAuth Parameters:")
         logger.debug(f"  - client_id: {self.client_id}")
         logger.debug(f"  - redirect_uri: {self.redirect_uri}")
         logger.debug(f"  - scope: {params['scope']}")
@@ -81,7 +81,7 @@ class GoogleDriveOAuthService(OAuthServiceBase):
         logger.debug(f"  - prompt: {params['prompt']}")
 
         url = f"{self.AUTH_URL}?{urlencode(params)}"
-        logger.debug(f"📍 Generated Google Auth URL: {url}")
+        logger.debug(f" Generated Google Auth URL: {url}")
         return url
 
     async def exchange_code_for_token(

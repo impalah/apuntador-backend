@@ -1,7 +1,7 @@
 # Deployment de apuntador-backend en ECS Fargate con ADOT Collector sidecar
 # Infraestructura totalmente gestionada (serverless containers)
 
-## 🏗️ ECS Cluster
+##  ECS Cluster
 resource "aws_ecs_cluster" "apuntador" {
   name = "apuntador-backend-cluster"
   
@@ -11,7 +11,7 @@ resource "aws_ecs_cluster" "apuntador" {
   }
 }
 
-## 📝 CloudWatch Log Groups
+##  CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/apuntador-backend"
   retention_in_days = 7
@@ -22,7 +22,7 @@ resource "aws_cloudwatch_log_group" "adot" {
   retention_in_days = 7
 }
 
-## 🎯 Task Definition con sidecar ADOT
+##  Task Definition con sidecar ADOT
 resource "aws_ecs_task_definition" "apuntador" {
   family                   = "apuntador-backend"
   network_mode             = "awsvpc"
@@ -114,7 +114,7 @@ resource "aws_ecs_task_definition" "apuntador" {
   ])
 }
 
-## 🔐 IAM Roles
+##  IAM Roles
 
 # Execution Role (pull images, write logs)
 resource "aws_iam_role" "ecs_execution_role" {
@@ -182,7 +182,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_cloudwatch" {
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
 }
 
-## 🌐 Networking (VPC, Security Group)
+##  Networking (VPC, Security Group)
 resource "aws_security_group" "ecs_tasks" {
   name        = "apuntador-ecs-tasks-sg"
   description = "Security group for ECS tasks"
@@ -205,7 +205,7 @@ resource "aws_security_group" "ecs_tasks" {
   }
 }
 
-## 🚀 ECS Service
+##  ECS Service
 resource "aws_ecs_service" "apuntador" {
   name            = "apuntador-backend-service"
   cluster         = aws_ecs_cluster.apuntador.id
@@ -228,7 +228,7 @@ resource "aws_ecs_service" "apuntador" {
   depends_on = [aws_lb_listener.http]
 }
 
-## 🎯 Application Load Balancer
+##  Application Load Balancer
 resource "aws_lb" "apuntador" {
   name               = "apuntador-alb"
   internal           = false
@@ -293,7 +293,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-## 📊 Outputs
+##  Outputs
 output "alb_dns_name" {
   value       = aws_lb.apuntador.dns_name
   description = "DNS name of the load balancer"
@@ -309,7 +309,7 @@ output "ecs_service_name" {
   description = "Name of the ECS service"
 }
 
-## 📝 Variables
+##  Variables
 variable "ecr_repository_url" {
   description = "URL del repositorio ECR"
   type        = string
@@ -342,7 +342,7 @@ variable "public_subnet_ids" {
   type        = list(string)
 }
 
-## 🔒 Secrets (ejemplo, crear aparte)
+##  Secrets (ejemplo, crear aparte)
 resource "aws_secretsmanager_secret" "secret_key" {
   name = "apuntador/secret-key"
 }

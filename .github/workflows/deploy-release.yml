@@ -30,12 +30,12 @@ jobs:
     steps:
       - name: Display deployment info
         run: |
-          echo "🚀 Deploying Lambda Release"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo " Deploying Lambda Release"
+          echo ""
           echo "Release Tag: ${{ github.event.inputs.release_tag }}"
           echo "Environment: ${{ github.event.inputs.environment }}"
           echo "Log Level: ${{ github.event.inputs.logLevel }}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
 
       - name: Set Image Tag
         id: settag
@@ -66,7 +66,7 @@ jobs:
             --repository-name "${{ vars.REPOSITORY }}" \
             --image-ids imageTag="${IMAGE_TAG}" \
             --region "${AWS_REGION}" > /dev/null 2>&1; then
-            echo "✅ Image found in ECR: ${IMAGE_URI}"
+            echo " Image found in ECR: ${IMAGE_URI}"
             
             # Mostrar información de la imagen
             aws ecr describe-images \
@@ -76,7 +76,7 @@ jobs:
               --query 'imageDetails[0].{Digest: imageDigest, PushedAt: imagePushedAt, SizeInMB: imageSizeInBytes}' \
               --output table
           else
-            echo "❌ Image not found in ECR: ${IMAGE_URI}"
+            echo " Image not found in ECR: ${IMAGE_URI}"
             echo "Available tags:"
             aws ecr list-images \
               --repository-name "${{ vars.REPOSITORY }}" \
@@ -95,11 +95,11 @@ jobs:
         run: |
           # Construir la URI completa de la imagen
           IMAGE_URI="${ECR_REPOSITORY}:${IMAGE_TAG}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           echo "Updating Lambda function: ${LAMBDA_FUNCTION_NAME}"
           echo "New image: ${IMAGE_URI}"
           echo "Region: ${AWS_REGION}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           
           # Actualizar la función Lambda con la nueva imagen
           aws lambda update-function-code \
@@ -117,19 +117,19 @@ jobs:
           FUNCTION_VERSION=$(jq -r '.Version' lambda_update_response.json)
           CODE_SHA256=$(jq -r '.CodeSha256' lambda_update_response.json)
           
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           echo "Lambda update initiated:"
           echo "  Status: ${UPDATE_STATUS}"
           echo "  Version: ${FUNCTION_VERSION}"
           echo "  CodeSha256: ${CODE_SHA256}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
 
       - name: Wait for Lambda update to complete
         env:
           LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
           AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
-          echo "⏳ Waiting for Lambda function update to complete..."
+          echo " Waiting for Lambda function update to complete..."
           echo "This may take a few minutes depending on the image size..."
           
           # Esperar hasta que la actualización se complete (máximo 10 minutos para releases)
@@ -148,10 +148,10 @@ jobs:
             echo "[${ELAPSED_TIME}s] Attempt $((ATTEMPT + 1))/${MAX_ATTEMPTS}: Status = ${STATUS}"
             
             if [ "${STATUS}" = "Successful" ]; then
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              echo "✅ Lambda function updated successfully!"
+              echo ""
+              echo " Lambda function updated successfully!"
               echo "Total time: ${ELAPSED_TIME} seconds"
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo ""
               
               # Obtener información de la función actualizada
               echo "Updated function details:"
@@ -163,9 +163,9 @@ jobs:
               
               exit 0
             elif [ "${STATUS}" = "Failed" ]; then
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-              echo "❌ Lambda function update failed!"
-              echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo ""
+              echo " Lambda function update failed!"
+              echo ""
               
               # Obtener detalles del error
               aws lambda get-function \
@@ -182,10 +182,10 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
           done
           
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "⚠️  Timeout waiting for Lambda update to complete"
+          echo ""
+          echo "  Timeout waiting for Lambda update to complete"
           echo "Maximum time exceeded: $((MAX_ATTEMPTS * SLEEP_SECONDS)) seconds"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           exit 1
 
       - name: Verify deployment
@@ -194,9 +194,9 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "🔍 Verifying Lambda deployment..."
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo " Verifying Lambda deployment..."
+          echo ""
           
           # Obtener configuración actual
           aws lambda get-function-configuration \
@@ -213,7 +213,7 @@ jobs:
             --output text)
           
           if [ "${STATE}" != "Active" ]; then
-            echo "❌ Lambda function is not in Active state: ${STATE}"
+            echo " Lambda function is not in Active state: ${STATE}"
             exit 1
           fi
           
@@ -224,15 +224,15 @@ jobs:
             --query 'Code.ImageUri' \
             --output text)
           
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           echo "Current image URI:"
           echo "${IMAGE_URI}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           
           if echo "${IMAGE_URI}" | grep -q "${IMAGE_TAG}"; then
-            echo "✅ Lambda function is active and running version ${IMAGE_TAG}"
+            echo " Lambda function is active and running version ${IMAGE_TAG}"
           else
-            echo "⚠️  Warning: Image URI does not contain expected tag ${IMAGE_TAG}"
+            echo "  Warning: Image URI does not contain expected tag ${IMAGE_TAG}"
             echo "This may be normal if AWS uses digest instead of tag"
           fi
 
@@ -242,9 +242,9 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "🧪 Testing Lambda function with health check..."
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo " Testing Lambda function with health check..."
+          echo ""
           
           # Invocar la función Lambda con un evento de prueba para /health
           # Ajusta el payload según tu API Gateway event format
@@ -264,22 +264,22 @@ jobs:
             if [ -f invoke_response.json ]; then
               LOG_RESULT=$(jq -r '.LogResult' invoke_response.json)
               if [ "${LOG_RESULT}" != "null" ] && [ -n "${LOG_RESULT}" ]; then
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo ""
                 echo "Lambda execution logs:"
                 echo "${LOG_RESULT}" | base64 --decode
-                echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                echo ""
               fi
             fi
             
             # Verificar que la respuesta es válida (opcional)
             STATUS_CODE=$(jq -r '.statusCode' response.json 2>/dev/null || echo "unknown")
             if [ "${STATUS_CODE}" = "200" ] || [ "${STATUS_CODE}" = "404" ]; then
-              echo "✅ Lambda invocation successful (status: ${STATUS_CODE})"
+              echo " Lambda invocation successful (status: ${STATUS_CODE})"
             else
-              echo "⚠️  Lambda returned status: ${STATUS_CODE}"
+              echo "  Lambda returned status: ${STATUS_CODE}"
             fi
           else
-            echo "⚠️  No response file generated"
+            echo "  No response file generated"
           fi
 
       - name: Deployment summary
@@ -289,20 +289,20 @@ jobs:
           ENVIRONMENT: ${{ github.event.inputs.environment }}
           LAMBDA_FUNCTION_NAME: ${{ vars.LAMBDA_FUNCTION_NAME }}
         run: |
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "📋 Deployment Summary"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo " Deployment Summary"
+          echo ""
           echo "Function: ${LAMBDA_FUNCTION_NAME}"
           echo "Environment: ${ENVIRONMENT}"
           echo "Version: ${IMAGE_TAG}"
           echo "Status: ${{ job.status }}"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           
           if [ "${{ job.status }}" = "success" ]; then
-            echo "🎉 Deployment completed successfully!"
+            echo " Deployment completed successfully!"
             echo "Your Lambda function is now running version ${IMAGE_TAG}"
           else
-            echo "❌ Deployment failed. Please check the logs above."
+            echo " Deployment failed. Please check the logs above."
           fi
           
 

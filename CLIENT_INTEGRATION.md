@@ -5,48 +5,48 @@ This guide explains how to modify the Apuntador client to use the centralized OA
 ## OAuth Flow with Backend
 
 ```
-┌─────────────┐
-│   Client    │
-│  Apuntador  │
-└──────┬──────┘
-       │ 1. POST /oauth/authorize/googledrive
-       │    { code_verifier: "..." }
-       ▼
-┌─────────────┐
-│   Backend   │
-│    OAuth    │
-└──────┬──────┘
-       │ 2. Returns authorization_url + signed state
-       ▼
-┌─────────────┐
-│   Client    │  3. Opens browser with authorization_url
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Google    │  4. User authorizes
-└──────┬──────┘
-       │ 5. Redirect to backend/oauth/callback/googledrive?code=...
-       ▼
-┌─────────────┐
-│   Backend   │  6. Redirect to apuntador://oauth-callback?code=...&state=...
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Client    │  7. POST /oauth/token/googledrive
-│             │     { code: "...", code_verifier: "...", state: "..." }
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Backend   │  8. Returns access_token + refresh_token
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│   Client    │  9. Uses access_token for Google Drive API calls
-└─────────────┘
+
+   Client    
+  Apuntador  
+
+        1. POST /oauth/authorize/googledrive
+           { code_verifier: "..." }
+       
+
+   Backend   
+    OAuth    
+
+        2. Returns authorization_url + signed state
+       
+
+   Client      3. Opens browser with authorization_url
+
+       
+       
+
+   Google      4. User authorizes
+
+        5. Redirect to backend/oauth/callback/googledrive?code=...
+       
+
+   Backend     6. Redirect to apuntador://oauth-callback?code=...&state=...
+
+       
+       
+
+   Client      7. POST /oauth/token/googledrive
+                  { code: "...", code_verifier: "...", state: "..." }
+
+       
+       
+
+   Backend     8. Returns access_token + refresh_token
+
+       
+       
+
+   Client      9. Uses access_token for Google Drive API calls
+
 ```
 
 ## Required changes in the client
@@ -214,7 +214,7 @@ onMounted(async () => {
   const { code, provider, error } = route.query
 
   if (error) {
-    console.error('❌ OAuth error:', error)
+    console.error(' OAuth error:', error)
     router.push('/settings')
     return
   }
@@ -225,7 +225,7 @@ onMounted(async () => {
       await cloudStore.handleOAuthCallback(provider as string, code as string)
       router.push('/settings?oauth=success')
     } catch (err) {
-      console.error('❌ Error handling OAuth callback:', err)
+      console.error(' Error handling OAuth callback:', err)
       router.push('/settings?oauth=error')
     }
   }
@@ -239,11 +239,11 @@ The deep link `apuntador://oauth-callback` already works, the backend will redir
 
 ## Advantages of this approach
 
-✅ **Secure client secrets** - Never exposed in the client  
-✅ **Unified code** - Same flow for web, Android, iOS, desktop  
-✅ **Less complexity** - Backend handles differences between providers  
-✅ **Automatic refresh** - Backend can manage token renewal  
-✅ **Easier to maintain** - Changes in one place  
+ **Secure client secrets** - Never exposed in the client  
+ **Unified code** - Same flow for web, Android, iOS, desktop  
+ **Less complexity** - Backend handles differences between providers  
+ **Automatic refresh** - Backend can manage token renewal  
+ **Easier to maintain** - Changes in one place  
 
 ## Testing
 
@@ -262,7 +262,7 @@ The deep link `apuntador://oauth-callback` already works, the backend will redir
    ```
 
 3. **Test flow**:
-   - Go to Settings → Cloud Storage
+   - Go to Settings  Cloud Storage
    - Click "Connect Google Drive"
    - Authorize in Google
    - Should redirect back with tokens

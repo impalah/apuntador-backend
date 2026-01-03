@@ -117,7 +117,7 @@ jobs:
             echo "Attempt $((ATTEMPT + 1))/${MAX_ATTEMPTS}: Status = ${STATUS}"
             
             if [ "${STATUS}" = "Successful" ]; then
-              echo "✅ Lambda function updated successfully!"
+              echo " Lambda function updated successfully!"
               
               # Obtener información de la función actualizada
               aws lambda get-function \
@@ -128,7 +128,7 @@ jobs:
               
               exit 0
             elif [ "${STATUS}" = "Failed" ]; then
-              echo "❌ Lambda function update failed!"
+              echo " Lambda function update failed!"
               
               # Obtener detalles del error
               aws lambda get-function \
@@ -145,7 +145,7 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
           done
           
-          echo "⚠️  Timeout waiting for Lambda update to complete after $((MAX_ATTEMPTS * SLEEP_SECONDS)) seconds"
+          echo "  Timeout waiting for Lambda update to complete after $((MAX_ATTEMPTS * SLEEP_SECONDS)) seconds"
           exit 1
 
       - name: Verify deployment
@@ -170,11 +170,11 @@ jobs:
             --output text)
           
           if [ "${STATE}" != "Active" ]; then
-            echo "❌ Lambda function is not in Active state: ${STATE}"
+            echo " Lambda function is not in Active state: ${STATE}"
             exit 1
           fi
           
-          echo "✅ Lambda function is active and ready"
+          echo " Lambda function is active and ready"
 
       - name: Test Lambda function (optional)
         env:

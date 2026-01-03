@@ -288,7 +288,7 @@ resource "null_resource" "add_nat_routes" {
         --region ${var.region} || echo "Route already exists in ${rt_id}"
       %{ endfor ~}
       
-      echo "✅ NAT routes configured successfully"
+      echo " NAT routes configured successfully"
     EOT
   }
   

@@ -7,14 +7,14 @@ Este documento explica cómo configurar las variables necesarias para el workflo
 ### 1. Acceder a la Configuración
 
 1. Ve a tu repositorio: `https://github.com/impalah/apuntador-backend`
-2. Navega a: **Settings** → **Secrets and variables** → **Actions**
+2. Navega a: **Settings**  **Secrets and variables**  **Actions**
 3. Selecciona la pestaña **Variables** (para variables) o **Secrets** (para información sensible)
 
 ### 2. Environment: `pro`
 
 Todas las variables deben configurarse en el **Environment llamado `pro`**:
 
-1. Ve a: **Settings** → **Environments** → **pro**
+1. Ve a: **Settings**  **Environments**  **pro**
 2. En la sección **Environment variables**, añade las siguientes:
 
 ---
@@ -188,7 +188,7 @@ An error occurred (AccessDeniedException) when calling the UpdateFunctionCode op
 **Problema**: El nombre de la función Lambda no existe o es incorrecto.
 
 **Solución**:
-1. Verifica el nombre exacto en AWS Console: Lambda → Functions
+1. Verifica el nombre exacto en AWS Console: Lambda  Functions
 2. Actualiza la variable `LAMBDA_FUNCTION_NAME` con el nombre correcto
 3. El nombre debe coincidir con el que definiste en Terraform (`apuntador-api`)
 
@@ -226,12 +226,12 @@ An error occurred (AccessDeniedException) when calling the UpdateFunctionCode op
 
 ### Cambios en el Workflow
 
-1. ✅ Eliminadas referencias a ECS (Task Definition, Cluster, Service)
-2. ✅ Añadido `aws lambda update-function-code` para actualizar la imagen
-3. ✅ Añadido loop de espera con verificación de estado cada 5 segundos (máximo 5 minutos)
-4. ✅ Añadida verificación de deployment (estado `Active`)
-5. ✅ Añadido test opcional del endpoint `/health`
-6. ✅ Mejorado manejo de errores con mensajes claros
+1.  Eliminadas referencias a ECS (Task Definition, Cluster, Service)
+2.  Añadido `aws lambda update-function-code` para actualizar la imagen
+3.  Añadido loop de espera con verificación de estado cada 5 segundos (máximo 5 minutos)
+4.  Añadida verificación de deployment (estado `Active`)
+5.  Añadido test opcional del endpoint `/health`
+6.  Mejorado manejo de errores con mensajes claros
 
 ### Nuevas Variables Necesarias
 
@@ -279,11 +279,11 @@ aws lambda get-function-configuration \
 
 ## Próximos Pasos
 
-1. ✅ Configura la variable `LAMBDA_FUNCTION_NAME` en GitHub (Environment `pro`)
-2. ✅ Verifica que los secrets de AWS ya existen
-3. ✅ Haz un commit en `main` que dispare el workflow `Inspect, Test and Build`
-4. ✅ Monitorea que el workflow `Auto Deploy Lambda on PRO` se ejecute automáticamente
-5. ✅ Verifica en AWS Lambda Console que la función se actualizó correctamente
+1.  Configura la variable `LAMBDA_FUNCTION_NAME` en GitHub (Environment `pro`)
+2.  Verifica que los secrets de AWS ya existen
+3.  Haz un commit en `main` que dispare el workflow `Inspect, Test and Build`
+4.  Monitorea que el workflow `Auto Deploy Lambda on PRO` se ejecute automáticamente
+5.  Verifica en AWS Lambda Console que la función se actualizó correctamente
 
 ---
 

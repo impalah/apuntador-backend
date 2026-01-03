@@ -2,7 +2,7 @@
 
 Esta guía explica cómo desplegar apuntador-backend con OpenTelemetry enviando trazas a AWS X-Ray/CloudWatch.
 
-## 📋 Tabla de Contenidos
+##  Tabla de Contenidos
 
 1. [Arquitectura](#arquitectura)
 2. [Deployment en AWS Lambda](#deployment-en-aws-lambda)
@@ -12,29 +12,29 @@ Esta guía explica cómo desplegar apuntador-backend con OpenTelemetry enviando 
 
 ---
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 ```
-┌─────────────────────┐
-│  FastAPI Backend    │
-│  (apuntador)        │
-│                     │
-│  OpenTelemetry SDK  │
-└──────────┬──────────┘
-           │ OTLP/gRPC
-           │ (port 4317)
-           ▼
-┌─────────────────────┐
-│  ADOT Collector     │
-│  (AWS Distro for    │
-│   OpenTelemetry)    │
-└──────────┬──────────┘
-           │ AWS X-Ray API
-           ▼
-┌─────────────────────┐       ┌─────────────────────┐
-│   AWS X-Ray         │◄─────►│  AWS CloudWatch     │
-│   (Tracing)         │       │  (Logs + Metrics)   │
-└─────────────────────┘       └─────────────────────┘
+
+  FastAPI Backend    
+  (apuntador)        
+                     
+  OpenTelemetry SDK  
+
+            OTLP/gRPC
+            (port 4317)
+           
+
+  ADOT Collector     
+  (AWS Distro for    
+   OpenTelemetry)    
+
+            AWS X-Ray API
+           
+       
+   AWS X-Ray           AWS CloudWatch     
+   (Tracing)                  (Logs + Metrics)   
+       
 ```
 
 **Flujo de datos:**
@@ -45,7 +45,7 @@ Esta guía explica cómo desplegar apuntador-backend con OpenTelemetry enviando 
 
 ---
 
-## 🚀 Deployment en AWS Lambda
+##  Deployment en AWS Lambda
 
 ### Opción 1: AWS Lambda Layer (Recomendado)
 
@@ -125,7 +125,7 @@ opentelemetry-propagator-aws-xray
 
 ---
 
-## 🐳 Deployment en ECS/Fargate
+##  Deployment en ECS/Fargate
 
 ### Configuración con ADOT Sidecar
 
@@ -294,7 +294,7 @@ resource "aws_ecs_task_definition" "apuntador_backend" {
 
 ---
 
-## 📊 Verificación en CloudWatch
+##  Verificación en CloudWatch
 
 ### 1. Ver Trazas en X-Ray
 
@@ -328,7 +328,7 @@ Tus logs en CloudWatch ahora incluyen `trace_id` y `span_id`:
 
 **Para correlacionar:**
 1. Copia el `trace_id` del log
-2. Ve a X-Ray Console → "Traces"
+2. Ve a X-Ray Console  "Traces"
 3. Filtra por: `annotation.trace_id = "1-64f2a3b4-..."`
 4. Verás la traza completa relacionada con ese log
 
@@ -354,7 +354,7 @@ fields @timestamp, message, trace_id
 
 ---
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### No aparecen trazas en X-Ray
 
@@ -426,7 +426,7 @@ def custom_sampler(sampling_rate: float = 0.1):
 
 ---
 
-## 📚 Referencias
+##  Referencias
 
 - [AWS ADOT Documentation](https://aws-otel.github.io/)
 - [OpenTelemetry Python](https://opentelemetry.io/docs/instrumentation/python/)

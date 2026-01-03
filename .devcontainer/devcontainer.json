@@ -4,7 +4,7 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "postCreateCommand": "uv sync --all-extras && cat .devcontainer/.bashrc >> ~/.bashrc && echo '✅ Dev container ready! Type: verify'",
+  "postCreateCommand": "uv sync --all-extras && cat .devcontainer/.bashrc >> ~/.bashrc && echo ' Dev container ready! Type: verify'",
   "customizations": {
     "vscode": {
       "settings": {

@@ -169,25 +169,25 @@ def example_refresh_settings():
 
 """
 1. Dependency Injection (Depends):
-   ✅ In FastAPI endpoints/routers
-   ✅ When you need easy testing
-   ✅ For auto-refresh in development
-   ❌ Not available outside FastAPI
+    In FastAPI endpoints/routers
+    When you need easy testing
+    For auto-refresh in development
+    Not available outside FastAPI
 
 2. Global instance (settings):
-   ✅ In services, utils, scripts
-   ✅ Code that's not FastAPI
-   ✅ Simpler and more direct
-   ❌ Cacheado (no auto-refresh)
+    In services, utils, scripts
+    Code that's not FastAPI
+    Simpler and more direct
+    Cacheado (no auto-refresh)
 
 3. Llamar get_settings():
-   ✅ Equivalente a usar 'settings'
-   ✅ Más explícito
-   ✅ Puedes limpiar cache si necesitas
+    Equivalente a usar 'settings'
+    Más explícito
+    Puedes limpiar cache si necesitas
 
 Recomendación por contexto:
-- FastAPI routers → Depends(get_settings)
-- Services/utils → import settings
-- Scripts standalone → get_settings() o settings
-- Tests → Depends() + mocking
+- FastAPI routers  Depends(get_settings)
+- Services/utils  import settings
+- Scripts standalone  get_settings() o settings
+- Tests  Depends() + mocking
 """

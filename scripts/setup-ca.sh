@@ -69,34 +69,34 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Print header
-echo -e "${BLUE}╔═══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║        Apuntador Certificate Authority Setup                 ║${NC}"
-echo -e "${BLUE}╚═══════════════════════════════════════════════════════════════╝${NC}"
+echo -e "${BLUE}${NC}"
+echo -e "${BLUE}        Apuntador Certificate Authority Setup                 ${NC}"
+echo -e "${BLUE}${NC}"
 echo ""
 
 # Check OpenSSL version
-echo -e "${YELLOW}→ Checking OpenSSL version...${NC}"
+echo -e "${YELLOW} Checking OpenSSL version...${NC}"
 OPENSSL_VERSION=$(openssl version)
-echo -e "  ${GREEN}✓${NC} $OPENSSL_VERSION"
+echo -e "  ${GREEN}${NC} $OPENSSL_VERSION"
 echo ""
 
 # Set validity based on mode
 if [[ "$MODE" = "production" ]]; then
     CA_DAYS=3650  # 10 years
-    echo -e "${YELLOW}→ Mode: Production${NC}"
+    echo -e "${YELLOW} Mode: Production${NC}"
     echo -e "  CA validity: ${GREEN}$CA_DAYS days (10 years)${NC}"
 else
     CA_DAYS=1825  # 5 years (sufficient for local dev)
-    echo -e "${YELLOW}→ Mode: Local Development${NC}"
+    echo -e "${YELLOW} Mode: Local Development${NC}"
     echo -e "  CA validity: ${GREEN}$CA_DAYS days (5 years)${NC}"
 fi
 echo ""
 
 # Create output directory
-echo -e "${YELLOW}→ Creating output directory...${NC}"
+echo -e "${YELLOW} Creating output directory...${NC}"
 mkdir -p "$OUTPUT_DIR"
 chmod 700 "$OUTPUT_DIR"
-echo -e "  ${GREEN}✓${NC} $OUTPUT_DIR"
+echo -e "  ${GREEN}${NC} $OUTPUT_DIR"
 echo ""
 
 # File paths
@@ -106,7 +106,7 @@ CA_CONFIG="$OUTPUT_DIR/ca_openssl.cnf"
 
 # Check if CA already exists
 if [[ -f "$CA_KEY" ]] || [[ -f "$CA_CERT" ]]; then
-    echo -e "${RED}⚠ Warning: CA files already exist!${NC}"
+    echo -e "${RED} Warning: CA files already exist!${NC}"
     echo -e "  Key:  $CA_KEY"
     echo -e "  Cert: $CA_CERT"
     echo ""
@@ -119,7 +119,7 @@ if [[ -f "$CA_KEY" ]] || [[ -f "$CA_CERT" ]]; then
 fi
 
 # Generate OpenSSL configuration for CA
-echo -e "${YELLOW}→ Creating OpenSSL configuration...${NC}"
+echo -e "${YELLOW} Creating OpenSSL configuration...${NC}"
 cat > "$CA_CONFIG" <<EOF
 [ req ]
 default_bits           = $CA_KEY_SIZE
@@ -147,19 +147,19 @@ subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid,issuer
 EOF
 
-echo -e "  ${GREEN}✓${NC} Configuration file created"
+echo -e "  ${GREEN}${NC} Configuration file created"
 echo ""
 
 # Generate CA private key
-echo -e "${YELLOW}→ Generating CA private key (RSA $CA_KEY_SIZE)...${NC}"
+echo -e "${YELLOW} Generating CA private key (RSA $CA_KEY_SIZE)...${NC}"
 openssl genrsa -out "$CA_KEY" $CA_KEY_SIZE 2>/dev/null
 chmod 600 "$CA_KEY"
-echo -e "  ${GREEN}✓${NC} CA private key generated"
-echo -e "  ${GREEN}✓${NC} Permissions set to 0600"
+echo -e "  ${GREEN}${NC} CA private key generated"
+echo -e "  ${GREEN}${NC} Permissions set to 0600"
 echo ""
 
 # Generate CA certificate
-echo -e "${YELLOW}→ Generating CA certificate...${NC}"
+echo -e "${YELLOW} Generating CA certificate...${NC}"
 openssl req \
     -new \
     -x509 \
@@ -170,13 +170,13 @@ openssl req \
     2>/dev/null
 
 chmod 644 "$CA_CERT"
-echo -e "  ${GREEN}✓${NC} CA certificate generated"
+echo -e "  ${GREEN}${NC} CA certificate generated"
 echo ""
 
 # Display CA certificate information
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}${NC}"
 echo -e "${GREEN}CA Certificate Information:${NC}"
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}${NC}"
 openssl x509 -in "$CA_CERT" -noout -text | grep -E "(Subject:|Issuer:|Not Before|Not After|Public-Key:|Signature Algorithm)"
 echo ""
 
@@ -187,18 +187,18 @@ echo -e "  $FINGERPRINT"
 echo ""
 
 # Summary
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}✓ CA Setup Complete!${NC}"
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}${NC}"
+echo -e "${GREEN} CA Setup Complete!${NC}"
+echo -e "${BLUE}${NC}"
 echo ""
 echo -e "${YELLOW}Generated files:${NC}"
-echo -e "  ${GREEN}✓${NC} CA Private Key: $CA_KEY"
-echo -e "  ${GREEN}✓${NC} CA Certificate: $CA_CERT"
-echo -e "  ${GREEN}✓${NC} OpenSSL Config: $CA_CONFIG"
+echo -e "  ${GREEN}${NC} CA Private Key: $CA_KEY"
+echo -e "  ${GREEN}${NC} CA Certificate: $CA_CERT"
+echo -e "  ${GREEN}${NC} OpenSSL Config: $CA_CONFIG"
 echo ""
 
 if [[ "$MODE" = "production" ]]; then
-    echo -e "${RED}⚠ PRODUCTION MODE SECURITY CHECKLIST:${NC}"
+    echo -e "${RED} PRODUCTION MODE SECURITY CHECKLIST:${NC}"
     echo -e "  ${YELLOW}1.${NC} Move CA private key to AWS Secrets Manager:"
     echo -e "     ${BLUE}aws secretsmanager create-secret \\${NC}"
     echo -e "     ${BLUE}  --name apuntador/ca-private-key \\${NC}"
@@ -225,6 +225,6 @@ else
     echo ""
 fi
 
-echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}${NC}"
 echo -e "${GREEN}Setup complete! Your CA is ready for device enrollment.${NC}"
-echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}${NC}"

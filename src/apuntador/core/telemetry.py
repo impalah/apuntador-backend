@@ -168,7 +168,7 @@ def configure_opentelemetry(
     set_global_textmap(AwsXRayPropagator())
 
     logger.info(
-        f"✅ OpenTelemetry configured: service={service_name}, "
+        f" OpenTelemetry configured: service={service_name}, "
         f"version={service_version}, environment={environment}"
     )
 
@@ -190,7 +190,7 @@ def _configure_span_exporters(
         # to avoid multi-line JSON that breaks CloudWatch log parsing
         console_exporter = CompactJSONSpanExporter()
         tracer_provider.add_span_processor(BatchSpanProcessor(console_exporter))
-        logger.info("📊 Compact JSON span exporter configured (development mode)")
+        logger.info(" Compact JSON span exporter configured (development mode)")
 
     # Production: OTLP exporter to AWS X-Ray via ADOT Collector
     else:
@@ -207,7 +207,7 @@ def _configure_span_exporters(
         )
 
         tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-        logger.info(f"📊 OTLP span exporter configured: endpoint={otlp_endpoint}")
+        logger.info(f" OTLP span exporter configured: endpoint={otlp_endpoint}")
 
 
 def instrument_fastapi(app) -> None:
@@ -235,7 +235,7 @@ def instrument_fastapi(app) -> None:
         tracer_provider=trace.get_tracer_provider(),
         excluded_urls="/health,/healthz,/metrics,/favicon.ico",  # Don't trace health checks and metrics
     )
-    logger.info("✅ FastAPI instrumented with OpenTelemetry")
+    logger.info(" FastAPI instrumented with OpenTelemetry")
 
 
 def instrument_httpx() -> None:
@@ -255,7 +255,7 @@ def instrument_httpx() -> None:
         >>> instrument_httpx()
     """
     HTTPXClientInstrumentor().instrument()
-    logger.info("✅ HTTPX client instrumented with OpenTelemetry")
+    logger.info(" HTTPX client instrumented with OpenTelemetry")
 
 
 def instrument_logging() -> None:
@@ -272,7 +272,7 @@ def instrument_logging() -> None:
         >>> instrument_logging()
     """
     LoggingInstrumentor().instrument(set_logging_format=False)
-    logger.info("✅ Logging instrumented with OpenTelemetry")
+    logger.info(" Logging instrumented with OpenTelemetry")
 
 
 def get_current_trace_id() -> str:

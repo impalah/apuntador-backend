@@ -83,8 +83,8 @@ class OAuthService:
             state=signed_state,
         )
 
-        logger.info(f"✅ Authorization URL generated successfully for {provider}")
-        logger.info(f"🔗 FULL AUTHORIZATION URL: {auth_url}")
+        logger.info(f" Authorization URL generated successfully for {provider}")
+        logger.info(f" FULL AUTHORIZATION URL: {auth_url}")
         logger.debug(f"URL length: {len(auth_url)} characters")
 
         return auth_url, signed_state

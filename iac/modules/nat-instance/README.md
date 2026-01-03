@@ -15,15 +15,15 @@ This module deploys an EC2-based NAT instance as a cheaper alternative to AWS NA
 
 ```
 Internet
-    ↓
+    
 Internet Gateway
-    ↓
+    
 Public Subnet
-    ↓
-NAT Instance (t4g.nano) ← Auto Scaling Group
-    ↓
+    
+NAT Instance (t4g.nano)  Auto Scaling Group
+    
 Private Subnet(s)
-    ↓
+    
 ECS Tasks / Lambda / etc.
 ```
 

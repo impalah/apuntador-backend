@@ -23,7 +23,7 @@ class TraceIDMiddleware(BaseHTTPMiddleware):
     that is available in all logs during request processing.
 
     Flow:
-    1. Request arrives → generates UUID as trace_id
+    1. Request arrives  generates UUID as trace_id
     2. Stores trace_id in contextvars
     3. All logs automatically include the trace_id
     4. Response includes X-Trace-ID header

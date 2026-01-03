@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🚀 Configuring NAT instance..."
+echo " Configuring NAT instance..."
 
 # Enable IP forwarding
 echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf
@@ -54,4 +54,4 @@ yum install -y yum-cron
 systemctl enable yum-cron
 systemctl start yum-cron
 
-echo "✅ NAT instance configured successfully!"
+echo " NAT instance configured successfully!"

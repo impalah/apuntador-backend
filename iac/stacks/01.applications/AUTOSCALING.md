@@ -7,25 +7,25 @@ El autoscaling de ECS permite que tu aplicación escale automáticamente el núm
 ## Arquitectura
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   Application Load Balancer                │
-│                     (api.apuntador.io)                      │
-└───────────────────┬─────────────────────────────────────────┘
-                    │
-                    ├─── ECS Task 1 (mínimo: 2)
-                    ├─── ECS Task 2 
-                    ├─── ECS Task 3 (escala según demanda)
-                    ├─── ...
-                    └─── ECS Task N (máximo: 10)
-                           │
-                           ↓
-                    ┌──────────────────┐
-                    │  Auto Scaling    │
-                    │    Políticas:    │
-                    │  - CPU > 70%     │
-                    │  - Memory > 80%  │
-                    │  - Requests/task │
-                    └──────────────────┘
+
+                   Application Load Balancer                
+                     (api.apuntador.io)                      
+
+                    
+                     ECS Task 1 (mínimo: 2)
+                     ECS Task 2 
+                     ECS Task 3 (escala según demanda)
+                     ...
+                     ECS Task N (máximo: 10)
+                           
+                           
+                    
+                      Auto Scaling    
+                        Políticas:    
+                      - CPU > 70%     
+                      - Memory > 80%  
+                      - Requests/task 
+                    
 ```
 
 ## Variables de Configuración
@@ -206,21 +206,21 @@ autoscaling_scale_out_cooldown   = 30    # 30 seg para aumentar
 
 2. **Comparación con Target**: Auto Scaling compara valores actuales vs targets
    ```
-   Actual CPU: 85% > Target: 70% → SCALE OUT ⬆️
-   Actual CPU: 45% < Target: 70% → SCALE IN  ⬇️
+   Actual CPU: 85% > Target: 70%  SCALE OUT 
+   Actual CPU: 45% < Target: 70%  SCALE IN  
    ```
 
 3. **Cooldown Period**: Espera el tiempo configurado antes de siguiente acción
    ```
-   Scale Out → Wait 60s → Can scale out again
-   Scale In  → Wait 300s → Can scale in again
+   Scale Out  Wait 60s  Can scale out again
+   Scale In   Wait 300s  Can scale in again
    ```
 
 4. **Capacity Limits**: Respeta siempre min/max capacity
    ```
    Current: 8 tasks
-   Scale Out: 8 + 2 = 10 (max) ✅
-   Scale Out: 10 + 2 = 12 ❌ (blocked by max_capacity=10)
+   Scale Out: 8 + 2 = 10 (max) 
+   Scale Out: 10 + 2 = 12  (blocked by max_capacity=10)
    ```
 
 ### Ejemplo de Escalado en Tiempo Real
@@ -229,12 +229,12 @@ autoscaling_scale_out_cooldown   = 30    # 30 seg para aumentar
 Time    | CPU  | Memory | Requests/task | Tasks | Action
 --------|------|--------|---------------|-------|------------------
 09:00   | 45%  | 60%    | 400          | 2     | (stable)
-09:15   | 75%  | 72%    | 1200         | 2     | Scale OUT → 3 tasks
+09:15   | 75%  | 72%    | 1200         | 2     | Scale OUT  3 tasks
 09:20   | 68%  | 65%    | 950          | 3     | (stable, within cooldown)
-09:30   | 82%  | 88%    | 1500         | 3     | Scale OUT → 5 tasks
+09:30   | 82%  | 88%    | 1500         | 3     | Scale OUT  5 tasks
 10:00   | 55%  | 60%    | 600          | 5     | (stable, within cooldown)
-10:30   | 40%  | 50%    | 400          | 5     | Scale IN → 3 tasks
-11:00   | 35%  | 45%    | 300          | 3     | Scale IN → 2 tasks
+10:30   | 40%  | 50%    | 400          | 5     | Scale IN  3 tasks
+11:00   | 35%  | 45%    | 300          | 3     | Scale IN  2 tasks
 ```
 
 ## Monitoreo del Auto Scaling
@@ -309,7 +309,7 @@ aws application-autoscaling describe-scaling-activities \
 
 **Soluciones**:
 - Aumenta `scale_in_cooldown` a 600s
-- Ajusta targets (ej: CPU target de 70% → 65%)
+- Ajusta targets (ej: CPU target de 70%  65%)
 - Revisa si hay tareas fallando (health checks)
 
 ## Costes de Auto Scaling
@@ -331,11 +331,11 @@ Promedio 3.5 tasks × $5.30/mes = $18.55/mes
 
 ### Coste Real (variable según tráfico)
 ```
-Hora Pico (10:00-18:00):    8 tasks  → $2.83/día
-Hora Normal (18:00-22:00):  3 tasks  → $0.66/día
-Hora Valle (22:00-10:00):   2 tasks  → $0.35/día
-                                      ────────────
-                           TOTAL:     $3.84/día ≈ $115/mes
+Hora Pico (10:00-18:00):    8 tasks   $2.83/día
+Hora Normal (18:00-22:00):  3 tasks   $0.66/día
+Hora Valle (22:00-10:00):   2 tasks   $0.35/día
+                                      
+                           TOTAL:     $3.84/día  $115/mes
 ```
 
 **Ahorro con Auto Scaling**:

@@ -4,14 +4,14 @@
 
 This guide covers deploying the Apuntador Backend to AWS Lambda with full production infrastructure including:
 
-- ✅ Lambda function with container image from ECR
-- ✅ API Gateway HTTP API with proxy+ integration
-- ✅ Custom domain: `api.apuntador.io`
-- ✅ ACM certificate for `*.apuntador.io`
-- ✅ Route 53 DNS records (A and AAAA)
-- ✅ CloudWatch log groups with retention policies
-- ✅ API Gateway access logs
-- ✅ IAM policies for DynamoDB, S3, Secrets Manager
+-  Lambda function with container image from ECR
+-  API Gateway HTTP API with proxy+ integration
+-  Custom domain: `api.apuntador.io`
+-  ACM certificate for `*.apuntador.io`
+-  Route 53 DNS records (A and AAAA)
+-  CloudWatch log groups with retention policies
+-  API Gateway access logs
+-  IAM policies for DynamoDB, S3, Secrets Manager
 
 ## Prerequisites
 
@@ -247,63 +247,63 @@ Certificate should show:
 ## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Route 53                            │
-│              Zone: apuntador.io (Z057297615...)             │
-│                                                             │
-│  A Record: api.apuntador.io → API Gateway                  │
-│  AAAA Record: api.apuntador.io → API Gateway (IPv6)        │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       │ DNS Resolution
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    ACM Certificate                          │
-│                   *.apuntador.io                            │
-│                   (TLS 1.2, Regional)                       │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       │ SSL/TLS
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│              API Gateway HTTP API (v2)                      │
-│                                                             │
-│  Custom Domain: api.apuntador.io                           │
-│  Stage: $default (auto-deploy)                             │
-│  Integration: AWS_PROXY                                    │
-│  Throttling: 10,000 req/s, burst 5,000                     │
-│                                                             │
-│  Access Logs → CloudWatch                                  │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       │ Proxy+
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Lambda Function                            │
-│            production-apuntador-api                         │
-│                                                             │
-│  Runtime: Container (Python 3.12)                          │
-│  Memory: 2048 MB                                           │
-│  Timeout: 300s                                             │
-│  Image: ECR (1.0.3)                                        │
-│                                                             │
-│  Logs → CloudWatch (7 days retention)                      │
-│                                                             │
-│  Environment:                                              │
-│  - OAuth credentials (Google Drive, Dropbox)               │
-│  - AWS resources (DynamoDB, S3, Secrets)                   │
-│  - mTLS configuration                                      │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       │ IAM Policies
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  AWS Resources                              │
-│                                                             │
-│  DynamoDB: apuntador-tls-certificates                      │
-│  S3: apuntador.io-tls-cert-storage                         │
-│  Secrets Manager: apuntador/*                              │
-└─────────────────────────────────────────────────────────────┘
+
+                         Route 53                            
+              Zone: apuntador.io (Z057297615...)             
+                                                             
+  A Record: api.apuntador.io  API Gateway                  
+  AAAA Record: api.apuntador.io  API Gateway (IPv6)        
+
+                       
+                        DNS Resolution
+                       
+
+                    ACM Certificate                          
+                   *.apuntador.io                            
+                   (TLS 1.2, Regional)                       
+
+                       
+                        SSL/TLS
+                       
+
+              API Gateway HTTP API (v2)                      
+                                                             
+  Custom Domain: api.apuntador.io                           
+  Stage: $default (auto-deploy)                             
+  Integration: AWS_PROXY                                    
+  Throttling: 10,000 req/s, burst 5,000                     
+                                                             
+  Access Logs  CloudWatch                                  
+
+                       
+                        Proxy+
+                       
+
+                  Lambda Function                            
+            production-apuntador-api                         
+                                                             
+  Runtime: Container (Python 3.12)                          
+  Memory: 2048 MB                                           
+  Timeout: 300s                                             
+  Image: ECR (1.0.3)                                        
+                                                             
+  Logs  CloudWatch (7 days retention)                      
+                                                             
+  Environment:                                              
+  - OAuth credentials (Google Drive, Dropbox)               
+  - AWS resources (DynamoDB, S3, Secrets)                   
+  - mTLS configuration                                      
+
+                       
+                        IAM Policies
+                       
+
+                  AWS Resources                              
+                                                             
+  DynamoDB: apuntador-tls-certificates                      
+  S3: apuntador.io-tls-cert-storage                         
+  Secrets Manager: apuntador/*                              
+
 ```
 
 ## Environment Variables
@@ -413,12 +413,12 @@ terraform destroy -var-file=configuration.application.tfvars
 
 Monthly costs for production deployment (eu-west-1):
 
-- **Lambda**: ~$0.20/GB-hour → ~$10/month (2GB, moderate usage)
-- **API Gateway**: $1.00/million requests → ~$5/month (5M requests)
-- **CloudWatch Logs**: $0.50/GB ingested → ~$2/month (4GB/month)
-- **Route 53**: $0.50/hosted zone + $0.40/million queries → ~$1/month
+- **Lambda**: ~$0.20/GB-hour  ~$10/month (2GB, moderate usage)
+- **API Gateway**: $1.00/million requests  ~$5/month (5M requests)
+- **CloudWatch Logs**: $0.50/GB ingested  ~$2/month (4GB/month)
+- **Route 53**: $0.50/hosted zone + $0.40/million queries  ~$1/month
 - **ACM Certificate**: Free (for AWS resources)
-- **Data Transfer**: $0.09/GB out → Variable (depends on usage)
+- **Data Transfer**: $0.09/GB out  Variable (depends on usage)
 
 **Estimated Total**: $18-25/month for moderate production usage
 
@@ -465,12 +465,12 @@ ACM certificates auto-renew 60 days before expiration. No manual intervention ne
 
 ## Next Steps
 
-1. ✅ Deploy infrastructure with Terraform
-2. ⏳ Update frontend redirect URIs to use `api.apuntador.io`
-3. ⏳ Update mobile app OAuth configuration
-4. ⏳ Set up monitoring and alarms in CloudWatch
-5. ⏳ Configure backup and disaster recovery
-6. ⏳ Implement CI/CD pipeline for automated deployments
+1.  Deploy infrastructure with Terraform
+2.  Update frontend redirect URIs to use `api.apuntador.io`
+3.  Update mobile app OAuth configuration
+4.  Set up monitoring and alarms in CloudWatch
+5.  Configure backup and disaster recovery
+6.  Implement CI/CD pipeline for automated deployments
 
 ## Support
 

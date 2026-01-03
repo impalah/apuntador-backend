@@ -97,7 +97,7 @@ async def oauth_callback(
     Returns:
         Redirect to client with code and state
     """
-    logger.info(f"📥 OAuth callback received for provider: {provider}")
+    logger.info(f" OAuth callback received for provider: {provider}")
     logger.debug(f"Code: {code[:20]}...")
     logger.debug(f"State: {state[:50]}...")
 
@@ -124,17 +124,17 @@ async def oauth_callback(
 
         # Extract redirect_uri from signed state
         redirect_uri = state_data.get("redirect_uri", "apuntador://oauth-callback")
-        logger.info(f"✅ State verified, redirecting to: {redirect_uri}")
+        logger.info(f" State verified, redirecting to: {redirect_uri}")
 
         # Construct deep link with code and state
         redirect_url = f"{redirect_uri}?code={code}&state={state}&provider={provider}"
 
-        logger.info(f"🔗 Redirecting to app: {redirect_url}")
+        logger.info(f" Redirecting to app: {redirect_url}")
 
         return RedirectResponse(url=redirect_url, status_code=302)
 
     except Exception as e:
-        logger.error(f"❌ Error processing OAuth callback: {e}")
+        logger.error(f" Error processing OAuth callback: {e}")
         # On error, try to redirect with error
         error_url = f"apuntador://oauth-callback?error=callback_failed&error_description={str(e)}"
         return RedirectResponse(url=error_url, status_code=302)

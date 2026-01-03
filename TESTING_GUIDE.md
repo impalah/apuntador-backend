@@ -4,10 +4,10 @@ Ejemplos de comandos `curl` para probar el backend mientras está ejecutándose 
 
 ---
 
-## 🚀 Cómo Iniciar
+##  Cómo Iniciar
 
 1. **Abrir VS Code**
-2. **Ir a la vista de Debug** (⌘⇧D o Ctrl+Shift+D)
+2. **Ir a la vista de Debug** (D o Ctrl+Shift+D)
 3. **Seleccionar "API - apuntador-backend"** en el dropdown
 4. **Presionar F5** o hacer clic en el botón verde "Start Debugging"
 5. **Esperar a ver** en el terminal: `Application startup complete`
@@ -16,7 +16,7 @@ El servidor estará en: `http://localhost:8000`
 
 ---
 
-## 📋 Health & Info Endpoints
+##  Health & Info Endpoints
 
 ### Health Check
 ```bash
@@ -48,7 +48,7 @@ curl -s http://localhost:8000/openapi.json | jq .
 
 ---
 
-## 🔐 Certificate Authority Endpoints
+##  Certificate Authority Endpoints
 
 ### Get CA Certificate (Public)
 ```bash
@@ -78,7 +78,7 @@ openssl x509 -in ca_cert.pem -text -noout
 
 ---
 
-## 📱 Device Enrollment (mTLS)
+##  Device Enrollment (mTLS)
 
 ### Enroll Android Device
 
@@ -136,7 +136,7 @@ openssl x509 -in device_cert.pem -text -noout
 
 ---
 
-## 🔒 mTLS Protected Endpoints
+##  mTLS Protected Endpoints
 
 Para acceder a endpoints protegidos con mTLS, necesitas enviar el certificado del cliente.
 
@@ -167,7 +167,7 @@ curl -s https://localhost:8443/protected/example \
 
 ---
 
-## 🌐 OAuth Endpoints (Google Drive, Dropbox)
+##  OAuth Endpoints (Google Drive, Dropbox)
 
 ### Google Drive - Authorization
 
@@ -227,7 +227,7 @@ curl -X POST http://localhost:8000/oauth/token/refresh/googledrive \
 
 ---
 
-## 🧪 Testing Certificate Lifecycle
+##  Testing Certificate Lifecycle
 
 ### List All Certificates (DynamoDB)
 ```bash
@@ -274,7 +274,7 @@ AWS_PAGER="" aws dynamodb scan \
 
 ---
 
-## 🐛 Debugging Tips
+##  Debugging Tips
 
 ### Ver logs en tiempo real
 El debugger de VS Code mostrará todos los logs. También puedes:
@@ -306,7 +306,7 @@ export INFRASTRUCTURE_PROVIDER=local
 
 ---
 
-## 🔍 Verificar DynamoDB con PynamoDB
+##  Verificar DynamoDB con PynamoDB
 
 ### Test Connection
 ```bash
@@ -330,7 +330,7 @@ AWS_PAGER="" aws dynamodb scan \
 
 ---
 
-## 📊 Monitoring
+##  Monitoring
 
 ### Check DynamoDB Metrics
 ```bash
@@ -367,12 +367,12 @@ AWS_PAGER="" aws secretsmanager list-secrets \
 
 **Nota importante sobre nombres**: 
 Los secrets en AWS deben usar **guiones** (`-`), no guiones bajos (`_`):
-- ✅ Correcto: `apuntador/ca-private-key`, `apuntador/ca-certificate`
-- ❌ Incorrecto: `apuntador/ca_private_key`, `apuntador/ca_certificate`
+-  Correcto: `apuntador/ca-private-key`, `apuntador/ca-certificate`
+-  Incorrecto: `apuntador/ca_private_key`, `apuntador/ca_certificate`
 
 ---
 
-## 🎯 Escenarios de Prueba Completos
+##  Escenarios de Prueba Completos
 
 ### Script Automatizado (Recomendado)
 
@@ -384,33 +384,33 @@ Usa el script de prueba automatizado que verifica todo el flujo:
 ```
 
 Este script:
-1. ✅ Obtiene el certificado de la CA
-2. ✅ Genera credenciales del dispositivo (clave + CSR)
-3. ✅ Enrolla el dispositivo en el backend
-4. ✅ Verifica el certificado con OpenSSL
-5. ✅ Comprueba que se guardó en DynamoDB (scan + índice)
-6. ✅ Muestra resumen completo con todos los checks
+1.  Obtiene el certificado de la CA
+2.  Genera credenciales del dispositivo (clave + CSR)
+3.  Enrolla el dispositivo en el backend
+4.  Verifica el certificado con OpenSSL
+5.  Comprueba que se guardó en DynamoDB (scan + índice)
+6.  Muestra resumen completo con todos los checks
 
 ### Escenario 1: Enrollment + Verificación (Manual)
 
 ```bash
 #!/bin/bash
-echo "🔐 Testing complete device enrollment flow..."
+echo " Testing complete device enrollment flow..."
 
 # 1. Get CA certificate
-echo "1️⃣ Getting CA certificate..."
+echo "1 Getting CA certificate..."
 curl -s http://localhost:8000/device/ca-certificate | jq -r '.certificate' > ca.pem
 FINGERPRINT=$(curl -s http://localhost:8000/device/ca-certificate | jq -r '.fingerprint')
 echo "   CA Fingerprint: $FINGERPRINT"
 
 # 2. Generate device key and CSR
-echo "2️⃣ Generating device credentials..."
+echo "2 Generating device credentials..."
 openssl genrsa -out device.key 2048 2>/dev/null
 openssl req -new -key device.key -out device.csr \
   -subj "/C=ES/O=Apuntador/CN=android-test-$(date +%s)" 2>/dev/null
 
 # 3. Enroll device
-echo "3️⃣ Enrolling device..."
+echo "3 Enrolling device..."
 DEVICE_ID="android-test-$(date +%s)"
 RESPONSE=$(curl -s -X POST http://localhost:8000/device/enroll \
   -H "Content-Type: application/json" \
@@ -426,11 +426,11 @@ SERIAL=$(echo "$RESPONSE" | jq -r '.serial')
 echo "   Device Serial: $SERIAL"
 
 # 4. Verify certificate
-echo "4️⃣ Verifying certificate..."
+echo "4 Verifying certificate..."
 openssl verify -CAfile ca.pem device.pem
 
 # 5. Check in DynamoDB
-echo "5️⃣ Checking DynamoDB..."
+echo "5 Checking DynamoDB..."
 AWS_PAGER="" aws dynamodb scan \
   --table-name apuntador-tls-certificates \
   --region eu-west-1 \
@@ -438,14 +438,14 @@ AWS_PAGER="" aws dynamodb scan \
   --expression-attribute-values "{\":device_id\":{\"S\":\"$DEVICE_ID\"}}" \
   --output json | jq '.Items[0] | {device_id: .device_id.S, serial: .serial_number.S, platform: .platform.S, expires_at: .expires_at.S}'
 
-echo "✅ Test completed!"
+echo " Test completed!"
 ```
 
 ### Escenario 2: OAuth Flow Completo (Google Drive)
 
 ```bash
 #!/bin/bash
-echo "🌐 Testing OAuth flow..."
+echo " Testing OAuth flow..."
 
 # 1. Start authorization
 AUTH_RESPONSE=$(curl -s -X POST http://localhost:8000/oauth/authorize/googledrive \
@@ -455,20 +455,20 @@ AUTH_RESPONSE=$(curl -s -X POST http://localhost:8000/oauth/authorize/googledriv
 AUTH_URL=$(echo "$AUTH_RESPONSE" | jq -r '.authorization_url')
 STATE=$(echo "$AUTH_RESPONSE" | jq -r '.state')
 
-echo "1️⃣ Authorization URL generated"
+echo "1 Authorization URL generated"
 echo "   Open in browser: $AUTH_URL"
 echo "   State: ${STATE:0:50}..."
 echo ""
-echo "2️⃣ After authorization, Google will redirect to:"
+echo "2 After authorization, Google will redirect to:"
 echo "   http://localhost:3000/callback?code=AUTHORIZATION_CODE&state=$STATE"
 echo ""
-echo "3️⃣ Then exchange code for token:"
+echo "3 Then exchange code for token:"
 echo "   curl \"http://localhost:8000/oauth/callback/googledrive?code=CODE&state=$STATE\""
 ```
 
 ---
 
-## 📝 Notes
+##  Notes
 
 - **Port**: El servidor corre en `http://localhost:8000`
 - **Hot Reload**: El debugger tiene `--reload` activado, por lo que se reiniciará automáticamente al guardar cambios
@@ -478,7 +478,7 @@ echo "   curl \"http://localhost:8000/oauth/callback/googledrive?code=CODE&state
 
 ---
 
-## 🆘 Troubleshooting
+##  Troubleshooting
 
 ### Puerto ocupado
 ```bash
@@ -507,4 +507,4 @@ bash scripts/setup-aws-infrastructure.sh
 
 ---
 
-**Happy Testing!** 🚀
+**Happy Testing!** 

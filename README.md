@@ -6,21 +6,21 @@ Unified backend to manage OAuth 2.0 authentication with multiple cloud providers
 
 ```
 Apuntador Client (Web/Android/iOS/Desktop)
-    ↓
+    
 OAuth Proxy Backend (FastAPI)
-    ↓
+    
 OAuth Providers (Google, Dropbox, etc.)
 ```
 
 ## Features
 
-- ✅ OAuth 2.0 with PKCE for maximum security
-- ✅ Support for multiple providers: Google Drive, Dropbox, OneDrive
-- ✅ Automatic refresh token management
-- ✅ Secure client secrets in the backend
-- ✅ Unified REST API for all clients
-- ✅ CORS configured for development and production
-- ✅ **Structured JSON logging** for easy integration with CloudWatch, Datadog, ELK, Splunk
+-  OAuth 2.0 with PKCE for maximum security
+-  Support for multiple providers: Google Drive, Dropbox, OneDrive
+-  Automatic refresh token management
+-  Secure client secrets in the backend
+-  Unified REST API for all clients
+-  CORS configured for development and production
+-  **Structured JSON logging** for easy integration with CloudWatch, Datadog, ELK, Splunk
 
 ## Requirements
 
@@ -228,14 +228,14 @@ See: `apuntador/docs/CERTIFICATE_PINNING.md` for implementation guide.
 
 ## Security
 
-- ✅ Client secrets never exposed to the client
-- ✅ PKCE (Proof Key for Code Exchange) mandatory
-- ✅ State validation to prevent CSRF
-- ✅ mTLS with client certificates (Android/iOS)
-- ✅ Certificate pinning support for mobile apps
-- ✅ Strictly configured CORS
-- ✅ Rate limiting (TODO)
-- ✅ Audit logging
+-  Client secrets never exposed to the client
+-  PKCE (Proof Key for Code Exchange) mandatory
+-  State validation to prevent CSRF
+-  mTLS with client certificates (Android/iOS)
+-  Certificate pinning support for mobile apps
+-  Strictly configured CORS
+-  Rate limiting (TODO)
+-  Audit logging
 
 ## Production Setup
 
@@ -376,13 +376,13 @@ LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 ### Features
 
-- ✅ Structured JSON format for CloudWatch, Datadog, ELK, Splunk
-- ✅ Automatic trace_id for request correlation
-- ✅ Exception details with type and value
-- ✅ Source location (module, function, line number)
-- ✅ Human-readable format for local development
+-  Structured JSON format for CloudWatch, Datadog, ELK, Splunk
+-  Automatic trace_id for request correlation
+-  Exception details with type and value
+-  Source location (module, function, line number)
+-  Human-readable format for local development
 
-📄 **Full Documentation**: [docs/JSON_LOGGING.md](docs/JSON_LOGGING.md)
+ **Full Documentation**: [docs/JSON_LOGGING.md](docs/JSON_LOGGING.md)
 
 ### DynamoDB Certificate Whitelist Setup
 
@@ -423,8 +423,8 @@ Certificates are automatically added when devices enroll via `/device/enroll` en
 
 ### Certificate Lifecycle
 
-1. **Enrollment**: Device generates CSR → Backend signs with CA → Returns certificate (7-30 days validity)
-2. **Renewal**: Client requests renewal when < 5 days remaining → Backend issues new certificate
+1. **Enrollment**: Device generates CSR  Backend signs with CA  Returns certificate (7-30 days validity)
+2. **Renewal**: Client requests renewal when < 5 days remaining  Backend issues new certificate
 3. **Revocation**: Admin or automated process marks certificate as revoked in DynamoDB
 4. **Validation**: Every mTLS request checks certificate against whitelist (cached with 5-min TTL)
 
@@ -465,83 +465,83 @@ mypy app/
 
 ```
 apuntador-backend/
-├── src/
-│   └── apuntador/
-│       ├── __init__.py
-│       ├── main.py              # FastAPI application entry point
-│       ├── lambda_main.py       # AWS Lambda handler (Mangum)
-│       ├── config.py            # Pydantic Settings configuration
-│       ├── openapi.py           # OpenAPI/Swagger documentation
-│       ├── api/
-│       │   └── v1/
-│       │       ├── __init__.py  # API route prefixes
-│       │       ├── oauth/       # OAuth 2.0 endpoints
-│       │       └── device/      # Device enrollment & mTLS
-│       ├── core/
-│       │   └── logging.py       # Loguru configuration
-│       ├── middleware/
-│       │   ├── __init__.py      # TraceID middleware
-│       │   └── mtls_validation.py  # Client certificate validation
-│       ├── models/
-│       │   ├── __init__.py
-│       │   ├── oauth.py         # OAuth request/response models
-│       │   ├── device.py        # Device enrollment models
-│       │   └── errors.py        # RFC 7807 Problem Details
-│       ├── services/
-│       │   ├── oauth/
-│       │   │   ├── oauth_base.py      # Abstract OAuth service
-│       │   │   ├── googledrive.py     # Google Drive OAuth
-│       │   │   └── dropbox.py         # Dropbox OAuth
-│       │   ├── certificate/
-│       │   │   ├── certificate_authority.py  # CA signing
-│       │   │   ├── certificate_manager.py    # Certificate lifecycle
-│       │   │   └── certificate_storage.py    # DynamoDB interface
-│       │   └── device_attestation/
-│       │       ├── android_safetynet.py      # Android attestation
-│       │       └── ios_devicecheck.py        # iOS attestation
-│       ├── infrastructure/       # Repository pattern for cloud abstraction
-│       │   ├── repositories/
-│       │   │   ├── certificate_repository.py
-│       │   │   ├── secrets_repository.py
-│       │   │   └── storage_repository.py
-│       │   ├── implementations/
-│       │   │   ├── local/       # File-based (development)
-│       │   │   └── aws/         # DynamoDB, S3, Secrets Manager
-│       │   └── factory.py       # Provider selection
-│       └── utils/
-│           ├── pkce.py          # PKCE utilities
-│           ├── security.py      # Token signing, state generation
-│           └── crypto/
-│               ├── csr.py       # CSR parsing and validation
-│               └── x509.py      # Certificate utilities
-├── iac/                         # Terraform infrastructure
-│   ├── modules/
-│   │   └── lambda/              # Reusable Lambda module
-│   └── stacks/
-│       └── 01.applications/
-│           ├── 01.network.tf    # VPC, subnets (if needed)
-│           ├── 02.domain-ssl.tf # API Gateway, ACM, Route53
-│           ├── 03.database.tf   # DynamoDB tables
-│           ├── 04.application.tf # Lambda function
-│           └── configuration.application.tfvars
-├── docs/
-│   ├── AWS_DEPLOYMENT_GUIDE.md
-│   ├── CERTIFICATE_LIFECYCLE.md
-│   ├── JSON_LOGGING.md          # Structured logging documentation
-│   ├── MTLS_IMPLEMENTATION_PLAN.md
-│   └── INFRASTRUCTURE_ABSTRACTION.md
-├── tests/
-│   ├── unit/
-│   └── integration/
-├── .env.example
-├── .gitignore
-├── Dockerfile
-├── Dockerfile.lambda            # AWS Lambda container
-├── Makefile                     # Development commands
-├── pyproject.toml               # Python project configuration
-└── README.md
+ src/
+    apuntador/
+        __init__.py
+        main.py              # FastAPI application entry point
+        lambda_main.py       # AWS Lambda handler (Mangum)
+        config.py            # Pydantic Settings configuration
+        openapi.py           # OpenAPI/Swagger documentation
+        api/
+           v1/
+               __init__.py  # API route prefixes
+               oauth/       # OAuth 2.0 endpoints
+               device/      # Device enrollment & mTLS
+        core/
+           logging.py       # Loguru configuration
+        middleware/
+           __init__.py      # TraceID middleware
+           mtls_validation.py  # Client certificate validation
+        models/
+           __init__.py
+           oauth.py         # OAuth request/response models
+           device.py        # Device enrollment models
+           errors.py        # RFC 7807 Problem Details
+        services/
+           oauth/
+              oauth_base.py      # Abstract OAuth service
+              googledrive.py     # Google Drive OAuth
+              dropbox.py         # Dropbox OAuth
+           certificate/
+              certificate_authority.py  # CA signing
+              certificate_manager.py    # Certificate lifecycle
+              certificate_storage.py    # DynamoDB interface
+           device_attestation/
+               android_safetynet.py      # Android attestation
+               ios_devicecheck.py        # iOS attestation
+        infrastructure/       # Repository pattern for cloud abstraction
+           repositories/
+              certificate_repository.py
+              secrets_repository.py
+              storage_repository.py
+           implementations/
+              local/       # File-based (development)
+              aws/         # DynamoDB, S3, Secrets Manager
+           factory.py       # Provider selection
+        utils/
+            pkce.py          # PKCE utilities
+            security.py      # Token signing, state generation
+            crypto/
+                csr.py       # CSR parsing and validation
+                x509.py      # Certificate utilities
+ iac/                         # Terraform infrastructure
+    modules/
+       lambda/              # Reusable Lambda module
+    stacks/
+        01.applications/
+            01.network.tf    # VPC, subnets (if needed)
+            02.domain-ssl.tf # API Gateway, ACM, Route53
+            03.database.tf   # DynamoDB tables
+            04.application.tf # Lambda function
+            configuration.application.tfvars
+ docs/
+    AWS_DEPLOYMENT_GUIDE.md
+    CERTIFICATE_LIFECYCLE.md
+    JSON_LOGGING.md          # Structured logging documentation
+    MTLS_IMPLEMENTATION_PLAN.md
+    INFRASTRUCTURE_ABSTRACTION.md
+ tests/
+    unit/
+    integration/
+ .env.example
+ .gitignore
+ Dockerfile
+ Dockerfile.lambda            # AWS Lambda container
+ Makefile                     # Development commands
+ pyproject.toml               # Python project configuration
+ README.md
 ```
 
-## 📄 License
+##  License
 
 MIT License - see [LICENSE](LICENSE) file for details.

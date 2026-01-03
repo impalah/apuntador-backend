@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         app: FastAPI application instance
     """
     # Startup
-    logger.info("🚀 Starting apuntador backend...")
+    logger.info(" Starting apuntador backend...")
     logger.info(f"Application version: {app.version}")
 
     # TODO: Initialize database connections
@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Shutdown
-    logger.info("🛑 Shutting down apuntador backend...")
+    logger.info(" Shutting down apuntador backend...")
 
     # TODO: Close database connections
     # TODO: Cleanup resources

@@ -1,6 +1,6 @@
 # Guía Rápida - Dev Container
 
-## 🚀 Inicio Rápido
+##  Inicio Rápido
 
 ```bash
 # Opción 1: Desde VS Code
@@ -10,7 +10,7 @@
 bash .devcontainer/start.sh
 ```
 
-## ✅ Verificar Configuración
+##  Verificar Configuración
 
 ```bash
 # Dentro del contenedor
@@ -19,7 +19,7 @@ verify
 bash .devcontainer/verify-setup.sh
 ```
 
-## 📦 Comandos Esenciales
+##  Comandos Esenciales
 
 ### Desarrollo (usando uv run)
 ```bash
@@ -50,7 +50,7 @@ aws-whoami   # Ver identidad AWS
 aws configure # Configurar credenciales
 ```
 
-## 🔧 Solución de Problemas
+##  Solución de Problemas
 
 ### Reinstalar dependencias
 ```bash
@@ -70,14 +70,14 @@ uv sync
 uvicorn apuntador.main:app --reload --port 8001
 ```
 
-## 📝 Archivos de Configuración
+##  Archivos de Configuración
 
 - `.devcontainer/devcontainer.json` - Configuración del contenedor
 - `.devcontainer/Dockerfile` - Imagen Docker
 - `pyproject.toml` - Dependencias del proyecto
 - `.env` - Variables de entorno (crear desde .env.example)
 
-## 🎯 Workflow Típico
+##  Workflow Típico
 
 ```bash
 # 1. Verificar que todo funciona
@@ -96,11 +96,11 @@ uv run python mi_script.py
 lint && test
 ```
 
-> 💡 **Tip**: No necesitas activar el entorno virtual. `uv run` automáticamente
+>  **Tip**: No necesitas activar el entorno virtual. `uv run` automáticamente
 > detecta y usa `.venv` del proyecto. Las dependencias se persisten en tu
 > disco local, no se pierden al reconstruir el contenedor.
 
-## 📚 Más Información
+##  Más Información
 
 - [README completo](.devcontainer/README.md)
 - [Documentación del proyecto](../README.md)

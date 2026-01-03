@@ -71,9 +71,9 @@ def create_app() -> FastAPI:
     # Configure custom OpenAPI schema
     configure_openapi(app)
 
-    logger.info(f"✅ FastAPI application created (v{__version__})")
-    logger.info("✅ Exception handlers registered (RFC 7807 Problem Details)")
-    logger.info("✅ OpenAPI documentation customized")
+    logger.info(f" FastAPI application created (v{__version__})")
+    logger.info(" Exception handlers registered (RFC 7807 Problem Details)")
+    logger.info(" OpenAPI documentation customized")
     logger.info(f"CORS origins: {settings.get_allowed_origins()}")
 
     return app

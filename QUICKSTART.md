@@ -1,4 +1,4 @@
-# 🚀 Quick Start
+#  Quick Start
 
 ## 1. Installation
 
@@ -95,9 +95,9 @@ http://localhost:8000/oauth/callback/googledrive
 
 ## Next steps
 
-1. ✅ Configure Google Drive OAuth in Google Cloud Console
-2. ✅ Configure Dropbox OAuth in Dropbox App Console  
-3. ✅ Run the backend (`make dev`)
-4. ✅ Modify the Apuntador client to use the backend (see CLIENT_INTEGRATION.md)
-5. ✅ Test the complete flow
-6. ✅ Deploy to production (Railway/Render/Fly.io)
+1.  Configure Google Drive OAuth in Google Cloud Console
+2.  Configure Dropbox OAuth in Dropbox App Console  
+3.  Run the backend (`make dev`)
+4.  Modify the Apuntador client to use the backend (see CLIENT_INTEGRATION.md)
+5.  Test the complete flow
+6.  Deploy to production (Railway/Render/Fly.io)
