@@ -234,12 +234,15 @@ def intercept_standard_logging() -> None:
 
     Intercepts logs from:
     - uvicorn (ASGI server)
-    - uvicorn.access (request logs)
+    - uvicorn.access (request logs) - with health check filter
     - uvicorn.error (error logs)
     - httpx (HTTP client)
 
     Call this function in main.py when initializing the app.
     """
+    # Import health check filter
+    from apuntador.core.uvicorn_filters import HealthCheckFilter
+
     # Configure basic logging
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO)
 
@@ -254,6 +257,10 @@ def intercept_standard_logging() -> None:
         logging_logger = logging.getLogger(logger_name)
         logging_logger.handlers = [InterceptHandler()]
         logging_logger.propagate = False
+
+        # Add health check filter specifically to uvicorn.access
+        if logger_name == "uvicorn.access":
+            logging_logger.addFilter(HealthCheckFilter())
 
 
 # Optional: Uncomment to intercept SQLAlchemy logs
