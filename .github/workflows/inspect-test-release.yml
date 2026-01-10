@@ -113,6 +113,7 @@ jobs:
       - name: Build and push standard image
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: ./Dockerfile
           push: true
           provenance: false
@@ -125,6 +126,7 @@ jobs:
       - name: Build and push lambda image
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: ./Dockerfile.lambda
           push: true
           provenance: false
