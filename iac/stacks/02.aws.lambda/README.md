@@ -1,163 +1,109 @@
-# Infrastructure as Code (IaC) - Terraform Configuration
+# Infrastructure as Code (IaC) - AWS Lambda + API Gateway
 
 ## Overview
 
-This directory contains Terraform configurations for deploying the Apuntador backend API to **AWS ECS Fargate** with **API Gateway HTTP API** and **VPC Link**.
+This directory contains Terraform configurations for deploying the Apuntador backend API to **AWS Lambda** (container image) with **API Gateway HTTP API**.
 
 ## Architecture
 
 ```
-
                          AWS Cloud                                            
                                                                               
   Internet                                                                   
-                                                                            
-                                                                            
                                                         
       Route 53        DNS: api.apuntador.io                               
                                                         
                                                                             
-                                                                            
                                                         
     API Gateway       HTTPS, Regional, Custom Domain                      
     (HTTP API)        - ACM Certificate (*.apuntador.io)                 
-    - CORS handled by FastAPI                          
-                                                                            
+                      - CORS configuration                          
+                      - Lambda proxy integration                          
                                                                             
                                                         
-     VPC Link         Private connection to VPC                           
-    (~$7/month)                                        
+                                                        
+    Lambda Function   Container Image                           
+    (apuntador-api)   - Python 3.14                                
+                      - 2048 MB memory                                
+                      - 300s timeout                                
+                      - OpenTelemetry auto-instrumentation                                
+                      - X-Ray tracing (PassThrough mode)                                
                                                                             
-       
-                      VPC (10.0.0.0/16)                                   
-                                                                           
-             
-     Public Subnets (10.0.1-3.0/24, 3 AZs)                            
-     - Internet Gateway                                                 
-     - Route to 0.0.0.0/0                                              
-                                                                        
-                                  
-        NAT Instance (t4g.nano)                                     
-        - EC2 with iptables NAT                                     
-        - Auto Scaling Group (HA)                                   
-        - SSM Session Manager access                                
-        - Cost: ~$3.50/month                             
-                                 
-             
+                                                        
+                      External APIs (via Internet)               
+                      - Dropbox OAuth                                
+                      - Google Drive OAuth                                
                                                                        
-                     Internet access for private subnets               
-                     (OAuth APIs: Dropbox, Google, etc.)               
-                                                                       
-            
-     Private Subnets (10.0.11-13.0/24, 3 AZs)                       
-                                                                      
-                             
-        Application Load Balancer                                 
-        - Internal (private)                                       
-        - HTTP listener (port 80)                                  
-        - Security Group: VPC traffic only                         
-                             
-                                                                    
-                                                                    
-                             
-        ECS Fargate Tasks                                          
-                                  
-         apuntador-api     ADOT                               
-         (FastAPI)         Collector                          
-         Port: 8000        Sidecar                            
-                                  
-        - CPU: 256, Memory: 512 MB                                 
-        - Auto-scaling (1-10 tasks)                                
-                             
-                                                                    
-                           
-                           (OAuth: Dropbox, Google via NAT)           
-                                                                      
-         
                                                                          
-                     DynamoDB (via Gateway EP)                 
-                              - Certificate storage                     
-                              - On-demand billing                       
+                     DynamoDB (on-demand)                 
+                     - Certificate storage                     
+                     - No VPC required                       
                                                                          
-                     S3 (via Gateway EP)                       
-                              - File storage                            
-                              - Free data transfer                      
+                     S3                       
+                     - File storage                            
+                     - Public access                      
                                                                          
-                     Secrets Manager (via IF EP)               
-                              - OAuth credentials                       
-                              - $0.40/secret/month                      
+                     Secrets Manager               
+                     - OAuth credentials                       
+                     - CA private key                      
                                                                          
-                     ECR (via Interface EP)                    
-                              - Container images                        
-                              - $14/month for 2 endpoints               
-                                                                         
-                     CloudWatch (via IF EP)                    
-                               - Logs and metrics                        
-                               - X-Ray tracing                           
+                     ECR (Elastic Container Registry)                    
+                     - Lambda container images                        
                                                                           
-            
-     VPC Endpoints (Interface: $7/mo each)                            
-     - ecr.api (required for Fargate)                                 
-     - ecr.dkr (required for Fargate)                                 
-     - logs (CloudWatch Logs)                                         
-                                                                       
-     VPC Endpoints (Gateway: FREE)                                    
-     - DynamoDB                                                        
-     - S3                                                              
-            
-  
-
+                     CloudWatch                    
+                     - Lambda logs                        
+                     - X-Ray traces                           
+                                                                          
 ```
 
 ## Key Architecture Decisions
 
-###  Security-First Design
+### Serverless-First Design
 
-1. **Private ALB**: Load balancer is **not exposed to internet**, only accessible via VPC Link
-2. **Private ECS Tasks**: All containers run in private subnets with **no public IPs**
-3. **API Gateway as Edge**: SSL termination at API Gateway, internal traffic unencrypted
-4. **VPC Endpoints**: No internet traffic for AWS services (DynamoDB, S3, ECR, CloudWatch)
+1. **Lambda Container Image**: Uses custom Dockerfile for full control over dependencies
+2. **No VPC Required**: Lambda accesses AWS services via AWS network (no NAT needed)
+3. **API Gateway as Edge**: SSL termination, throttling, CORS, request validation
+4. **IAM Permissions**: Least-privilege policies for DynamoDB, S3, Secrets Manager, X-Ray
 
-###  Cost Optimization
+### Cost Optimization
 
-- **NAT Instance instead of NAT Gateway**: Saved ~$73/month by using t4g.nano EC2 instance
-  - NAT Gateway: $32.40/month + $0.045/GB = ~$77/month for 1TB
-  - NAT Instance: $3.50/month + $0.01/GB = ~$13.50/month for 1TB
-  - **Savings: 82% ($63.50/month)**
-- **VPC Endpoints**: AWS service access without NAT for most traffic (~$21/month)
-- **Gateway Endpoints**: DynamoDB and S3 access is **FREE** (no data transfer charges)
-- **Interface Endpoints**: Only for services that require them (ECR, CloudWatch)
-- **Fargate Spot**: Option to use Spot instances for 70% cost reduction (future)
+- **Lambda on-demand**: Pay only for requests and compute time (no idle costs)
+- **No VPC infrastructure**: No NAT Gateway, VPC endpoints, or load balancers
+- **DynamoDB on-demand**: Pay per request (no provisioned capacity)
+- **Estimated monthly cost** (10M requests, 1GB-sec per request):
+  - Lambda compute: ~$20
+  - API Gateway: ~$35
+  - DynamoDB: ~$2.50
+  - CloudWatch Logs (1GB): ~$0.50
+  - **Total: ~$58/month** (vs ~$73/month for ECS Fargate)
 
-###  Observability
+### Observability
 
-- **AWS Distro for OpenTelemetry (ADOT)**: Sidecar container for tracing
-- **X-Ray Integration**: Distributed tracing across all services
-- **CloudWatch Logs**: Centralized logging with structured JSON
-- **Container Insights**: ECS metrics and performance monitoring
+- **OpenTelemetry**: Auto-instrumentation via `aws-opentelemetry-distro` in container
+- **X-Ray Integration**: Distributed tracing with PassThrough mode (low overhead)
+- **CloudWatch Logs**: Structured JSON logging via Loguru
+- **Lambda Insights**: Performance metrics and profiling (optional)
 
 ## Directory Structure
 
 ```
-iac/stacks/01.applications/
- 00.common.tf              # VPC, subnets, VPC endpoints, log groups
- 01.api.tf                 # ECS cluster, task definition, service, ALB
- 02.domain-ssl.tf          # API Gateway, VPC Link, Route53, ACM certificate
- variables.tf              # All input variables
- providers.tf              # AWS provider configuration
- versions.tf               # Terraform version constraints
- outputs.tf                # Stack outputs
- README.md                 # This file
+iac/stacks/02.aws.lambda/
+├── 01.api.tf                 # Lambda function, IAM policies, API Gateway
+├── variables.tf              # Input variables
+├── configuration.application.tfvars  # Variable values
+├── providers.tf              # AWS provider configuration
+├── versions.tf               # Terraform version constraints
+├── outputs.tf                # Stack outputs
+└── README.md                 # This file
 ```
 
 ## Prerequisites
 
 - **Terraform 1.10+** (installed in devcontainer)
 - **AWS CLI v2** configured with appropriate credentials
-- **Docker** (for building ECS container images)
+- **Docker** (for building Lambda container images)
 - **AWS account** with permissions for:
-  - ECS (Fargate)
-  - EC2 (VPC, subnets, security groups, load balancers)
+  - Lambda
   - API Gateway v2 (HTTP API)
   - DynamoDB
   - S3
@@ -165,43 +111,50 @@ iac/stacks/01.applications/
   - IAM
   - CloudWatch Logs
   - ECR (Elastic Container Registry)
-  - Route 53 (optional, for custom domain)
-  - ACM (AWS Certificate Manager, optional)
+  - Route 53 (for custom domain)
+  - ACM (AWS Certificate Manager)
+  - X-Ray
 
 ## Configuration
 
-### 1. Copy and configure variables
+### 1. Build and push Lambda container image
 
 ```bash
-cd iac/stacks/01.applications
-cp terraform.tfvars.example terraform.tfvars  # Create this file from variables.tf
+# Build Lambda container
+docker build -f Dockerfile.lambda -t apuntador-lambda:latest .
+
+# Tag for ECR
+docker tag apuntador-lambda:latest 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:latest
+
+# Login to ECR
+aws ecr get-login-password --region eu-west-1 | \
+  docker login --username AWS --password-stdin 670089840758.dkr.ecr.eu-west-1.amazonaws.com
+
+# Push to ECR
+docker push 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:latest
 ```
 
-### 2. Edit `terraform.tfvars`
+### 2. Configure Terraform variables
 
-**Required variables:**
+Edit `configuration.application.tfvars`:
 
 ```hcl
 # Basic Configuration
 environment = "production"  # or "dev", "staging"
 project     = "apuntador"
-region      = "eu-west-1"  # or your preferred AWS region
+region      = "eu-west-1"
 cost_center = "engineering"
 
-# VPC Configuration (from 00.common.tf)
-vpc_cidr             = "10.0.0.0/16"
-availability_zones   = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
-public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
+# Lambda Configuration
+lambda_memory_size      = 2048   # MB (128-10240)
+lambda_timeout          = 300    # seconds (max 900 for HTTP API)
+lambda_ephemeral_storage = 512   # MB (512-10240)
 
-# ECS Configuration
-api_image       = "123456789012.dkr.ecr.eu-west-1.amazonaws.com/apuntador:1.0.0"
-task_cpu        = "256"   # 0.25 vCPU
-task_memory     = "512"   # 512 MB
-desired_count   = 2       # Number of tasks (auto-scaling)
+# Container Image
+api_image = "670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:latest"
 
 # Application Configuration
-secret_key      = "generate-a-secure-random-32-char-key-here"  # IMPORTANT!
+secret_key      = "generate-a-secure-random-32-char-key-here"  # REQUIRED
 allowed_origins = "https://app.apuntador.io,capacitor://localhost,tauri://localhost"
 debug           = false
 enable_docs     = false   # true for development
@@ -209,289 +162,549 @@ enable_docs     = false   # true for development
 # Cloud Provider Configuration
 enabled_cloud_providers = "googledrive,dropbox"  # Comma-separated
 
-# OAuth Credentials (from Secrets Manager or direct)
-google_client_id      = "your-google-client-id.apps.googleusercontent.com"
-google_client_secret  = "GOCSPX-your-google-client-secret"
-google_redirect_uri   = "https://api.apuntador.io/oauth/callback/googledrive"
+# API Gateway Configuration
+enable_custom_domain = true
+domain_name          = "api.apuntador.io"
+zone_id              = "Z123456789ABCDEFGHIJ"  # Route 53 zone
 
-dropbox_client_id     = "your-dropbox-app-key"
-dropbox_client_secret = "your-dropbox-app-secret"
-dropbox_redirect_uri  = "https://api.apuntador.io/oauth/callback/dropbox"
-
-# Infrastructure Resources
-dynamodb_table_name   = "apuntador-certificates"
-s3_bucket_name        = "apuntador-storage-eu-west-1"
-secrets_prefix        = "apuntador"
-auto_create_resources = true  # Auto-create DynamoDB/S3 if missing
-
-# Logging
-log_level  = "INFO"    # DEBUG, INFO, WARNING, ERROR
-log_format = "json"    # json or human
-
-# Domain Configuration (optional)
-domain_name      = "api.apuntador.io"          # null to disable
-route53_zone_id  = "Z1234567890ABC"            # Route53 hosted zone ID
-certificate_arn  = null                         # Use existing cert or auto-create
-
-# CloudWatch
-api_gateway_log_retention_days = 7  # Days to retain API Gateway logs
+# OpenTelemetry Configuration
+enable_otel          = true
+otel_service_name    = "apuntador-api"
+otel_log_level       = "INFO"
 ```
 
-**Key Configuration Variables:**
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `api_image` | ECR image URI for ECS tasks | - |  Yes |
-| `secret_key` | Secret key for signing tokens (min 32 chars) | - |  Yes |
-| `enabled_cloud_providers` | Comma-separated list of providers | `"googledrive,dropbox"` | No |
-| `allowed_origins` | CORS origins (comma-separated) | `"*"` | No |
-| `task_cpu` | ECS task CPU (256, 512, 1024, 2048, 4096) | `"256"` | No |
-| `task_memory` | ECS task memory in MB | `"512"` | No |
-| `desired_count` | Number of ECS tasks to run | `2` | No |
-| `debug` | Enable debug mode | `false` | No |
-| `log_level` | Logging level | `"INFO"` | No |
-| `enable_docs` | Enable API documentation (Swagger) | `false` | No |
-| `domain_name` | Custom domain for API Gateway | `null` | No |
-
-### 3. Cloud Provider Configuration
-
-The `enabled_cloud_providers` variable controls which OAuth providers are available to clients:
-
-**Examples:**
-
-```hcl
-# Enable Google Drive only
-enabled_cloud_providers = "googledrive"
-
-# Enable Dropbox only
-enabled_cloud_providers = "dropbox"
-
-# Enable both (default)
-enabled_cloud_providers = "googledrive,dropbox"
-
-# Enable all (including OneDrive)
-enabled_cloud_providers = "googledrive,dropbox,onedrive"
-
-# Disable all cloud storage
-enabled_cloud_providers = ""
-```
-
-**Note:** Even if you disable a provider, you still need to provide dummy OAuth credentials in `terraform.tfvars` (Terraform validates all variables). Use placeholder values like `"disabled"` for disabled providers.
-
-## Deployment
-
-### 1. Build and push Docker image to ECR
+### 3. Initialize Terraform
 
 ```bash
-# From project root
-cd /workspaces/apuntador-backend
-
-# Build Docker image
-docker build -t apuntador-backend:latest .
-
-# Login to ECR
-aws ecr get-login-password --region eu-west-1 | \
-  docker login --username AWS --password-stdin 123456789012.dkr.ecr.eu-west-1.amazonaws.com
-
-# Tag and push
-docker tag apuntador-backend:latest \
-  123456789012.dkr.ecr.eu-west-1.amazonaws.com/apuntador:1.0.0
-docker push 123456789012.dkr.ecr.eu-west-1.amazonaws.com/apuntador:1.0.0
-```
-
-**Note**: Replace `123456789012` with your AWS account ID.
-
-### 2. Initialize Terraform
-
-```bash
-cd iac/stacks/01.applications
+cd iac/stacks/02.aws.lambda
 terraform init
 ```
 
-### 3. Plan deployment
+### 4. Plan and apply
 
 ```bash
-terraform plan -out=tfplan
+# Review changes
+terraform plan -var-file=configuration.application.tfvars
+
+# Apply infrastructure
+terraform apply -var-file=configuration.application.tfvars
 ```
 
-Review the changes carefully before applying. Expected resources:
-- **VPC**: 1 VPC, 6 subnets (3 public + 3 private), 1 Internet Gateway
-- **VPC Endpoints**: 5 endpoints (DynamoDB, S3, ECR API, ECR DKR, CloudWatch Logs)
-- **ECS**: 1 cluster, 1 task definition, 1 service
-- **ALB**: 1 internal load balancer, 2 security groups, 1 target group, 1 listener
-- **API Gateway**: 1 HTTP API, 1 VPC Link, 1 integration, 2 routes
-- **CloudWatch**: 2 log groups (backend + ADOT collector)
-- **IAM**: 2 roles (execution + task), 3 policies
-- **Route53**: 2 records (A + AAAA) - if domain configured
-- **ACM**: 1 certificate - if domain configured and cert doesn't exist
+## Lambda Function Configuration
 
-### 4. Apply configuration
+### Container Image Requirements
+
+The Lambda function uses a custom container image built from `Dockerfile.lambda`:
+
+```dockerfile
+FROM public.ecr.aws/lambda/python:3.14
+
+# Install dependencies
+COPY pyproject.toml uv.lock ./
+RUN pip install uv && \
+    uv pip install --system -r pyproject.toml
+
+# Install OpenTelemetry auto-instrumentation
+RUN pip install opentelemetry-instrumentation && \
+    opentelemetry-bootstrap --action=install
+
+# Copy application code
+COPY src/ ${LAMBDA_TASK_ROOT}/
+
+# Set Lambda handler
+CMD ["apuntador.lambda_main.handler"]
+```
+
+### Environment Variables (configured in Terraform)
 
 ```bash
-terraform apply tfplan
+# Application
+SECRET_KEY              # Random 32+ char string for signing tokens
+ALLOWED_ORIGINS         # CORS origins (comma-separated)
+DEBUG                   # true/false
+ENABLE_DOCS             # true/false (Swagger UI)
+ENABLED_CLOUD_PROVIDERS # googledrive,dropbox,onedrive
+
+# Infrastructure
+INFRASTRUCTURE_PROVIDER = "aws"
+SECRETS_PROVIDER        = "aws"
+CERTIFICATE_DB_PROVIDER = "aws"
+STORAGE_PROVIDER        = "aws"
+
+# AWS Resources (auto-populated by Terraform)
+AWS_ACCOUNT_ID
+AWS_REGION
+DYNAMODB_TABLE_NAME
+S3_BUCKET_NAME
+SECRETS_ARN_PREFIX
+
+# OpenTelemetry (optional)
+OTEL_SERVICE_NAME           = "apuntador-api"
+OTEL_PROPAGATORS            = "tracecontext,xray"
+OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED = "true"
+OTEL_EXPORTER_OTLP_PROTOCOL = "http/protobuf"
+OTEL_TRACES_EXPORTER        = "otlp"
+OTEL_METRICS_EXPORTER       = "none"
+OTEL_LOGS_EXPORTER          = "none"
 ```
 
-Or with auto-approve (use carefully):
-```bash
-terraform apply -auto-approve
+### IAM Permissions
+
+The Lambda execution role has permissions for:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": "arn:aws:dynamodb:eu-west-1:*:table/apuntador-*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::apuntador-*/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:eu-west-1:*:secret:apuntador/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "xray:PutTraceSegments",
+        "xray:PutTelemetryRecords"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
 ```
 
-**Deployment time**: ~10-15 minutes
-- VPC and subnets: ~2 minutes
-- VPC Link: ~5-10 minutes  (slowest resource)
-- ECS service: ~2-3 minutes
-- API Gateway: ~1 minute
+## API Gateway Configuration
 
-### 5. Verify deployment
+### HTTP API vs REST API
 
-```bash
-# Get API endpoint
-terraform output api_endpoint
+This stack uses **API Gateway HTTP API** (not REST API) for:
 
-# Test health check
-curl https://api.apuntador.io/health
+- Lower cost: $1.00/million vs $3.50/million
+- Native Lambda proxy integration
+- Built-in CORS support
+- Lower latency (p99 ~5ms vs ~10ms)
 
-# Expected response:
-# {"status": "healthy", "version": "1.0.0"}
-```
-
-### 6. Monitor deployment
-
-```bash
-# Watch ECS service deployment
-aws ecs describe-services \
-  --cluster production-apuntador-cluster \
-  --services production-apuntador-service \
-  --region eu-west-1
-
-# View ECS task logs
-aws logs tail /aws/ecs/production-apuntador/backend --follow
-
-# View ADOT collector logs
-aws logs tail /aws/ecs/production-apuntador/adot --follow
-```
-
-## Updating Configuration
-
-### Changing enabled cloud providers
-
-1. Edit `terraform.tfvars`:
-   ```hcl
-   enabled_cloud_providers = "googledrive"  # Disable Dropbox
-   ```
-
-2. Apply changes:
-   ```bash
-   terraform apply
-   ```
-
-3. ECS service will perform **rolling update** (zero downtime)
-4. Clients will fetch updated config from `/config/providers` endpoint
-
-**No client-side changes required!** Clients automatically adapt to the new configuration.
-
-### Scaling ECS tasks
+### Custom Domain Setup
 
 ```hcl
-# In terraform.tfvars
-desired_count = 5  # Scale to 5 tasks
+# Terraform automatically creates:
+# 1. ACM certificate for *.apuntador.io
+# 2. API Gateway domain name (api.apuntador.io)
+# 3. Route 53 A record -> API Gateway
+# 4. API Gateway stage mapping (default -> Lambda)
 ```
 
-Or use AWS CLI:
+### Request Flow
+
+```
+Client Request
+  -> DNS (Route 53): api.apuntador.io
+  -> API Gateway: HTTPS termination, CORS headers
+  -> Lambda: Mangum converts ASGI to Lambda event
+  -> FastAPI: Routes to endpoint handler
+  -> Response: JSON with CORS headers
+```
+
+## OpenTelemetry Configuration
+
+### Auto-Instrumentation without Lambda Layers
+
+Since container images cannot use Lambda layers, OpenTelemetry is installed directly:
+
 ```bash
-aws ecs update-service \
-  --cluster production-apuntador-cluster \
-  --service production-apuntador-service \
-  --desired-count 5 \
-  --region eu-west-1
+# In Dockerfile.lambda
+RUN pip install aws-opentelemetry-distro[otlp]
+RUN pip install opentelemetry-instrumentation
+RUN opentelemetry-bootstrap --action=install
 ```
 
-### Updating Docker image (new version)
+This automatically instruments:
+- FastAPI requests/responses
+- HTTP client calls (httpx)
+- Python logging (Loguru)
+
+### X-Ray Integration
+
+```python
+# src/apuntador/core/telemetry.py
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+# Lambda sends traces directly to X-Ray via OTLP
+exporter = OTLPSpanExporter(
+    endpoint="https://xray.eu-west-1.amazonaws.com",
+    headers={"Content-Type": "application/x-protobuf"}
+)
+
+provider.add_span_processor(BatchSpanProcessor(exporter))
+```
+
+### Viewing Traces
 
 ```bash
-# 1. Build new image
-docker build -t apuntador-backend:1.1.0 .
+# AWS X-Ray Console
+# -> Service Map: Visual graph of service dependencies
+# -> Traces: Individual request traces with timing
+# -> Analytics: Query traces by status code, latency, etc.
 
-# 2. Push to ECR
-docker tag apuntador-backend:1.1.0 \
-  123456789012.dkr.ecr.eu-west-1.amazonaws.com/apuntador:1.1.0
-docker push 123456789012.dkr.ecr.eu-west-1.amazonaws.com/apuntador:1.1.0
-
-# 3. Update terraform.tfvars
-api_image = "123456789012.dkr.ecr.eu-west-1.amazonaws.com/apuntador:1.1.0"
-
-# 4. Apply
-terraform apply
+# Or use AWS CLI
+aws xray get-trace-summaries \
+  --start-time $(date -u -d '1 hour ago' +%s) \
+  --end-time $(date -u +%s)
 ```
 
-ECS will perform rolling update:
-- Start new tasks with new image
-- Wait for health checks to pass
-- Drain connections from old tasks
-- Terminate old tasks
+## Deployment Workflow
 
-**Zero downtime deployment!** 
+### Initial Deployment
 
-## Environment Variables
+```bash
+# 1. Build and push container image
+docker build -f Dockerfile.lambda -t apuntador-lambda .
+docker tag apuntador-lambda:latest 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:latest
+aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 670089840758.dkr.ecr.eu-west-1.amazonaws.com
+docker push 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:latest
 
-All application configuration is passed as ECS task environment variables. Key variables:
+# 2. Deploy infrastructure
+cd iac/stacks/02.aws.lambda
+terraform init
+terraform plan -var-file=configuration.application.tfvars
+terraform apply -var-file=configuration.application.tfvars
 
-### Application
-- `HOST` - Server host (always `0.0.0.0` for ECS)
-- `PORT` - Server port (always `8000` for ECS)
-- `DEBUG` - Debug mode (`true`/`false`)
-- `SECRET_KEY` - Secret key for token signing (**sensitive**)
-- `ALLOWED_ORIGINS` - CORS allowed origins (comma-separated)
-- `ENABLE_DOCS` - Enable API documentation (`true`/`false`)
+# 3. Test API
+curl https://api.apuntador.io/health
+# Expected: {"status": "healthy", "version": "1.0.0"}
+```
 
-### OpenTelemetry (ADOT Sidecar)
-- `OTEL_ENABLED` - Enable OpenTelemetry (`true`)
-- `OTEL_SERVICE_NAME` - Service name (`apuntador-api`)
-- `OTEL_EXPORTER_OTLP_ENDPOINT` - OTLP endpoint (`http://localhost:4317`)
-- `OTEL_EXPORTER_OTLP_PROTOCOL` - Protocol (`grpc`)
-- `OTEL_PROPAGATORS` - Trace propagators (`xray`)
-- `OTEL_PYTHON_DISTRO` - Python distribution (`aws_distro`)
-- `OTEL_TRACES_SAMPLER` - Sampling strategy (`parentbased_traceidratio`)
-- `OTEL_TRACES_SAMPLER_ARG` - Sampling ratio (`0.1` = 10%)
+### Code Updates (without infrastructure changes)
 
-### Logging
-- `LOG_LEVEL` - Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- `LOG_FORMAT` - Log format (`json` for production, `human` for dev)
-- `ENABLE_REQUEST_LOGGING` - Log all HTTP requests (`true`)
+```bash
+# 1. Rebuild and push new image
+docker build -f Dockerfile.lambda -t apuntador-lambda .
+docker tag apuntador-lambda:latest 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:$(git rev-parse --short HEAD)
+docker push 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:$(git rev-parse --short HEAD)
 
-### Cloud Providers
-- `ENABLED_CLOUD_PROVIDERS` - Comma-separated list of enabled providers
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI`
-- `DROPBOX_CLIENT_ID` / `DROPBOX_CLIENT_SECRET` / `DROPBOX_REDIRECT_URI`
+# 2. Update Lambda function code
+aws lambda update-function-code \
+  --function-name apuntador3-api \
+  --image-uri 670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:$(git rev-parse --short HEAD)
 
-### Infrastructure (AWS)
-- `INFRASTRUCTURE_PROVIDER` - Always `aws` for ECS
-- `AWS_REGION` - AWS region (`eu-west-1`)
-- `AWS_DYNAMODB_TABLE` - DynamoDB table name for certificates
-- `AWS_S3_BUCKET` - S3 bucket name for storage
-- `AWS_SECRETS_PREFIX` - Secrets Manager prefix (`apuntador`)
-- `AUTO_CREATE_RESOURCES` - Auto-create AWS resources if missing (`true`)
+# 3. Wait for update to complete
+aws lambda wait function-updated --function-name apuntador3-api
+
+# 4. Test
+curl https://api.apuntador.io/health
+```
+
+## Monitoring and Troubleshooting
+
+### CloudWatch Logs
+
+```bash
+# View recent logs
+aws logs tail /aws/lambda/apuntador3-api --follow
+
+# Search for errors
+aws logs filter-log-events \
+  --log-group-name /aws/lambda/apuntador3-api \
+  --filter-pattern "ERROR"
+
+# Query with Insights
+aws logs start-query \
+  --log-group-name /aws/lambda/apuntador3-api \
+  --start-time $(date -u -d '1 hour ago' +%s) \
+  --end-time $(date -u +%s) \
+  --query-string 'fields @timestamp, @message | filter @message like /500/ | sort @timestamp desc | limit 20'
+```
+
+### Lambda Metrics
+
+Key metrics in CloudWatch:
+
+- **Invocations**: Total requests
+- **Duration**: Average execution time
+- **Errors**: Failed invocations
+- **Throttles**: Requests rejected due to concurrency limits
+- **ConcurrentExecutions**: Number of simultaneous invocations
+- **ProvisionedConcurrency**: Reserved capacity (if configured)
+
+### Performance Tuning
+
+```hcl
+# Increase memory for better CPU performance
+lambda_memory_size = 3008  # 2 vCPUs at 1769 MB, max 6 vCPUs at 10240 MB
+
+# Reduce cold starts with provisioned concurrency
+resource "aws_lambda_provisioned_concurrency_config" "api" {
+  function_name = aws_lambda_function.api.function_name
+  provisioned_concurrent_executions = 5  # Keeps 5 instances warm
+}
+
+# Increase ephemeral storage for large uploads
+lambda_ephemeral_storage = 10240  # 10 GB
+```
+
+### Common Issues
+
+#### Issue: Lambda timeout (504 Gateway Timeout)
+
+**Symptoms**: API returns 504 after 30 seconds (API Gateway limit) or 300 seconds (Lambda timeout)
+
+**Solution**:
+```hcl
+# Increase Lambda timeout
+lambda_timeout = 900  # Max for HTTP API integration
+
+# Or reduce timeout for faster failures
+lambda_timeout = 30  # Fail fast if slow
+```
+
+#### Issue: High memory usage or OOM errors
+
+**Symptoms**: Lambda crashes with "Task timed out after X seconds" or memory errors
+
+**Solution**:
+```hcl
+# Increase memory (also increases CPU)
+lambda_memory_size = 4096  # 4 GB
+
+# Check memory usage in logs
+# Look for: "Max Memory Used: X MB"
+```
+
+#### Issue: Cold start latency (>1s response time)
+
+**Symptoms**: First request after idle takes 5-10 seconds
+
+**Solutions**:
+1. Reduce container size (optimize Dockerfile)
+2. Use provisioned concurrency (keeps instances warm)
+3. Increase memory (faster initialization)
+
+```hcl
+# Provisioned concurrency (costs ~$0.015/hour per instance)
+resource "aws_lambda_provisioned_concurrency_config" "api" {
+  function_name = aws_lambda_function.api.function_name
+  provisioned_concurrent_executions = 2
+}
+```
+
+#### Issue: OTEL traces not appearing in X-Ray
+
+**Symptoms**: No traces in X-Ray console despite OTEL enabled
+
+**Diagnostics**:
+```bash
+# Check Lambda logs for OTEL output
+aws logs tail /aws/lambda/apuntador3-api --follow | grep -i otel
+
+# Verify environment variables
+aws lambda get-function-configuration --function-name apuntador3-api | jq '.Environment.Variables | with_entries(select(.key | startswith("OTEL")))'
+```
+
+**Solution**:
+```hcl
+# Ensure X-Ray tracing is enabled
+tracing_config {
+  mode = "PassThrough"  # Or "Active" for X-Ray SDK
+}
+
+# Verify OTEL env vars in Terraform
+environment {
+  variables = {
+    OTEL_SERVICE_NAME    = "apuntador-api"
+    OTEL_PROPAGATORS     = "tracecontext,xray"
+    OTEL_TRACES_EXPORTER = "otlp"
+  }
+}
+```
+
+## Cost Analysis
+
+### Monthly Cost Estimate (Production)
+
+**Assumptions**:
+- 10 million requests/month
+- Average 500ms execution time
+- 2048 MB memory
+- 1 GB CloudWatch Logs
+- No provisioned concurrency
+
+**Breakdown**:
+- **Lambda compute**: 10M * 1 GB-sec * $0.0000166667 = $20.00
+- **Lambda requests**: 10M * $0.20/million = $2.00
+- **API Gateway**: 10M * $1.00/million = $10.00
+- **DynamoDB**: 1M reads/writes * $0.25/million = $0.50
+- **S3**: 100 GB * $0.023/GB = $2.30
+- **CloudWatch Logs**: 1 GB * $0.50/GB = $0.50
+- **Secrets Manager**: 5 secrets * $0.40 = $2.00
+- **X-Ray**: 10M traces * $5.00/million = $50.00 (first 100K free)
+  - **Note**: Disable X-Ray or use sampling to reduce costs
+
+**Total (without X-Ray)**: ~$37.30/month
+**Total (with X-Ray)**: ~$87.30/month
+
+### Cost Optimization Tips
+
+1. **Reduce X-Ray costs**: Use sampling (1 in 100 traces)
+   ```hcl
+   environment {
+     variables = {
+       AWS_XRAY_SAMPLING_RATE = "0.01"  # 1% of requests
+     }
+   }
+   ```
+
+2. **Right-size memory**: Monitor "Max Memory Used" in logs
+   ```bash
+   aws logs filter-log-events \
+     --log-group-name /aws/lambda/apuntador3-api \
+     --filter-pattern "Max Memory Used"
+   ```
+
+3. **Use S3 Intelligent-Tiering**: Automatic cost optimization for storage
+
+4. **Enable DynamoDB Auto Scaling**: Pay only for what you use
+
+5. **CloudWatch Logs retention**: Reduce from indefinite to 30 days
+   ```hcl
+   resource "aws_cloudwatch_log_group" "lambda" {
+     retention_in_days = 30  # vs never (indefinite)
+   }
+   ```
+
+## Comparison: Lambda vs ECS Fargate
+
+| Feature | Lambda (this stack) | ECS Fargate (01.applications) |
+|---------|---------------------|-------------------------------|
+| **Cost/month** | ~$37-87 | ~$58-73 |
+| **Cold start** | 1-5s (container) | None (always running) |
+| **Scalability** | 1-1000 concurrent | Manual scaling |
+| **Idle cost** | $0 | ~$25 (min 1 task) |
+| **VPC required** | No | Yes |
+| **NAT cost** | $0 | $3.50 (NAT instance) |
+| **Maintenance** | Minimal | Medium (ECS updates) |
+| **Best for** | Variable traffic | Consistent traffic |
+
+**When to use Lambda**:
+- Unpredictable traffic patterns
+- Low request volume (<100 req/sec)
+- Cost optimization priority
+- Minimal infrastructure maintenance
+
+**When to use ECS Fargate**:
+- Consistent high traffic
+- Sub-second response time requirements
+- Complex networking (VPN, VPC peering)
+- Long-running background tasks
 
 ## Security Best Practices
 
-### Secret Management
+1. **Secrets Management**: Never hardcode credentials in environment variables
+   ```hcl
+   # Store in Secrets Manager
+   resource "aws_secretsmanager_secret" "oauth_google" {
+     name = "apuntador/oauth/google"
+   }
+   
+   # Reference in Lambda
+   environment {
+     variables = {
+       GOOGLE_CLIENT_SECRET_ARN = aws_secretsmanager_secret.oauth_google.arn
+     }
+   }
+   ```
 
-**DO:**
--  Use AWS Secrets Manager for OAuth secrets (future enhancement)
--  Generate strong `secret_key` (min 32 chars, random)
--  Rotate `secret_key` regularly
--  Use different `secret_key` per environment
--  Store `terraform.tfvars` in secure location (not in Git)
+2. **IAM Least Privilege**: Grant only required permissions
+   ```hcl
+   # Bad: Grant all DynamoDB permissions
+   # "dynamodb:*"
+   
+   # Good: Grant specific actions on specific tables
+   "dynamodb:GetItem",
+   "dynamodb:PutItem",
+   "dynamodb:UpdateItem"
+   ```
 
-**DON'T:**
--  Commit `terraform.tfvars` to Git
--  Use simple passwords like "password123"
--  Share `secret_key` across environments
--  Expose `secret_key` in logs
+3. **API Gateway Throttling**: Prevent abuse
+   ```hcl
+   resource "aws_api_gateway_stage" "prod" {
+     throttle_settings {
+       burst_limit = 5000   # Max concurrent requests
+       rate_limit  = 10000  # Max requests per second
+     }
+   }
+   ```
 
-### CORS Configuration
+4. **CORS Configuration**: Restrict allowed origins
+   ```hcl
+   allowed_origins = "https://app.apuntador.io"  # Production domain only
+   # NOT: "*" (allows any origin)
+   ```
 
-Configure `allowed_origins` to only include your actual domains:
+5. **CloudWatch Logs Encryption**: Enable KMS encryption
+   ```hcl
+   resource "aws_cloudwatch_log_group" "lambda" {
+     kms_key_id = aws_kms_key.logs.arn
+   }
+   ```
+
+## Outputs
+
+After successful deployment, Terraform outputs:
+
+```hcl
+api_url                = "https://api.apuntador.io"
+lambda_function_name   = "apuntador3-api"
+lambda_function_arn    = "arn:aws:lambda:eu-west-1:670089840758:function:apuntador3-api"
+api_gateway_id         = "abcd123456"
+dynamodb_table_name    = "apuntador-certificates"
+s3_bucket_name         = "apuntador-storage-prod"
+cloudwatch_log_group   = "/aws/lambda/apuntador3-api"
+```
+
+Use these for CI/CD pipelines, monitoring, or manual debugging.
+
+## Next Steps
+
+1. **Set up CI/CD**: Automate container builds and Lambda updates
+2. **Configure monitoring**: CloudWatch alarms for errors, latency, throttling
+3. **Enable WAF**: Add AWS WAF to API Gateway for DDoS protection
+4. **Implement caching**: Add CloudFront CDN for static responses
+5. **Load testing**: Use k6 or Locust to validate scalability
+6. **Cost optimization**: Review AWS Cost Explorer monthly
+
+## References
+
+- [AWS Lambda Container Images](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html)
+- [API Gateway HTTP API](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html)
+- [OpenTelemetry for Lambda](https://aws-otel.github.io/docs/getting-started/lambda)
+- [Mangum (ASGI adapter)](https://mangum.io/)
+- [FastAPI Deployment](https://fastapi.tiangolo.com/deployment/docker/)
+
 
 ```hcl
 # Production

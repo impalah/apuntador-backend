@@ -6,7 +6,7 @@ module "apuntador-api" {
   source           = "../../modules/lambda"
   environment      = var.environment
   project          = var.project
-  function_name    = "apuntador3-api"
+  function_name    = "apuntador-api"
   function_memory  = "2048"
   function_storage = "512"
   function_timeout = "300"
