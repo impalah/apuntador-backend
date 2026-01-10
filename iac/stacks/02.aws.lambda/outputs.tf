@@ -55,18 +55,18 @@ output "autoscaling_configuration" {
 # API Gateway Outputs
 ################################################################################
 
-output "api_gateway_url" {
-  description = "API Gateway invoke URL"
-  value       = module.api-gateway.apigatewayv2_api_api_endpoint
-}
+# output "api_gateway_url" {
+#   description = "API Gateway invoke URL"
+#   value       = module.api_gateway.apigatewayv2_api_api_endpoint
+# }
 
-output "api_gateway_id" {
-  description = "API Gateway ID"
-  value       = module.api-gateway.apigatewayv2_api_id
-}
+# output "api_gateway_id" {
+#   description = "API Gateway ID"
+#   value       = module.api_gateway.apigatewayv2_api_id
+# }
 
-output "custom_domain_url" {
-  description = "Custom domain URL (if configured)"
-  value       = var.domain_name != null ? "https://${var.domain_name}" : "Not configured"
-}
+# output "custom_domain_url" {
+#   description = "Custom domain URL (if configured)"
+#   value       = var.domain_name != null ? "https://${var.domain_name}" : "Not configured"
+# }
 
