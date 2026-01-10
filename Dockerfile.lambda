@@ -21,10 +21,14 @@ RUN uv export --no-emit-project --no-hashes --frozen --no-dev --no-editable -o $
 RUN pip install -r requirements.txt
 
 # Install AWS ADOT (OpenTelemetry) for Lambda
-RUN pip install aws-opentelemetry-distro[otlp]
+RUN pip install aws-opentelemetry-distro[otlp] opentelemetry-instrumentation
 
 # Copy function code
 COPY src/.  ${LAMBDA_TASK_ROOT}/
+
+# Configure OpenTelemetry auto-instrumentation
+# This replaces the need for AWS_LAMBDA_EXEC_WRAPPER
+RUN opentelemetry-bootstrap --action=install
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 CMD ["apuntador.lambda_main.lambda_handler"]

@@ -1,0 +1,99 @@
+# ========================================
+# Apuntador Backend Configuration
+# ========================================
+
+# Basic Configuration
+environment = "production"
+project     = "apuntador"
+region      = "eu-west-1"
+
+# API Container Image (from ECR)
+api_image = "670089840758.dkr.ecr.eu-west-1.amazonaws.com/apuntador/backend:0.1.0"
+
+# Application Configuration
+debug           = "false"
+secret_key      = "your-super-secure-secret-key-min-32-chars-here"
+allowed_origins = "https://apuntador.app,capacitor://localhost,tauri://localhost"
+log_level       = "INFO"
+
+# Cloud Provider Configuration
+# Comma-separated list of enabled providers: googledrive, dropbox, onedrive
+enabled_cloud_providers = "googledrive,dropbox"
+
+# AWS Infrastructure
+aws_region             = "eu-west-1"
+dynamodb_table_name    = "apuntador-certificates"
+s3_bucket_name         = "apuntador-storage-prod"
+secrets_prefix         = "apuntador"
+auto_create_resources  = "true"
+
+# Google Drive OAuth
+google_client_id       = "your-google-client-id.apps.googleusercontent.com"
+google_client_secret   = "GOCSPX-your-google-client-secret"
+google_redirect_uri    = "https://api.apuntador.app/oauth/callback/googledrive"
+
+# Dropbox OAuth
+dropbox_client_id      = "your-dropbox-app-key"
+dropbox_client_secret  = "your-dropbox-app-secret"
+dropbox_redirect_uri   = "https://api.apuntador.app/oauth/callback/dropbox"
+
+# ========================================
+# Domain & SSL Configuration
+# ========================================
+domain_name            = "api.apuntador.app"
+route53_zone_id        = "Z1234567890ABC"
+
+# ========================================
+# ECS Configuration
+# ========================================
+desired_count = 2
+task_cpu      = "256"
+task_memory   = "512"
+
+# ========================================
+# ECS Auto Scaling Configuration
+# ========================================
+
+# Enable/disable auto scaling for ECS tasks
+enable_autoscaling = true
+
+# Capacity configuration
+autoscaling_min_capacity = 2    # Minimum number of tasks (default: 2)
+autoscaling_max_capacity = 10   # Maximum number of tasks (default: 10)
+
+# Target metrics for scaling
+# Tasks will scale out when metrics exceed these targets
+# and scale in when metrics are below these targets
+autoscaling_cpu_target    = 70   # Target CPU utilization % (default: 70)
+autoscaling_memory_target = 80   # Target memory utilization % (default: 80)
+autoscaling_request_count_target = 1000  # Target requests per task (default: 1000)
+
+# Cooldown periods (in seconds)
+# These prevent rapid scaling and allow metrics to stabilize
+autoscaling_scale_in_cooldown  = 300  # Wait 5 minutes before scaling in (default: 300)
+autoscaling_scale_out_cooldown = 60   # Wait 1 minute before scaling out (default: 60)
+
+# ========================================
+# Logging Configuration
+# ========================================
+lambda_log_retention_days      = 7
+api_gateway_log_retention_days = 7
+enable_docs = true
+
+# ========================================
+# CORS Configuration
+# ========================================
+cors_allowed_origins = [
+  "https://apuntador.app",
+  "https://app.apuntador.app",
+  "http://localhost:3000",
+  "capacitor://localhost",
+  "tauri://localhost"
+]
+
+cors_allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+cors_allowed_headers = ["content-type", "authorization", "x-backend-key"]
+cors_expose_headers  = ["content-type", "x-amz-date"]
+cors_max_age         = 86400  # 24 hours
+cors_allow_credentials = false
+
