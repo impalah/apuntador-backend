@@ -185,3 +185,63 @@ resource "aws_lambda_function" "lambda_function" {
 #   principal     = "sns.amazonaws.com"
 #   source_arn    = var.aws_sns_topic_arn
 # }
+
+################################################################################
+# Provisioned Concurrency & Auto Scaling
+################################################################################
+
+# Lambda alias required for provisioned concurrency
+resource "aws_lambda_alias" "live" {
+  count = var.enable_provisioned_concurrency ? 1 : 0
+
+  name             = "live"
+  description      = "Live alias for provisioned concurrency"
+  function_name    = aws_lambda_function.lambda_function.function_name
+  function_version = "$LATEST"
+}
+
+# Provisioned concurrency configuration
+resource "aws_lambda_provisioned_concurrency_config" "main" {
+  count = var.enable_provisioned_concurrency && !var.enable_lambda_autoscaling ? 1 : 0
+
+  function_name                     = aws_lambda_function.lambda_function.function_name
+  provisioned_concurrent_executions = var.provisioned_concurrent_executions
+  qualifier                         = aws_lambda_alias.live[0].name
+
+  depends_on = [aws_lambda_alias.live]
+}
+
+# Application Auto Scaling target for Lambda
+resource "aws_appautoscaling_target" "lambda" {
+  count = var.enable_provisioned_concurrency && var.enable_lambda_autoscaling ? 1 : 0
+
+  max_capacity       = var.autoscaling_max_capacity
+  min_capacity       = var.autoscaling_min_capacity
+  resource_id        = "function:${aws_lambda_function.lambda_function.function_name}:${aws_lambda_alias.live[0].name}"
+  scalable_dimension = "lambda:function:ProvisionedConcurrentExecutions"
+  service_namespace  = "lambda"
+
+  depends_on = [aws_lambda_alias.live]
+}
+
+# Auto Scaling policy for Lambda provisioned concurrency
+resource "aws_appautoscaling_policy" "lambda" {
+  count = var.enable_provisioned_concurrency && var.enable_lambda_autoscaling ? 1 : 0
+
+  name               = "${var.environment}-${var.project}-${var.function_name}-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.lambda[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.lambda[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.lambda[0].service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    target_value = var.autoscaling_target_value
+
+    predefined_metric_specification {
+      predefined_metric_type = "LambdaProvisionedConcurrencyUtilization"
+    }
+
+    scale_in_cooldown  = 60   # Wait 60s before scaling down
+    scale_out_cooldown = 60   # Wait 60s before scaling up again
+  }
+}

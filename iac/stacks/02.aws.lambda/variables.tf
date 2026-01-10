@@ -465,3 +465,44 @@ variable "fargate_spot_weight" {
   default     = 3
 }
 
+####################################################################
+# Lambda Provisioned Concurrency & Auto Scaling Configuration
+####################################################################
+
+variable "enable_provisioned_concurrency" {
+  description = "Enable provisioned concurrency to eliminate cold starts. WARNING: Costs ~$0.015/hour per instance (~$11/month minimum)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_lambda_autoscaling" {
+  description = "Enable auto scaling for provisioned concurrency (only applies if enable_provisioned_concurrency = true). Scales between min/max capacity based on utilization."
+  type        = bool
+  default     = false
+}
+
+variable "provisioned_concurrent_executions" {
+  description = "Fixed number of provisioned concurrent executions (ignored if autoscaling enabled). Each instance costs ~$11/month."
+  type        = number
+  default     = 1
+}
+
+variable "lambda_autoscaling_min_capacity" {
+  description = "Minimum number of provisioned concurrent executions for auto scaling. You always pay for this minimum (~$11/month per instance)."
+  type        = number
+  default     = 1
+}
+
+variable "lambda_autoscaling_max_capacity" {
+  description = "Maximum number of provisioned concurrent executions for auto scaling. Scales up to this limit during high traffic."
+  type        = number
+  default     = 5
+}
+
+variable "lambda_autoscaling_target_value" {
+  description = "Target utilization for auto scaling (0.0-1.0). Scales when utilization exceeds this value. Recommended: 0.70 (70%)"
+  type        = number
+  default     = 0.70
+}
+
+

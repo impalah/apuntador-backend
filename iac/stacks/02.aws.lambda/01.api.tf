@@ -7,7 +7,7 @@ module "apuntador-api" {
   environment      = var.environment
   project          = var.project
   function_name    = "apuntador-api"
-  function_memory  = "2048"
+  function_memory  = "3008"
   function_storage = "512"
   function_timeout = "300"
   image            = var.api_image
@@ -70,6 +70,14 @@ module "apuntador-api" {
     DROPBOX_CLIENT_SECRET   = var.dropbox_client_secret
     DROPBOX_REDIRECT_URI    = var.dropbox_redirect_uri
   }
+  
+  # Provisioned Concurrency & Auto Scaling
+  enable_provisioned_concurrency     = var.enable_provisioned_concurrency
+  enable_lambda_autoscaling          = var.enable_lambda_autoscaling
+  provisioned_concurrent_executions  = var.provisioned_concurrent_executions
+  autoscaling_min_capacity           = var.lambda_autoscaling_min_capacity
+  autoscaling_max_capacity           = var.lambda_autoscaling_max_capacity
+  autoscaling_target_value           = var.lambda_autoscaling_target_value
 
   #   vpc_id          = module.vpc.vpc_id
   #   vpc_subnets_ids = values(module.vpc.private_subnet_ids)

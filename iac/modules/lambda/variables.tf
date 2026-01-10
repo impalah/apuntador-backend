@@ -148,3 +148,47 @@ variable "tracing_mode" {
     error_message = "Tracing mode must be either 'Active' or 'PassThrough'."
   }
 }
+
+################################################################################
+# Provisioned Concurrency & Auto Scaling
+################################################################################
+
+variable "enable_provisioned_concurrency" {
+  description = "Enable provisioned concurrency to eliminate cold starts (costs ~$0.015/hour per instance)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_lambda_autoscaling" {
+  description = "Enable auto scaling for provisioned concurrency (only applies if enable_provisioned_concurrency = true)"
+  type        = bool
+  default     = false
+}
+
+variable "provisioned_concurrent_executions" {
+  description = "Number of provisioned concurrent executions (fixed value, ignored if autoscaling enabled)"
+  type        = number
+  default     = 1
+}
+
+variable "autoscaling_min_capacity" {
+  description = "Minimum number of provisioned concurrent executions for auto scaling"
+  type        = number
+  default     = 1
+}
+
+variable "autoscaling_max_capacity" {
+  description = "Maximum number of provisioned concurrent executions for auto scaling"
+  type        = number
+  default     = 5
+}
+
+variable "autoscaling_target_value" {
+  description = "Target utilization for auto scaling (0.0-1.0). Scales when utilization exceeds this value"
+  type        = number
+  default     = 0.70
+  validation {
+    condition     = var.autoscaling_target_value > 0 && var.autoscaling_target_value <= 1
+    error_message = "Autoscaling target value must be between 0 and 1."
+  }
+}
