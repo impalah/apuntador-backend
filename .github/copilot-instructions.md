@@ -1,6 +1,22 @@
 # Copilot Instructions for **Apuntador OAuth Backend**
 
-A unified OAuth 2.0 proxy backend built with **FastAPI**, **Pydantic Settings v2**, and **Loguru** logging. Provides secure authentication for multiple cloud providers (Google Drive, Dropbox, OneDrive) using PKCE flow. **Now includes mTLS (Mutual TLS) authentication for physical devices with self-managed Certificate Authority**.
+A unified OAuth 2.0 proxy backend **currently migrating from Python/FastAPI to Rust/Axum**. Provides secure authentication for multiple cloud providers (Google Drive, Dropbox, OneDrive) using PKCE flow. Includes mTLS (Mutual TLS) authentication for physical devices with self-managed Certificate Authority.
+
+## 🚨 MIGRATION IN PROGRESS
+
+This repository is a **monorepo** with dual implementations:
+- **Python** (`python/`): Production-ready, fully functional (FastAPI, Pydantic Settings v2, Loguru)
+- **Rust** (`rust/`): Migration in progress (Axum 0.7, Tower, Tokio)
+
+**CRITICAL CONTEXT FILES**:
+- 📖 [MIGRATION_CONTEXT.md](../docs/MIGRATION_CONTEXT.md) - Complete migration context for AI agents
+- 🛠️ [DEVELOPMENT_WORKFLOW.md](../docs/DEVELOPMENT_WORKFLOW.md) - Daily development guide
+
+When working on this project:
+1. **Check which implementation** you're working on (Python vs Rust)
+2. **Maintain parity**: Rust behavior must match Python exactly
+3. **Reference MIGRATION_CONTEXT.md** for implementation patterns and status
+4. **Use comparison tests**: Validate parity before considering a feature complete
 
 ## Architecture Overview
 
@@ -524,12 +540,26 @@ gunicorn apuntador.main:app \
 
 ## Key Files to Reference
 
-- `src/apuntador/config.py` - Configuration patterns with Pydantic Settings v2
-- `src/apuntador/v1/oauth/api.py` - OAuth endpoint implementation
-- `src/apuntador/services/oauth/oauth_base.py` - Abstract base class for new providers
-- `src/apuntador/utils/pkce.py` - PKCE implementation reference
-- `src/apuntador/middleware/__init__.py` - Trace ID middleware pattern
-- `src/apuntador/middleware/mtls_validation.py` - mTLS certificate validation
+**Migration & Development**:
+- `docs/MIGRATION_CONTEXT.md` - ⭐ **START HERE** - Complete migration context
+- `docs/DEVELOPMENT_WORKFLOW.md` - How to work with dual implementations
+- `comparison-tests/README.md` - Parity testing strategy
+
+**Python Implementation** (Reference for Rust):
+- `python/src/apuntador/config.py` - Configuration patterns with Pydantic Settings v2
+- `python/src/apuntador/api/v1/oauth/api.py` - OAuth endpoint implementation
+- `python/src/apuntador/services/oauth_base.py` - Abstract base class for new providers
+- `python/src/apuntador/utils/pkce.py` - PKCE implementation reference
+- `python/src/apuntador/middleware/__init__.py` - Trace ID middleware pattern
+- `python/src/apuntador/middleware/mtls_validation.py` - mTLS certificate validation
+
+**Rust Implementation** (Work in progress):
+- `rust/src/utils/pkce.rs` - ✅ PKCE (100% parity achieved)
+- `rust/src/routes/health.rs` - ✅ Health check
+- `rust/src/services/oauth.rs` - ⏳ OAuth trait (implementations pending)
+- `rust/src/routes/oauth.rs` - ⏳ OAuth endpoints (pending)
+
+**Infrastructure & Deployment**:
 - `docs/AWS_DEPLOYMENT_GUIDE.md` - AWS Lambda deployment guide
 - `docs/CERTIFICATE_LIFECYCLE.md` - Certificate enrollment, renewal, revocation
 - `docs/INFRASTRUCTURE_ABSTRACTION.md` - Repository pattern for cloud providers
