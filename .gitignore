@@ -20,6 +20,11 @@ wheels/
 .installed.cfg
 *.egg
 
+# Rust
+rust/target/
+rust/**/*.rs.bk
+rust/Cargo.lock
+
 # Virtual environments
 venv/
 ENV/

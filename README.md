@@ -2,6 +2,28 @@
 
 Unified backend to manage OAuth 2.0 authentication with multiple cloud providers (Google Drive, Dropbox, OneDrive).
 
+> **🦀 Rust Migration in Progress**: This repository is actively migrating from Python/FastAPI to Rust/Axum. The Python implementation (`python/`) remains production-ready while Rust (`rust/`) is under development. See [Repository Structure](#repository-structure) for details.
+
+## Repository Structure
+
+This is a **monorepo** containing both Python and Rust implementations:
+
+```
+├── python/           # Python/FastAPI (current production)
+├── rust/             # Rust/Axum (migration in progress)
+├── comparison-tests/ # Parity testing between implementations
+└── iac/              # Terraform infrastructure (shared)
+```
+
+**Active Development**:
+- **Python** (`python/`): Stable, production-ready, fully functional
+- **Rust** (`rust/`): Migration branch, incremental implementation
+- **Comparison Tests** (`comparison-tests/`): Validates parity
+
+See individual README files:
+- [Python Documentation](python/README.md) - Setup and deployment
+- [Rust Documentation](rust/README.md) - Development guide
+
 ## Architecture
 
 ```

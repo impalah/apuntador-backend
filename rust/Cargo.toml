@@ -1,0 +1,98 @@
+[package]
+name = "apuntador-backend"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "lambda"
+path = "src/bin/lambda.rs"
+
+[dependencies]
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+tower = { version = "0.4", features = ["util"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "request-id", "compression-gzip"] }
+tokio = { version = "1", features = ["full"] }
+
+# Serialization/Validation
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_urlencoded = "0.7"
+validator = { version = "0.18", features = ["derive"] }
+
+# Configuration
+config = "0.14"
+dotenvy = "0.15"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+
+# Logging & Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tracing-opentelemetry = "0.23"
+
+# OpenTelemetry
+opentelemetry = "0.22"
+opentelemetry-otlp = { version = "0.15", features = ["grpc-tonic"] }
+opentelemetry-aws = "0.10"
+opentelemetry_sdk = { version = "0.22", features = ["rt-tokio"] }
+
+# AWS SDK
+aws-config = { version = "1.1", features = ["behavior-version-latest"] }
+aws-sdk-dynamodb = "1.14"
+aws-sdk-s3 = "1.14"
+aws-sdk-secretsmanager = "1.14"
+
+# Lambda runtime
+lambda_runtime = "0.11"
+lambda_http = "0.11"
+
+# OAuth & Crypto
+oauth2 = "4.4"
+jsonwebtoken = "9.2"
+base64 = "0.22"
+sha2 = "0.10"
+rand = "0.8"
+ring = "0.17"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Date/Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# UUID
+uuid = { version = "1.7", features = ["v4", "serde"] }
+
+# Async traits
+async-trait = "0.1"
+
+# HTTP types
+http = "1.0"
+hyper = { version = "1.1", features = ["full"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+wiremock = "0.6"
+criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
+
+[[bench]]
+name = "pkce"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.lambda]
+inherits = "release"
+opt-level = "z"
