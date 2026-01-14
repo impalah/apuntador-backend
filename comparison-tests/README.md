@@ -79,10 +79,10 @@ python generate_vectors.py --module pkce --output ../scenarios/pkce/
 
 For a feature to be considered "at parity":
 
-1. ✅ **Functional Equivalence**: Same inputs produce identical outputs
-2. ✅ **Error Handling**: Same errors for invalid inputs
-3. ✅ **Edge Cases**: Boundary conditions handled identically
-4. ⚠️ **Performance**: Rust should be ≥ 5x faster (not blocking parity)
+1. **Functional Equivalence**: Same inputs produce identical outputs
+2. **Error Handling**: Same errors for invalid inputs
+3. **Edge Cases**: Boundary conditions handled identically
+4. **Performance**: Rust should be ≥ 5x faster (not blocking parity)
 
 ## Example: PKCE Parity Test
 

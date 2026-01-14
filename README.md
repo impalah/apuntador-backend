@@ -2,16 +2,46 @@
 
 Unified backend to manage OAuth 2.0 authentication with multiple cloud providers (Google Drive, Dropbox, OneDrive).
 
-> **🦀 Rust Migration in Progress**: This repository is actively migrating from Python/FastAPI to Rust/Axum. The Python implementation (`python/`) remains production-ready while Rust (`rust/`) is under development. See [Repository Structure](#repository-structure) for details.
+> **Rust Migration in Progress**: This repository is actively migrating from Python/FastAPI to Rust/Axum. The Python implementation (`python/`) remains production-ready while Rust (`rust/`) is under development. See [Quick Start](#-quick-start-for-migration) for dual-environment setup.
+
+## Quick Start for Migration
+
+**Recommended**: Use the unified devcontainer that has both Python + Rust:
+
+```bash
+# 1. Open root folder in VS Code: /workspaces/apuntador-backend
+# 2. Cmd/Ctrl + Shift + P → "Dev Containers: Reopen in Container"
+# 3. Wait for build (first time: ~3-5 min)
+
+# Terminal 1: Python server
+cd python && make dev
+
+# Terminal 2: Rust server (different port)
+cd rust && make dev
+```
+
+**Why?** GitHub Copilot can see **both** Python and Rust code, making migration much easier.
+
+**Documentation**:
+- [Development Workflow](docs/DEVELOPMENT_WORKFLOW.md) - Daily development guide
+- [Migration Context](docs/MIGRATION_CONTEXT.md) - Complete AI context for migration
+- [Copilot Usage](docs/COPILOT_USAGE.md) - How to use GitHub Copilot effectively
 
 ## Repository Structure
 
 This is a **monorepo** containing both Python and Rust implementations:
 
 ```
+├── .devcontainer/    # Unified devcontainer (Python + Rust) ⭐ USE THIS
 ├── python/           # Python/FastAPI (current production)
+│   └── .devcontainer/  # Python-only devcontainer
 ├── rust/             # Rust/Axum (migration in progress)
+│   └── .devcontainer/  # Rust-only devcontainer
 ├── comparison-tests/ # Parity testing between implementations
+├── docs/             # Documentation
+│   ├── DEVELOPMENT_WORKFLOW.md
+│   ├── MIGRATION_CONTEXT.md
+│   └── COPILOT_USAGE.md
 └── iac/              # Terraform infrastructure (shared)
 ```
 

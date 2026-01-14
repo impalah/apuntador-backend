@@ -1,12 +1,12 @@
 # Migration Context - Python to Rust
 
-**📋 Archivo de contexto para agentes de IA (GitHub Copilot, Claude, etc.)**
+**Archivo de contexto para agentes de IA (GitHub Copilot, Claude, etc.)**
 
 Este documento contiene toda la información necesaria para que un agente de IA pueda continuar trabajando en la migración de Python/FastAPI a Rust/Axum.
 
 ---
 
-## 🎯 Objetivo de la Migración
+## Objetivo de la Migración
 
 Migrar el backend de OAuth 2.0 (Apuntador) de **Python/FastAPI** a **Rust/Axum** para:
 
@@ -20,7 +20,7 @@ Migrar el backend de OAuth 2.0 (Apuntador) de **Python/FastAPI** a **Rust/Axum**
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 apuntador-backend/
@@ -61,12 +61,12 @@ apuntador-backend/
 │   │   ├── models/
 │   │   │   └── oauth.rs        # OAuth request/response
 │   │   ├── routes/
-│   │   │   ├── health.rs       # Health check ✅
+│   │   │   ├── health.rs       # Health check
 │   │   │   └── oauth.rs        # OAuth routes (TODO)
 │   │   ├── services/
 │   │   │   └── oauth.rs        # OAuth trait (TODO impl)
 │   │   └── utils/
-│   │       └── pkce.rs         # PKCE ✅ (100% parity)
+│   │       └── pkce.rs         # PKCE (100% parity)
 │   ├── benches/                # Benchmarks
 │   │   └── pkce.rs             # PKCE benchmarks
 │   ├── Cargo.toml              # Dependencies
@@ -90,7 +90,7 @@ apuntador-backend/
 
 ---
 
-## 🦀 Stack Técnico
+## Stack Técnico
 
 ### Python (Actual)
 
@@ -125,7 +125,7 @@ apuntador-backend/
 
 ---
 
-## ✅ Estado de Implementación
+## Estado de Implementación
 
 ### Completado (100%)
 
@@ -157,7 +157,7 @@ pub fn generate_code_challenge(code_verifier: &str) -> String {
 }
 ```
 
-**Status**: ✅ Parity achieved
+**Status**: Parity achieved
 - Tests: 3/3 passing
 - Benchmarks: Configured
 - Performance: ~10x faster than Python
@@ -181,18 +181,18 @@ async fn health() -> Json<Value> {
 }
 ```
 
-**Status**: ✅ Functional parity
+**Status**: Functional parity
 
 #### 3. Infrastructure
 
-- ✅ Repository structure
-- ✅ Devcontainers (Python + Rust)
-- ✅ Cargo.toml with all dependencies
-- ✅ Makefile with dev commands
-- ✅ Error handling (`AppError` + `IntoResponse`)
-- ✅ Configuration from `.env`
-- ✅ Trace ID middleware
-- ✅ Structured logging (tracing)
+- Repository structure
+- Devcontainers (Python + Rust)
+- Cargo.toml with all dependencies
+- Makefile with dev commands
+- Error handling (`AppError` + `IntoResponse`)
+- Configuration from `.env`
+- Trace ID middleware
+- Structured logging (tracing)
 
 ---
 
@@ -291,7 +291,7 @@ async fn authorize(
 
 ---
 
-## 🧪 Testing Strategy
+## Testing Strategy
 
 ### 1. Test Vectors (Python → JSON)
 
@@ -346,7 +346,7 @@ def test_benchmark_code_verifier(benchmark):
 
 ---
 
-## 🎓 Patrones de Desarrollo
+## Patrones de Desarrollo
 
 ### 1. Error Handling
 
@@ -450,23 +450,23 @@ info!(provider = %provider, "Starting OAuth flow");
 
 ---
 
-## 📊 Performance Targets
+## Performance Targets
 
 | Operation | Python | Rust Target | Status |
 |-----------|--------|-------------|--------|
-| PKCE code_verifier | ~500 µs | < 50 µs | ✅ Achieved (~30 µs) |
-| PKCE code_challenge | ~100 µs | < 10 µs | ✅ Achieved (~5 µs) |
-| OAuth authorize (URL gen) | ~5 ms | < 500 µs | ⏳ Pending |
-| OAuth callback (token exchange) | ~50 ms | < 5 ms | ⏳ Pending |
-| Health check | ~2 ms | < 200 µs | ✅ Achieved (~100 µs) |
-| Lambda cold start | ~2000 ms | < 200 ms | ⏳ Pending |
-| Memory usage (idle) | ~128 MB | < 30 MB | ⏳ Pending |
+| PKCE code_verifier | ~500 µs | < 50 µs | Achieved (~30 µs) |
+| PKCE code_challenge | ~100 µs | < 10 µs | Achieved (~5 µs) |
+| OAuth authorize (URL gen) | ~5 ms | < 500 µs | Pending |
+| OAuth callback (token exchange) | ~50 ms | < 5 ms | Pending |
+| Health check | ~2 ms | < 200 µs | Achieved (~100 µs) |
+| Lambda cold start | ~2000 ms | < 200 ms | Pending |
+| Memory usage (idle) | ~128 MB | < 30 MB | Pending |
 
 ---
 
-## 🚀 Roadmap (14 Fases, 35-45 días)
+## Roadmap (14 Fases, 35-45 días)
 
-### Phase 1: Setup ✅ (Días 1-2) - COMPLETADO
+### Phase 1: Setup (Días 1-2) - COMPLETADO
 - [x] Repository reorganization
 - [x] Rust project initialization
 - [x] Devcontainers setup
@@ -549,7 +549,7 @@ info!(provider = %provider, "Starting OAuth flow");
 
 ---
 
-## 🎯 Cómo Usar Este Contexto
+## Cómo Usar Este Contexto
 
 ### Para GitHub Copilot
 
@@ -582,7 +582,7 @@ Requisitos:
 
 ---
 
-## 🔗 Referencias Clave
+## Referencias Clave
 
 ### Archivos Python a Replicar
 
@@ -607,15 +607,15 @@ Requisitos:
 
 ---
 
-## 💡 Decisiones de Diseño
+## Decisiones de Diseño
 
 ### 1. Por qué Axum sobre Actix-web?
 
-- ✅ Tower middleware ecosystem (más compatible con AWS SDK)
-- ✅ Mejor integración con tokio
-- ✅ Type-safe extractors
-- ✅ Más activamente mantenido
-- ✅ Mejor DX con async/await
+- Tower middleware ecosystem (más compatible con AWS SDK)
+- Mejor integración con tokio
+- Type-safe extractors
+- Más activamente mantenido
+- Mejor DX con async/await
 
 ### 2. Repository Pattern
 
@@ -644,7 +644,7 @@ Preferimos `config` + `serde` sobre alternativas porque:
 
 ---
 
-## 📌 Notas Importantes
+## Notas Importantes
 
 1. **NO eliminar código Python**: Python sigue en producción durante toda la migración
 2. **Parity primero, optimización después**: Comportamiento idéntico es priority #1
@@ -654,7 +654,7 @@ Preferimos `config` + `serde` sobre alternativas porque:
 
 ---
 
-## 🆘 Debugging Tips
+## Debugging Tips
 
 ### Comparar implementaciones
 

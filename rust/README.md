@@ -2,7 +2,7 @@
 
 Rust/Axum implementation of the Apuntador OAuth 2.0 proxy backend.
 
-**Status**: 🚧 **Migration in Progress** - Incremental migration from Python/FastAPI.
+**Status**: **Migration in Progress** - Incremental migration from Python/FastAPI.
 
 ## Tech Stack
 
@@ -138,7 +138,7 @@ cargo bench
 
 ## Current Implementation Status
 
-### ✅ Completed
+### Completed
 
 - [x] Project structure and Cargo configuration
 - [x] Error handling with Axum IntoResponse
@@ -150,14 +150,14 @@ cargo bench
 - [x] OAuth request/response models
 - [x] Benchmarking setup
 
-### 🚧 In Progress
+### In Progress
 
 - [ ] OAuth service implementations (Google Drive, Dropbox)
 - [ ] OAuth endpoints (authorize, callback, refresh)
 - [ ] AWS SDK integration (DynamoDB, S3, Secrets Manager)
 - [ ] Lambda runtime adapter
 
-### 📋 Planned
+### Planned
 
 - [ ] Device enrollment (mTLS)
 - [ ] Certificate management

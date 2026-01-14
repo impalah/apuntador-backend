@@ -4,7 +4,7 @@
 
 set -e
 
-echo "🔍 Verificando configuración del entorno de desarrollo..."
+echo "Verificando configuración del entorno de desarrollo..."
 echo ""
 
 # Colores para output
@@ -105,7 +105,7 @@ if [ -f "Makefile" ]; then
 fi
 echo ""
 
-echo "4️⃣  Verificando acceso a AWS (si configurado)..."
+echo " Verificando acceso a AWS (si configurado)..."
 if aws sts get-caller-identity &> /dev/null; then
     echo -e "${GREEN}✓${NC} Credenciales AWS configuradas correctamente"
     aws sts get-caller-identity --query '[Account,Arn]' --output text | while read -r line; do
@@ -117,7 +117,7 @@ else
 fi
 echo ""
 
-echo "5️⃣  Comandos disponibles..."
+echo " Comandos disponibles..."
 echo "  make dev          - Inicia el servidor de desarrollo"
 echo "  make test         - Ejecuta los tests"
 echo "  make lint         - Ejecuta el linter"
@@ -125,7 +125,7 @@ echo "  make format       - Formatea el código"
 echo "  make type-check   - Verifica tipos con mypy"
 echo ""
 
-echo -e "${GREEN}✅ Verificación completada!${NC}"
+echo -e "${GREEN}Verificación completada!${NC}"
 echo ""
 echo "Para activar el entorno virtual manualmente:"
 echo "  source .venv/bin/activate"

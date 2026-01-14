@@ -2,7 +2,7 @@
 
 FastAPI-based OAuth 2.0 proxy backend (Production-ready).
 
-**Status**: ✅ **Production** - Fully functional, deployed in AWS Lambda
+**Status**: **Production** - Fully functional, deployed in AWS Lambda
 
 ---
 

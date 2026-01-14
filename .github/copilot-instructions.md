@@ -2,7 +2,7 @@
 
 A unified OAuth 2.0 proxy backend **currently migrating from Python/FastAPI to Rust/Axum**. Provides secure authentication for multiple cloud providers (Google Drive, Dropbox, OneDrive) using PKCE flow. Includes mTLS (Mutual TLS) authentication for physical devices with self-managed Certificate Authority.
 
-## 🚨 MIGRATION IN PROGRESS
+## MIGRATION IN PROGRESS
 
 This repository is a **monorepo** with dual implementations:
 - **Python** (`python/`): Production-ready, fully functional (FastAPI, Pydantic Settings v2, Loguru)
@@ -692,6 +692,38 @@ export CERTIFICATE_DB_PROVIDER=local
 # Run backend
 uv run uvicorn apuntador.main:app --reload
 ```
+
+---
+
+## Code Style Guidelines
+
+### CRITICAL: No Emojis or Icons
+
+**NEVER use emojis, icons, or any Unicode decorative characters in any file within this project.**
+
+This applies to:
+- Source code files (.py, .rs, .ts, .js, etc.)
+- Documentation files (.md, .txt, .rst, etc.)
+- Configuration files (.yaml, .json, .toml, etc.)
+- Shell scripts (.sh, .bash, etc.)
+- Comments in code
+- Commit messages
+- Log messages
+- Error messages
+- User-facing text
+
+**Examples of what NOT to use:**
+- Emojis: 🚀 ✅ ❌ 🎯 📚 🔧 etc.
+- Unicode symbols: ⚠️ ✨ 🔗 etc.
+- Decorative marks of any kind
+
+**Rationale:** Emojis and icons reduce professionalism, can cause encoding issues, complicate text searching, and are unnecessary for clear communication.
+
+**Alternative:** Use clear, professional language:
+- Instead of "✅ Completed", write "COMPLETED" or "Status: Complete"
+- Instead of "🚀 Quick Start", write "Quick Start Guide"
+- Instead of "⚠️ Warning", write "WARNING" or "Note"
+- Instead of "🔧 Setup", write "Setup Instructions"
 
 ---
 

@@ -20,7 +20,7 @@ test:
 	cargo test
 
 check: clippy fmt test
-	@echo "✅ All checks passed"
+	@echo "All checks passed"
 
 clippy:
 	cargo clippy -- -D warnings

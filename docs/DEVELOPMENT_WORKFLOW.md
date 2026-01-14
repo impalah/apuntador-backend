@@ -2,20 +2,49 @@
 
 Guía práctica para trabajar con el monorepo durante la migración.
 
-## 🏗️ Estructura de Devcontainers
+## Estructura de Devcontainers
 
-El proyecto tiene **dos devcontainers independientes**:
+El proyecto ofrece **3 opciones de devcontainer**:
 
+### 1. **Raíz** (`.devcontainer/`) - RECOMENDADO para Migración ✅
+
+**Contiene**: Python 3.14 + Rust 1.75+ + uv + cargo tools  
+**Cuándo usar**: Durante la migración (necesitas ver código Python y Rust simultáneamente)  
+**Ventajas**:
+- Copilot ve **todo** el código
+- Comparación directa Python ↔ Rust
+- Tests de paridad más fáciles
+- No necesitas cambiar de devcontainer
+
+**Cómo usar**:
+```bash
+# 1. Abrir carpeta raíz: /workspaces/apuntador-backend
+# 2. Reopen in Container
+# 3. Terminal 1: cd python && make dev
+# 4. Terminal 2: cd rust && make dev
 ```
-python/.devcontainer/    # Python 3.14 + uv + AWS CLI
-rust/.devcontainer/      # Rust 1.75+ + cargo tools
-```
 
-**⚠️ IMPORTANTE**: Debes reconstruir y reabrir en cada devcontainer según qué estés desarrollando.
+### 2. **Python** (`python/.devcontainer/`) - Solo Python
+
+**Contiene**: Python 3.14 + uv + AWS CLI  
+**Cuándo usar**: Mantenimiento Python sin tocar Rust  
+**Más ligero**: ~200MB vs ~500MB del unificado
+
+### 3. **Rust** (`rust/.devcontainer/`) - Solo Rust
+
+**Contiene**: Rust 1.75+ + cargo tools  
+**Cuándo usar**: Desarrollo Rust avanzado (después de la migración)  
+**Más ligero**: ~200MB
 
 ---
 
-## 🚀 Cómo Lanzar Cada Proyecto
+## Recomendación
+
+**Durante la migración (ahora)**: Usa el **devcontainer de la raíz** para que GitHub Copilot tenga acceso al código Python y Rust simultáneamente.
+
+---
+
+## Cómo Lanzar Cada Proyecto
 
 ### Python/FastAPI (Producción Actual)
 
@@ -118,7 +147,7 @@ make bench          # Benchmarks
 
 ---
 
-## 📂 Flujo de Trabajo Recomendado
+## Flujo de Trabajo Recomendado
 
 ### Escenario 1: Desarrollo Python (Mantenimiento)
 
@@ -179,14 +208,14 @@ make bench          # Benchmarks
 
 ---
 
-## 🔄 Reconstruir Devcontainers
+## Reconstruir Devcontainers
 
 ### Cuándo reconstruir:
 
-- ✅ Primera vez que abres el proyecto
-- ✅ Cambios en `Dockerfile` o `devcontainer.json`
-- ✅ Cambios en dependencias (`pyproject.toml` / `Cargo.toml`)
-- ✅ Después de `git pull` con cambios en devcontainer
+- Primera vez que abres el proyecto
+- Cambios en `Dockerfile` o `devcontainer.json`
+- Cambios en dependencias (`pyproject.toml` / `Cargo.toml`)
+- Después de `git pull` con cambios en devcontainer
 
 ### Cómo reconstruir:
 
@@ -195,7 +224,7 @@ make bench          # Benchmarks
 Cmd/Ctrl + Shift + P → "Dev Containers: Rebuild Container"
 
 # Opción 2: Desde terminal (limpio)
-docker system prune -a  # ⚠️ Elimina TODOS los containers/imágenes
+docker system prune -a  # Elimina TODOS los containers/imágenes
 # Luego reabrir en container
 ```
 
@@ -218,7 +247,7 @@ cargo build
 
 ---
 
-## 🧪 Testing Workflow
+## Testing Workflow
 
 ### 1. Test Vector Generation (Python → JSON)
 
@@ -238,9 +267,9 @@ cd comparison-tests/
 ./scripts/run_parity_tests.sh --scenario pkce
 
 # Output:
-# ✅ Python: code_verifier length = 171 chars
-# ✅ Rust:   code_verifier length = 171 chars
-# ✅ PASS: Both implementations match
+# Python: code_verifier length = 171 chars
+# Rust:   code_verifier length = 171 chars
+# PASS: Both implementations match
 ```
 
 ### 3. Performance Benchmarking
@@ -261,7 +290,7 @@ cd comparison-tests/
 
 ---
 
-## 🎯 GitHub Copilot Context
+## GitHub Copilot Context
 
 ### Problema: Perder contexto al cambiar devcontainer
 
@@ -316,7 +345,7 @@ Next: Implement GoogleDriveOAuthService"
 
 ---
 
-## 📝 Cheatsheet de Comandos
+## Cheatsheet de Comandos
 
 ### Python Development
 
@@ -358,7 +387,7 @@ docker run -p 8000:8000 --env-file .env apuntador-rust
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Problema: "Module not found" en Python
 
@@ -396,7 +425,7 @@ Cmd/Ctrl + Shift + P → "Dev Containers: Rebuild Container Without Cache"
 
 ---
 
-## 🎓 Tips Avanzados
+## Tips Avanzados
 
 ### 1. Usar terminal multiplexer (tmux)
 
@@ -450,7 +479,7 @@ git push origin feature/oauth-rust
 
 ---
 
-## 📚 Recursos
+## Recursos
 
 - [Python README](../python/README.md) - Setup detallado Python
 - [Rust README](../rust/README.md) - Setup detallado Rust
@@ -459,7 +488,7 @@ git push origin feature/oauth-rust
 
 ---
 
-## ✅ Quick Start Checklist
+## Quick Start Checklist
 
 **Primera vez**:
 - [ ] Clonar repositorio

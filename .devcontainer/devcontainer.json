@@ -1,0 +1,61 @@
+{
+	"name": "Apuntador Full Stack (Python + Rust)",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// Python
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff",
+				"ms-python.debugpy",
+				
+				// Rust
+				"rust-lang.rust-analyzer",
+				"vadimcn.vscode-lldb",
+				"serayuzgur.crates",
+				"tamasfe.even-better-toml",
+				"dustypomerleau.rust-syntax",
+				
+				// General
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"editorconfig.editorconfig"
+			],
+			"settings": {
+				// Python
+				"python.defaultInterpreterPath": "${workspaceFolder}/python/venv/bin/python",
+				"python.terminal.activateEnvironment": true,
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff",
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.fixAll": "explicit",
+						"source.organizeImports": "explicit"
+					}
+				},
+				
+				// Rust
+				"rust-analyzer.check.command": "clippy",
+				"rust-analyzer.cargo.features": "all",
+				"rust-analyzer.checkOnSave": true,
+				"[rust]": {
+					"editor.defaultFormatter": "rust-lang.rust-analyzer",
+					"editor.formatOnSave": true
+				},
+				
+				// Files
+				"files.exclude": {
+					"**/__pycache__": true,
+					"**/target": true,
+					"**/.pytest_cache": true,
+					"**/.ruff_cache": true
+				}
+			}
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"remoteUser": "vscode"
+}

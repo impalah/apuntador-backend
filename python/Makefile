@@ -20,7 +20,7 @@ sync: ## Sync dependencies with uv
 install: sync ## Alias for sync (install dependencies)
 
 kill-port: ## Kill process on port 8000
-	@lsof -ti:8000 | xargs kill -9 2>/dev/null && echo "✅ Process on port 8000 terminated" || echo "⚠️  No process on port 8000"
+	@lsof -ti:8000 | xargs kill -9 2>/dev/null && echo "Process on port 8000 terminated" || echo " No process on port 8000"
 
 dev: ## Run development server
 	uv run uvicorn apuntador.main:app --reload --host 0.0.0.0 --port 8000
@@ -50,33 +50,33 @@ clean: ## Clean temporary files
 env: ## Create .env file from .env.example
 	@if [ ! -f .env ]; then \
 		cp .env.example .env; \
-		echo "✅ .env file created. Please edit the variables."; \
+		echo ".env file created. Please edit the variables."; \
 	else \
-		echo "⚠️  .env file already exists."; \
+		echo " .env file already exists."; \
 	fi
 
 docker-builder-reset: ## Reset Docker buildx builder
-	@echo "🔧 Resetting Docker buildx builder..."
-	@docker buildx rm $(BUILDER_NAME) 2>/dev/null || echo "⚠️  Builder '$(BUILDER_NAME)' not found"
+	@echo "Resetting Docker buildx builder..."
+	@docker buildx rm $(BUILDER_NAME) 2>/dev/null || echo " Builder '$(BUILDER_NAME)' not found"
 	@docker buildx create --name $(BUILDER_NAME) --driver docker-container --bootstrap --use
-	@echo "✅ Builder '$(BUILDER_NAME)' created and activated"
+	@echo " Builder '$(BUILDER_NAME)' created and activated"
 
 
 # Bump patch/minor/major version
 bump-version:
 	@v=$$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version) && \
-	echo "🔧 Current version: $$v" && \
+	echo " Current version: $$v" && \
 	uvx --from bump2version bumpversion --allow-dirty --current-version "$$v" $(PART) pyproject.toml && \
-	echo "✅ Version bumped to new $(PART)"
+	echo " Version bumped to new $(PART)"
 
 # Build docker image
 # docker-build:
 docker-build: bump-version
 	@BASE_VERSION=$$(uvx --from=toml-cli toml get --toml-path=pyproject.toml project.version) && \
-	echo "✅ Using version $$BASE_VERSION" && \
+	echo " Using version $$BASE_VERSION" && \
 	echo " Logging into ECR..." && \
 	aws --profile $(PROFILE) ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $(REGISTRY_URI) && \
-	echo "🏗️  Building image for $(PLATFORM)..." && \
+	echo " Building image for $(PLATFORM)..." && \
 	docker buildx build \
 		--provenance=false \
 		--progress=plain \
@@ -85,4 +85,4 @@ docker-build: bump-version
 		-f Dockerfile.lambda \
 		--push \
 		. && \
-	echo "✅ Image built and pushed successfully!"
+	echo " Image built and pushed successfully!"

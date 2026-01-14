@@ -4,7 +4,70 @@ Esta guía te muestra cómo recuperar y mantener el contexto durante la migraci�
 
 ---
 
-## 🎯 Archivos de Contexto Disponibles
+## PROBLEMA: Acceso al Código Python desde Devcontainer Rust
+
+**Síntoma**: Cuando abres solo `rust/` en un devcontainer, Copilot **NO puede ver** el código Python para ayudarte con la migración.
+
+### Soluciones
+
+#### Solución 1: Devcontainer Unificado (RECOMENDADO)
+
+Usa el devcontainer en la **raíz** del proyecto que tiene **ambos** entornos:
+
+```bash
+# 1. Cerrar VS Code
+# 2. Abrir carpeta raíz: /workspaces/apuntador-backend
+# 3. Cmd/Ctrl + Shift + P → "Dev Containers: Reopen in Container"
+# 4. Esperar construcción (solo primera vez, ~3-5 min)
+# 5. Copilot puede ver TODO el código (python/ y rust/)
+
+# Terminal 1: Lanzar Python
+cd python && make dev
+
+# Terminal 2: Lanzar Rust
+cd rust && make dev
+```
+
+**Ventajas**:
+- Copilot ve todo el código (python/ + rust/)
+- Un solo devcontainer para todo
+- Comparación directa Python ↔ Rust
+- Tests de paridad más fáciles
+- No necesitas cambiar de devcontainer
+
+**Desventajas**:
+- Construcción inicial más lenta (~3-5 min vs ~1 min)
+- Usa más memoria (~500MB vs ~200MB)
+
+#### Solución 2: Multi-root Workspace
+
+Abre ambas carpetas simultáneamente:
+
+```json
+// Crear archivo: apuntador.code-workspace
+{
+  "folders": [
+    {"path": "python", "name": "Python Backend"},
+    {"path": "rust", "name": "Rust Backend"}
+  ]
+}
+```
+
+Luego: **File → Open Workspace from File → apuntador.code-workspace**
+
+#### Solución 3: @-mentions de Archivos Python
+
+Desde el devcontainer Rust, referencia archivos Python explícitamente:
+
+```
+@python/src/apuntador/services/oauth_base.py Implementa el equivalente en Rust
+```
+
+**Limitación**: Solo ~10 archivos por prompt.
+
+---
+
+## Archivos de Contexto Disponibles
 
 ### 1. **MIGRATION_CONTEXT.md** - Contexto Completo para IA
 - Roadmap completo (14 fases, 35-45 días)
@@ -32,7 +95,7 @@ Esta guía te muestra cómo recuperar y mantener el contexto durante la migraci�
 
 ---
 
-## 💬 Cómo Usar @-Mentions en GitHub Copilot Chat
+## Cómo Usar @-Mentions en GitHub Copilot Chat
 
 ### Sintaxis Básica
 
@@ -51,7 +114,7 @@ Estaba implementando PKCE utilities.
 ```
 
 **Copilot responderá con**:
-- Estado actual de PKCE (✅ completado)
+- Estado actual de PKCE (completado)
 - Siguiente tarea: OAuth Service implementations
 - Código de referencia Python
 - Patrón a seguir en Rust
@@ -100,7 +163,7 @@ para PKCE (100 casos) y los guarde en JSON para usar en Rust tests.
 
 ---
 
-## 🔄 Workflow Completo de Desarrollo
+## Workflow Completo de Desarrollo
 
 ### Escenario: Implementar OAuth Endpoints en Rust
 
@@ -172,7 +235,7 @@ git commit -m "docs: Update current work progress"
 
 ---
 
-## 🎓 Tips Avanzados
+## Tips Avanzados
 
 ### 1. Combinar Múltiples Archivos
 
@@ -217,7 +280,7 @@ Actualiza la sección "Estado de Implementación" para reflejar esto.
 
 ---
 
-## 📋 Checklist de Contexto
+## Checklist de Contexto
 
 Antes de empezar cada sesión:
 
@@ -288,7 +351,7 @@ Crea estos snippets en `.vscode/copilot-snippets.json`:
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### "Copilot no recuerda conversaciones anteriores"
 
@@ -327,7 +390,7 @@ siguiendo las convenciones del proyecto.
 
 ---
 
-## 📚 Recursos
+## Recursos
 
 - [GitHub Copilot Chat Documentation](https://docs.github.com/en/copilot/github-copilot-chat)
 - [MIGRATION_CONTEXT.md](MIGRATION_CONTEXT.md) - Contexto completo
